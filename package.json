@@ -19,7 +19,7 @@
     "@reach/router": "1.2.1",
     "antd": "4.3.4",
     "antd-dayjs-webpack-plugin": "1.0.0",
-    "axios": "0.19.2",
+    "axios": "0.21.1",
     "babylonjs": "4.1.0",
     "babylonjs-loaders": "4.1.0",
     "cesium": "1.59.0",
