@@ -30,7 +30,7 @@ type user and pass (admin: admin), skip new pass (or change it if you want it)
 
 ## Demo 
 
-Star COSMOS Docker
+Start COSMOS Docker
 
 Run agent_cpu
 ```
@@ -48,4 +48,4 @@ Run agent_web? (WIP): State of Health collector agent.
 ./comos/bin/agent_web
 ```
 
-Open Graphana to see the agent_cpu and propagator data by opening the standard widget.
+Open Grafana to see the agent_cpu and propagator data by opening the standard widget.
