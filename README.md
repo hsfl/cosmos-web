@@ -23,6 +23,14 @@ http://localhost:3000/
 
 type user and pass (admin: admin), skip new pass (or change it if you want it)
 
+
+# Demo 
+
+Run agent_cpu on cosmos core
+```
+./comos/bin/agent_cpu 
+```
+
 ## Installing
 
 Follow the instructions on the [COSMOS Web Installation page](https://hsfl.github.io/cosmos-docs/pages/2-getting_started/install/cosmos-web.html)
