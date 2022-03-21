@@ -2,6 +2,8 @@
 
 COSMOS Web - a web application to visualize telemetry data from a satellite using Grafana. 
 
+![59270 9](https://user-images.githubusercontent.com/1541868/159378681-836b043d-a14a-44c6-a586-7de8fca09ad0.png)
+
 ## Install Instructions (via Docker)
 
 1. Open terminal in cosmos-web folder
@@ -23,8 +25,10 @@ http://localhost:3000/
 
 type user and pass (admin: admin), skip new pass (or change it if you want it)
 
+(old instructions: Follow the instructions on the [COSMOS Web Installation page](https://hsfl.github.io/cosmos-docs/pages/2-getting_started/install/cosmos-web.html))
 
-# Demo 
+
+## Demo 
 
 Star COSMOS Docker
 
@@ -32,6 +36,7 @@ Run agent_cpu
 ```
 ./comos/bin/agent_cpu 
 ```
+
 
 Run propagator_simple. Propagate position and attitude in the satellite orbit for a specific node/satellite
 ```
@@ -44,7 +49,3 @@ Run agent_web? (WIP): State of Health collector agent.
 ```
 
 Open Graphana to see the agent_cpu and propagator data by opening the standard widget.
-
-## Installing
-
-Follow the instructions on the [COSMOS Web Installation page](https://hsfl.github.io/cosmos-docs/pages/2-getting_started/install/cosmos-web.html)
