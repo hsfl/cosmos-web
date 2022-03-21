@@ -1,6 +1,6 @@
 # COSMOS Web v2.0
 
-COSMOS Web - a web application to visualize telemetry data from a satellite. UI Repository.
+COSMOS Web - a web application to visualize telemetry data from a satellite using Grafana. 
 
 ## Install Instructions (via Docker)
 
@@ -16,7 +16,7 @@ run this to get the containers up in detached mode
 docker-compose up -d
 ```
 
-# Running (via Docker)
+## Running COSMOS Web (via Docker)
 
 View grafana in the browser using this url
 http://localhost:3000/
