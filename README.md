@@ -26,10 +26,24 @@ type user and pass (admin: admin), skip new pass (or change it if you want it)
 
 # Demo 
 
-Run agent_cpu on cosmos core
+Star COSMOS Docker
+
+Run agent_cpu
 ```
 ./comos/bin/agent_cpu 
 ```
+
+Run propagator_simple. Propagate position and attitude in the satellite orbit for a specific node/satellite
+```
+./comos/bin/propagator_simple
+```
+
+Run agent_web? (WIP): State of Health collector agent.
+```
+./comos/bin/agent_web
+```
+
+Open Graphana to see the agent_cpu and propagator data by opening the standard widget.
 
 ## Installing
 
