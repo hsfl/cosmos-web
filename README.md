@@ -6,7 +6,7 @@ COSMOS Web - a web application to visualize telemetry data from a satellite. UI 
 
 1. Open terminal in cosmos-web folder
 2. run this to get the containers up in the terminal
-starts the telegraf, influxdb, and grafana (eventually) containers
+starts the telegraf, influxdb, and grafana (eventually) containers (this process may take a few minutes)
 ```
 docker-compose up
 ```
