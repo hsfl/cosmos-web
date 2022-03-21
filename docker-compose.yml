@@ -1,0 +1,62 @@
+version: '3.6'
+services:
+  influxdb:
+    image: influxdb:2.1.1
+    container_name: influxdb
+    restart: always
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=admin
+      - DOCKER_INFLUXDB_INIT_ORG=hsfl
+      - DOCKER_INFLUXDB_INIT_BUCKET=SOH_Bucket
+      #- DOCKER_INFLUXDB_INIT_RETENTION=
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=INFLUXDBINITADMINTOKEN
+    ports:
+      - '8086:8086'
+    volumes:
+      # Mount for influxdb data directory and configuration
+      - influxdb2:/.influxdb2
+
+  telegraf:
+    image: telegraf
+    container_name: telegraf
+    restart: always
+    environment:
+      - DOCKER_INFLUXDB_INIT_ORG=hsfl
+      - DOCKER_INFLUXDB_INIT_BUCKET=SOH_Bucket
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=INFLUXDBINITADMINTOKEN
+      - AGENT_SOH_PORT=10091
+    ports:
+      - '10091:10091/udp'
+    volumes:
+    - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    - ./sohparser.star:/sohparser.star:ro
+    depends_on:
+      - influxdb
+    links:
+      - influxdb
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana-server
+    restart: always
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=
+    links:
+      - influxdb
+    ports:
+      - '3000:3000'
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+      
+volumes:
+  grafana_data: {}
+  influxdb2: {}
+
+
