@@ -1,0 +1,20 @@
+# run this to get the containers up in the terminal
+# starts the telegraf, influxdb, and grafana (eventually) containers
+> docker-compose up
+
+# run this to get the containers up in detached mode
+> docker-compose up -d
+
+# use this to stop everything
+> docker-compose stop
+
+# remove the docker containers to get them to rebuild
+# docker ps -a
+> docker rm [service_number]
+
+# use to access the bash terminal within a container
+# in this example, the influxdb container, change the name to something else
+> docker exec -it influxdb /bin/bash
+
+# display last logged lines
+> docker logs [container_id]
