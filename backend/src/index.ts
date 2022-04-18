@@ -3,6 +3,7 @@ import cors from 'cors';
 import dgram from 'dgram';
 
 const AGENT_COMM_PORT = 10091;
+const AGENT_COMM_ADDR = '192.168.150.66';
 
 const app = express();
 app.use(cors(), express.json());
@@ -20,9 +21,9 @@ app.post('/comm', (req, res) => {
     {
         // Send to agent_comm
         const socket = dgram.createSocket({ type: 'udp4' });
-        socket.send(JSON.stringify(req.body), AGENT_COMM_PORT, '192.168.150.66', (err) => {
+        socket.send(JSON.stringify(req.body), AGENT_COMM_PORT, AGENT_COMM_ADDR, (err) => {
             if (err) throw err;
-            console.log('Sent', JSON.stringify(req.body), 'to', AGENT_COMM_PORT, 'localhost');
+            console.log('Sent', JSON.stringify(req.body), 'to', AGENT_COMM_PORT, AGENT_COMM_ADDR);
             socket.close();
         });
     }
