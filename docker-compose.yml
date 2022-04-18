@@ -52,7 +52,7 @@ services:
     ports:
       - '3000:3000'
       #- '8086:8086'
-      - '10093:10093'
+      #- '10093:10093'
     volumes:
       - grafana_data:/var/lib/grafana
       - ~/Documents/RandomCode/TIGCosmosWeb/grafana-plugins:/var/lib/grafana/plugins
@@ -72,6 +72,8 @@ services:
       dockerfile: Dockerfile
       target: base
     container_name: cosmos_web_backend
+    ports:
+      - '10093:10093'
     volumes:
       - ./backend/src:/home/node/app/src
       - ./backend/nodemon.json:/home/node/app/nodemon.json

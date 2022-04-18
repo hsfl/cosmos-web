@@ -5,8 +5,8 @@ import { Button } from '@grafana/ui';
 
 interface Props extends PanelProps<SimpleOptions> {}
 
-const url = 'http://localhost:10093/';
-//const url = "http://cosmos_web_backend:10093";
+//const url = 'http://localhost:10093/';
+const url = 'http://192.168.150.123:10093/';
 const options = (cmdID: Number) => {
   return {
     method: 'POST',
