@@ -18,3 +18,15 @@
 
 # display last logged lines
 > docker logs [container_id]
+
+
+# build orbit panel
+> yarn dev
+
+# build orbit backend plugin
+> mage -v
+
+# restart grafana container to see changes
+> docker restart [container_id]
+
+# To use the orbit panel, be sure to run propagator_web inside the cosmos/bin folder in the cosmos docker container
