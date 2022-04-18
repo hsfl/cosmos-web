@@ -55,7 +55,7 @@ services:
       #- '10093:10093'
     volumes:
       - grafana_data:/var/lib/grafana
-      - ~/Documents/RandomCode/TIGCosmosWeb/grafana-plugins:/var/lib/grafana/plugins
+      - ./grafana-plugins:/var/lib/grafana/plugins
 
   cosmos:
     build:
@@ -75,6 +75,7 @@ services:
     ports:
       - '10093:10093'
     volumes:
+      - ./grafana-plugins:/grafana-plugins
       - ./backend/src:/home/node/app/src
       - ./backend/nodemon.json:/home/node/app/nodemon.json
     command: npm run dev
