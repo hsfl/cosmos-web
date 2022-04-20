@@ -31,10 +31,12 @@ git clone https://github.com/hsfl/cosmos-web.git ~/cosmos/docker/cosmos-web
 Building the cosmos image:
 
 1. Open terminal in your newly created cosmos-web folder
-macOS: ```shell
+macOS: 
+```shell
 cd cosmos/docker/cosmos-web
 ```
-Windows: ```shell
+Windows: 
+```shell
 cd c:/cosmos/docker/cosmos-web
 ```
 3. run this to get the containers up in the terminal
