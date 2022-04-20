@@ -31,7 +31,13 @@ git clone https://github.com/hsfl/cosmos-web.git ~/cosmos/docker/cosmos-web
 Building the cosmos image:
 
 1. Open terminal in your newly created cosmos-web folder
-2. run this to get the containers up in the terminal
+macOS: ```shell
+cd cosmos/docker/cosmos-web
+```
+Windows: ```shell
+cd c:/cosmos/docker/cosmos-web
+```
+3. run this to get the containers up in the terminal
 builds the telegraf, influxdb, and grafana containers (this process may take a few minutes)
 ```
 docker-compose build
