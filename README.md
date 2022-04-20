@@ -4,8 +4,6 @@ COSMOS Web - a web application to visualize telemetry data from a satellite usin
 
 ![59270 9](https://user-images.githubusercontent.com/1541868/159378681-836b043d-a14a-44c6-a586-7de8fca09ad0.png)
 
-Before you install cosmos web we reccomend you install cosmos core by following the instructions [here](https://github.com/hsfl/cosmos).
-
 ## Install Instructions (via Docker)
 
 On Windows: clone cosmos to c:/cosmos/docker/cosmos
