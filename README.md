@@ -4,7 +4,15 @@ COSMOS Web - a web application to visualize telemetry data from a satellite usin
 
 ![59270 9](https://user-images.githubusercontent.com/1541868/159378681-836b043d-a14a-44c6-a586-7de8fca09ad0.png)
 
+We recommend installing COSMOS via Docker. By using Docker containers you will get all the COSMOS dependencies automatically resolved. This process works well for users and developers.
+
+Install Docker Desktop
+Install Docker Compose (Only needed for a Linux OS. Docker compose is automatically installed on Docker Desktop on Windows and macOS)
+Once you have Docker installed we are going to clone the cosmos repository. Open your terminal window, copy and run the following command.
+
 ## Install Instructions (via Docker)
+
+1. Cloning COSMOS Core: 
 
 On Windows: clone cosmos to c:/cosmos/docker/cosmos
 ```shell
@@ -15,6 +23,7 @@ On Linux and macOS: clone cosmos to the home folder ~/cosmos/docker/cosmos
 ```shell
 git clone https://github.com/hsfl/cosmos.git ~/cosmos/docker/cosmos
 ```
+2. Cloning COMSOS-Web
 
 On Windows: clone cosmos-web to c:/cosmos/docker/cosmos-web 
 ```shell
