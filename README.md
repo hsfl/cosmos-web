@@ -8,25 +8,33 @@ Before you install cosmos web we reccomend you install cosmos core by following 
 
 ## Install Instructions (via Docker)
 
-Once you have cosmos-core installed we are going to clone the cosmos-web repository. Open your terminal window, copy and run the following command.
-
-On Windows: clone cosmos to c:/cosmos/cosmos-web (recommended path)
+On Windows: clone cosmos to c:/cosmos/docker/cosmos
 ```shell
-git clone https://github.com/hsfl/cosmos-web.git c:/cosmos/cosmos-web
+git clone https://github.com/hsfl/cosmos.git c:/cosmos/docker/cosmos
 ```
 
-On Linux and macOS: clone cosmos to the home folder ~/cosmos/cosmos-web (recommended path)
+On Linux and macOS: clone cosmos to the home folder ~/cosmos/docker/cosmos
 ```shell
-git clone https://github.com/hsfl/cosmos-web.git ~/cosmos/cosmos-web
+git clone https://github.com/hsfl/cosmos.git ~/cosmos/docker/cosmos
 ```
 
-To build the cosmos image go into the newly created folder and run the Docker build command (this step may take several minutes to complete):
+On Windows: clone cosmos-web to c:/cosmos/docker/cosmos-web 
+```shell
+git clone https://github.com/hsfl/cosmos-web.git c:/cosmos/docker/cosmos-web
+```
 
-1. Open terminal in your newely created cosmos-web folder
+On Linux and macOS: clone cosmos-web to the home folder ~/cosmos/docker/cosmos-web
+```shell
+git clone https://github.com/hsfl/cosmos-web.git ~/cosmos/docker/cosmos-web
+```
+
+Building the cosmos image:
+
+1. Open terminal in your newly created cosmos-web folder
 2. run this to get the containers up in the terminal
-starts the telegraf, influxdb, and grafana (eventually) containers (this process may take a few minutes)
+builds the telegraf, influxdb, and grafana containers (this process may take a few minutes)
 ```
-docker-compose up
+docker-compose build
 ```
 
 run this to get the containers up in detached mode
