@@ -41,7 +41,7 @@ git clone https://github.com/hsfl/cosmos-web.git ~/cosmos/docker/cosmos-web
 ```
 this git clones clone cosmos web to ~/cosmos/docker/cosmos-web
 
-AFTER you have completed the prior steps, continue with the following steps. Note these steps are the same for both operating systems. 
+**AFTER you have completed the prior steps, continue with the following steps. Note these steps are the same for both operating systems.** 
 
 Building the cosmos image:
 
