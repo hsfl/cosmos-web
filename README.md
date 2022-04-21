@@ -14,9 +14,9 @@ Once you have Docker installed we are going to clone the cosmos repository. Open
 
 1. Cloning COSMOS Core: 
 
-On Windows: clone cosmos to ~/cosmos/docker/cosmos
+On Windows: clone cosmos to c:/cosmos/docker/cosmos
 ```shell
-git clone https://github.com/hsfl/cosmos.git ~/cosmos/docker/cosmos
+git clone https://github.com/hsfl/cosmos.git c:/cosmos/docker/cosmos
 ```
 
 On Linux and macOS: clone cosmos to the home folder ~/cosmos/docker/cosmos
@@ -25,9 +25,9 @@ git clone https://github.com/hsfl/cosmos.git ~/cosmos/docker/cosmos
 ```
 2. Cloning COMSOS-Web
 
-On Windows: clone cosmos-web to ~/cosmos/docker/cosmos-web 
+On Windows: clone cosmos-web to c:/cosmos/docker/cosmos-web 
 ```shell
-git clone https://github.com/hsfl/cosmos-web.git ~/cosmos/docker/cosmos-web
+git clone https://github.com/hsfl/cosmos-web.git c:/cosmos/docker/cosmos-web
 ```
 
 On Linux and macOS: clone cosmos-web to the home folder ~/cosmos/docker/cosmos-web
