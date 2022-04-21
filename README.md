@@ -6,9 +6,8 @@ COSMOS Web - a web application to visualize telemetry data from a satellite usin
 
 We recommend installing COSMOS via Docker. By using Docker containers you will get all the COSMOS dependencies automatically resolved. This process works well for users and developers.
 
-Install Docker Desktop
-Install Docker Compose (Only needed for a Linux OS. Docker compose is automatically installed on Docker Desktop on Windows and macOS)
-Once you have Docker installed we are going to clone the cosmos repository. Open your terminal window, copy and run the following command.
+* [Install Docker Desktop](https://www.docker.com/get-started/)
+* [Install Docker Compose](https://docs.docker.com/compose/install/) (Only needed for a Linux OS. Docker compose is automatically installed on Docker Desktop on Windows and macOS)
 
 ## Install Instructions (via Docker)
 
