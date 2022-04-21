@@ -12,7 +12,7 @@ Once you have Docker installed we are going to clone the cosmos repository. Open
 
 ## Install Instructions (via Docker)
 
-Windows Instructions: 
+**Windows Instructions:** 
 
 Open a command prompt window and enter the following two commands: 
 
@@ -27,7 +27,7 @@ git clone https://github.com/hsfl/cosmos-web.git c:/cosmos/docker/cosmos-web
 this git clones clone cosmos web to c:/cosmos/docker/cosmos-web
 
 
-macOS Instructions: 
+**macOS Instructions:**
 
 Open a terminal window and enter the following two commands: 
 
