@@ -12,38 +12,49 @@ Once you have Docker installed we are going to clone the cosmos repository. Open
 
 ## Install Instructions (via Docker)
 
-1. Cloning COSMOS Core: 
+Windows Instructions: 
 
-On Windows: clone cosmos to c:/cosmos/docker/cosmos
+Open a command prompt window and enter the following two commands: 
+
 ```shell
 git clone https://github.com/hsfl/cosmos.git c:/cosmos/docker/cosmos
 ```
-
-On Linux and macOS: clone cosmos to the home folder ~/cosmos/docker/cosmos
-```shell
-git clone https://github.com/hsfl/cosmos.git ~/cosmos/docker/cosmos
-```
-2. Cloning COMSOS-Web
-
-On Windows: clone cosmos-web to c:/cosmos/docker/cosmos-web 
+this git clones clone cosmos core to c:/cosmos/docker/cosmos
+ 
 ```shell
 git clone https://github.com/hsfl/cosmos-web.git c:/cosmos/docker/cosmos-web
 ```
+this git clones clone cosmos web to c:/cosmos/docker/cosmos-web
 
-On Linux and macOS: clone cosmos-web to the home folder ~/cosmos/docker/cosmos-web
+
+macOS Instructions: 
+
+Open a terminal window and enter the following two commands: 
+
+```shell
+git clone https://github.com/hsfl/cosmos.git ~/cosmos/docker/cosmos
+```
+this git clones clone cosmos core to ~/cosmos/docker/cosmos
+ 
 ```shell
 git clone https://github.com/hsfl/cosmos-web.git ~/cosmos/docker/cosmos-web
 ```
+this git clones clone cosmos web to ~/cosmos/docker/cosmos-web
+
+AFTER you have completed the prior steps, continue with the following steps. Note these steps are the same for both operating systems. 
 
 Building the cosmos image:
 
 1. Open terminal in your newly created cosmos-web folder
-2. Run the following command to get the containers up in the terminal, this builds the telegraf, influxdb, and grafana containers. (this process may take a few minutes)
+```shell
+cd cosmos/docker/cosmos-web
+```
+2. Next, run the following command to get the containers up in the terminal, this builds the telegraf, influxdb, and grafana containers needed for COSMOS. (this process may take a few minutes)
 ```
 docker-compose build
 ```
 
-run this to get the containers up in detached mode
+Optionally, you can run this to get the containers up in detached mode
 ```
 docker-compose up -d
 ```
