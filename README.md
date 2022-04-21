@@ -54,7 +54,7 @@ cd cosmos/docker/cosmos-web
 docker-compose build
 ```
 
-Optionally, you can run this to get the containers up in detached mode
+3. Finally, run this command to create the containers in Docker. 
 ```
 docker-compose up -d
 ```
