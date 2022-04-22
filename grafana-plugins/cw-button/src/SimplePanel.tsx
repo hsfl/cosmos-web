@@ -29,7 +29,7 @@ const handleOnClick = async (e: React.MouseEvent, route: String, cmdID: Number) 
 export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
   return (
     <div>
-      <Button onClick={(e) => handleOnClick(e, options.route, options.cmdID)}>Button Text</Button>
+      <Button onClick={(e) => handleOnClick(e, options.route, options.cmdID)}>{options.btnLabel}</Button>
     </div>
   );
 };
