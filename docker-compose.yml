@@ -26,12 +26,14 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=hsfl
       - DOCKER_INFLUXDB_INIT_BUCKET=SOH_Bucket
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=INFLUXDBINITADMINTOKEN
-      - AGENT_SOH_PORT=10092
+      #- AGENT_SOH_PORT=10092
+      - AGENT_BEACON_PORT=10092
     ports:
       - '10092:10092/udp'
     volumes:
     - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
     - ./sohparser.star:/sohparser.star:ro
+    - ./beacon_parser.star:/beacon_parser.star:ro
     depends_on:
       - influxdb
     links:
