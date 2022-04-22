@@ -15,6 +15,11 @@ def apply(metric):
 			continue
 
 		# Add other beacon keys as fields
-		new_metric.field[key] = j[key]
+		entry = j[key]
+		etype = type(entry)
+		if (etype == "int"):
+			# Whole numbers mess things up so just cast everything to floats
+			entry = float(entry)
+		new_metric.fields[key] = entry
 
 	return new_metric
