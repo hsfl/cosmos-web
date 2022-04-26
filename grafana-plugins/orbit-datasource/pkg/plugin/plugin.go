@@ -102,7 +102,7 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 
 	// Get flux query result
 	result, err := queryAPI.Query(context.Background(),
-		`from(bucket: "HyTI_SOH")
+		`from(bucket: "SOH_Bucket")
 			|> range(start: -70d)
 			|> filter(fn: (r) => r["_measurement"] == "unibapfm")
 			|> filter(fn: (r) => r["_field"] == "pos[0]")
