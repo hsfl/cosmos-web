@@ -84,6 +84,17 @@ type queryModel struct {
 	WithStreaming bool `json:"withStreaming"`
 }
 
+type prop_args struct {
+	Node_name string
+	Utc       float64
+	Px        float64
+	Py        float64
+	Pz        float64
+	Vx        float64
+	Vy        float64
+	Vz        float64
+}
+
 var buffer = make([]byte, 60000)
 
 func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
@@ -133,6 +144,26 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 	// 	data.NewField("czmldata", nil, []string{testczml}),
 	// )
 
+	// Create arg array
+	pargs := []prop_args{
+		{
+			Node_name: "unibapfm",
+			Utc:       59695.83958333,
+			Px:        6168355.8864557147,
+			Py:        542300.05598746601,
+			Pz:        2750088.4374789037,
+			Vx:        -2738.6084370038561,
+			Vy:        5012.1337245784698,
+			Vz:        5159.0421823724719,
+		},
+	}
+	pargs_bytes, err := json.Marshal(pargs)
+	if err != nil {
+		log.DefaultLogger.Error("json.Marshal error", err.Error())
+		response.Error = err
+		return response
+	}
+
 	// Attempt propagator_web call
 	raddr, err := net.ResolveUDPAddr("udp", "cosmos:10090")
 	if err != nil {
@@ -147,7 +178,7 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 	defer conn.Close()
 	// Send message
 	//n, addr, err := conn.ReadFrom(buffer)
-	n, err := fmt.Fprintf(conn, "[1]")
+	n, err := fmt.Fprintf(conn, string(pargs_bytes))
 	if err != nil {
 		response.Error = err
 		log.DefaultLogger.Error("UDP SEND ERROR", err.Error())
