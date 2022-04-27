@@ -9,7 +9,7 @@ const AGENT_COMM_ADDR = '192.168.150.66';
 const WEB_API_PORT = 10090;
 
 const app = express();
-app.use(cors(), express.json());
+app.use(cors({origin: true}), express.json());
 
 // Setting up a very minimal backend for cosmos web's grafana front end
 

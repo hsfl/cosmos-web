@@ -7,5 +7,6 @@ export interface SimpleOptions {
   route: Routes;
   dest: Dests;
   cmdID: Number;
-  radioOut: Radios;
+  args: String;
+  radioout: Radios;
 }

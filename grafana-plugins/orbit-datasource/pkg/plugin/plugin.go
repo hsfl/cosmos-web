@@ -187,7 +187,6 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 	}
 	// TODO: add read timeout
 	// Receive response
-	log.DefaultLogger.Info("UDP RECEIVE 1")
 	n, err = conn.Read(buffer)
 	if err != nil {
 		response.Error = fmt.Errorf("%w. Is propagator_web running?", err)

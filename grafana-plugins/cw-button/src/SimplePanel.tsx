@@ -8,21 +8,25 @@ interface Props extends PanelProps<SimpleOptions> {}
 const WEB_API_PORT = 10090;
 //const url = `http://localhost:${WEB_API_PORT}/`;
 const url = `http://192.168.150.123:${WEB_API_PORT}/`;
-const options = (cmdID: Number) => {
+
+const msg = (options: SimpleOptions) => {
   return {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      cmdID: cmdID,
+      dest: options.dest,
+      cmdID: options.cmdID,
+      args: options.args,
+      radioout: options.radioout,
     }),
   };
 };
 
 // Sends the packet id number to backend
-const handleOnClick = async (e: React.MouseEvent, route: String, cmdID: Number) => {
-  await fetch(url + route, options(cmdID))
+const handleOnClick = async (e: React.MouseEvent, options: SimpleOptions) => {
+  await fetch(url + options.route, msg(options))
     .then((response) => response.json())
     .then((data) => data);
 };
@@ -30,7 +34,7 @@ const handleOnClick = async (e: React.MouseEvent, route: String, cmdID: Number) 
 export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
   return (
     <div>
-      <Button onClick={(e) => handleOnClick(e, options.route, options.cmdID)}>{options.btnLabel}</Button>
+      <Button onClick={(e) => handleOnClick(e, options)}>{options.btnLabel}</Button>
     </div>
   );
 };
