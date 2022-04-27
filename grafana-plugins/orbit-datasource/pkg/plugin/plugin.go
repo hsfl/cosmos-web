@@ -165,8 +165,8 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 	}
 
 	// Attempt propagator_web call
-	const aaa int = 10092
-	raddr, err := net.ResolveUDPAddr("udp", "cosmos:"+fmt.Sprint(aaa))
+	const PROPAGATOR_WEB_PORT int = 10092
+	raddr, err := net.ResolveUDPAddr("udp", "cosmos:"+fmt.Sprint(PROPAGATOR_WEB_PORT))
 	if err != nil {
 		response.Error = err
 		return response
@@ -190,7 +190,7 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 	log.DefaultLogger.Info("UDP RECEIVE 1")
 	n, err = conn.Read(buffer)
 	if err != nil {
-		response.Error = err
+		response.Error = fmt.Errorf("%w. Is propagator_web running?", err)
 		log.DefaultLogger.Error("UDP RECV ERROR", err.Error())
 		return response
 	}
@@ -199,7 +199,7 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 	frame.Fields = append(frame.Fields,
 		data.NewField("czmldata", nil, []string{czml_response}),
 	)
-	log.DefaultLogger.Info("UDP RECEIVE", "n", n, "len(s)", len(czml_response))
+	// log.DefaultLogger.Info("UDP RECEIVE", "n", n, "len(s)", len(czml_response))
 
 	// If query called with streaming on then return a channel
 	// to subscribe on a client-side and consume updates from a plugin.
