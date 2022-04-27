@@ -5,8 +5,9 @@ import { Button } from '@grafana/ui';
 
 interface Props extends PanelProps<SimpleOptions> {}
 
-//const url = 'http://localhost:10093/';
-const url = 'http://192.168.150.123:10093/';
+const WEB_API_PORT = 10090;
+//const url = `http://localhost:${WEB_API_PORT}/`;
+const url = `http://192.168.150.123:${WEB_API_PORT}/`;
 const options = (cmdID: Number) => {
   return {
     method: 'POST',

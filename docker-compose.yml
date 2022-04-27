@@ -26,13 +26,13 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=hsfl
       - DOCKER_INFLUXDB_INIT_BUCKET=SOH_Bucket
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=INFLUXDBINITADMINTOKEN
-      #- AGENT_SOH_PORT=10092
-      - AGENT_BEACON_PORT=10092
+      - AGENT_BEACON_PORT=10095
+      - AGENT_SOH_PORT=10096
     ports:
-      - '10092:10092/udp'
+      - '10095:10095/udp'
     volumes:
     - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    - ./sohparser.star:/sohparser.star:ro
+    - ./soh_parser.star:/soh_parser.star:ro
     - ./beacon_parser.star:/beacon_parser.star:ro
     depends_on:
       - influxdb
@@ -54,7 +54,6 @@ services:
     ports:
       - '3000:3000'
       #- '8086:8086'
-      #- '10093:10093'
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana-plugins:/var/lib/grafana/plugins
@@ -75,7 +74,7 @@ services:
       target: base
     container_name: cosmos_web_backend
     ports:
-      - '10093:10093'
+      - '10090:10090'
     volumes:
       - ./grafana-plugins:/grafana-plugins
       - ./backend/src:/home/node/app/src

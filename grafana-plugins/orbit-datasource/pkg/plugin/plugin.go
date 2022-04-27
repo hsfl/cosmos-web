@@ -165,7 +165,8 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 	}
 
 	// Attempt propagator_web call
-	raddr, err := net.ResolveUDPAddr("udp", "cosmos:10090")
+	const aaa int = 10092
+	raddr, err := net.ResolveUDPAddr("udp", "cosmos:"+fmt.Sprint(aaa))
 	if err != nil {
 		response.Error = err
 		return response

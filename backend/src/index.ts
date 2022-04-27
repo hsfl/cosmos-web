@@ -2,8 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import dgram from 'dgram';
 
+// Port and address agent_comm is running/listening on
 const AGENT_COMM_PORT = 10091;
 const AGENT_COMM_ADDR = '192.168.150.66';
+// Where this is running
+const WEB_API_PORT = 10090;
 
 const app = express();
 app.use(cors(), express.json());
@@ -36,6 +39,6 @@ app.post('/orbit', (req, res) => {
     res.send({hee: 'postpostpost'});
 });
 
-app.listen(10093, () => {
-    console.log(`server running on port 10093`);
+app.listen(WEB_API_PORT, () => {
+    console.log(`server running on port ${WEB_API_PORT}`);
 });
