@@ -17,6 +17,7 @@ const globeTexture = new TileMapServiceImageryProvider({
 
 interface CzmlPacket {
   id: string;
+  name?: string;
   version?: string;
   availability?: string;
   position?: {
@@ -68,7 +69,7 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   const czml0 = [
     {
       id: 'document',
-      name: 'Cesium Orbit Display for Cosmos Web',
+      name: 'OrbitDatasourceResponse-Historical',
       version: '1.0',
     },
   ];
@@ -103,17 +104,15 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   //   }, 5000);
   //console.log(buildModuleUrl('Assets/Textures/NaturalEarthII'));
   setTimeout(() => {
-    console.log('i1');
     if (viewer.current?.cesiumElement && viewer.current?.cesiumElement.dataSources.length) {
       // viewer.current.cesiumElement is the Cesium Viewer
-      console.log('i2');
       let myczml = viewer.current.cesiumElement.dataSources.getByName(
-        'Cesium Orbit Display for Cosmos Web'
+        'OrbitDatasourceResponse-Historical'
       ) as CesiumCzmlDataSource[];
       if (myczml.length === 1) {
         // myczml[0] is our CZMLDataSource
         let czmlres: CzmlPacket = JSON.parse(data.series[0].fields[0].values.get(0));
-        console.log(czmlres);
+        console.log(data.series[0].fields, czmlres);
         myczml[0].process(czmlres);
       }
     }
@@ -125,6 +124,7 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   };
 
   console.log('rerender globe panel');
+  console.log(data.series);
 
   return (
     <div>

@@ -1,58 +1,101 @@
 import { defaults } from 'lodash';
 
-import React, { ChangeEvent, PureComponent, SyntheticEvent } from 'react';
-import { LegacyForms } from '@grafana/ui';
+import React, { ChangeEvent /*, SyntheticEvent*/, useState } from 'react';
+import { InlineField, InlineFieldRow, InlineFormLabel, Input, InlineSwitch } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from './datasource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from './types';
 
-const { FormField, Switch } = LegacyForms;
-
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
-export class QueryEditor extends PureComponent<Props> {
-  onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { onChange, query } = this.props;
-    onChange({ ...query, queryText: event.target.value });
+//export class QueryEditor extends PureComponent<Props> {
+export const QueryEditor = (props: Props) => {
+  const query = defaults(props.query, defaultQuery);
+  const { queryText, constant, enableSimMode } = query;
+  const [simMode, setSimMode] = useState<boolean>(enableSimMode || false);
+
+  // const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
+  //   const { onChange, query } = props;
+  //   onChange({ ...query, queryText: event.target.value });
+  // };
+
+  // const onConstantChange = (event: ChangeEvent<HTMLInputElement>) => {
+  //   const { onChange, query, onRunQuery } = props;
+  //   onChange({ ...query, constant: parseFloat(event.target.value) });
+  //   // executes the query
+  //   onRunQuery();
+  // };
+
+  const onEnableSimModeChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { onChange, query } = props;
+    onChange({ ...query, enableSimMode: event.target.checked });
+    setSimMode(event.target.checked);
   };
 
-  onConstantChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { onChange, query, onRunQuery } = this.props;
-    onChange({ ...query, constant: parseFloat(event.target.value) });
-    // executes the query
-    onRunQuery();
-  };
-
-  onWithStreamingChange = (event: SyntheticEvent<HTMLInputElement>) => {
-    const { onChange, query, onRunQuery } = this.props;
-    onChange({ ...query, withStreaming: event.currentTarget.checked });
-    // executes the query
-    onRunQuery();
-  };
-
-  render() {
-    const query = defaults(this.props.query, defaultQuery);
-    const { queryText, constant, withStreaming } = query;
-
+  const SimulationMode = () => {
     return (
-      <div className="gf-form">
-        <FormField
-          width={4}
-          value={constant}
-          onChange={this.onConstantChange}
-          label="Constant"
-          type="number"
-          step="0.1"
-        />
-        <FormField
-          labelWidth={8}
-          value={queryText || ''}
-          onChange={this.onQueryTextChange}
-          label="Query Text"
-          tooltip="Not used yet"
-        />
-        <Switch checked={withStreaming || false} label="Enable streaming (v8+)" onChange={this.onWithStreamingChange} />
+      <div>
+        <InlineFieldRow>
+          <InlineField labelWidth={14} label="Node name" tooltip="Name of this node. Must be unique">
+            <Input width={20} type="text" value={queryText || ''} onChange={(e) => null} />
+          </InlineField>
+          <InlineFormLabel tooltip="Generate a full orbit from initial conditions in simulation mode">
+            Simulation Mode
+          </InlineFormLabel>
+          <InlineSwitch value={enableSimMode || false} onChange={onEnableSimModeChange} />
+        </InlineFieldRow>
+        <InlineField
+          labelWidth={14}
+          label="Time"
+          tooltip="Timestamp in Modified Julian Date. Full orbit will be generated starting from this time"
+        >
+          <Input width={20} type="number" value={constant} onChange={(e) => null} />
+        </InlineField>
+        <InlineFieldRow>
+          <InlineFormLabel width={5} tooltip="Position of the satellite in ECI coordinate frame">
+            Position
+          </InlineFormLabel>
+          <InlineField labelWidth={3} label="X">
+            <Input type="number" value={constant} onChange={(e) => null} />
+          </InlineField>
+          <InlineField labelWidth={3} label="Y">
+            <Input type="number" value={constant} onChange={(e) => null} />
+          </InlineField>
+          <InlineField labelWidth={3} label="Z">
+            <Input type="number" value={constant} onChange={(e) => null} />
+          </InlineField>
+        </InlineFieldRow>
+        <InlineFieldRow>
+          <InlineFormLabel width={5} tooltip="Velocity of the satellite in ECI coordinate frame">
+            Velocity
+          </InlineFormLabel>
+          <InlineField labelWidth={3} label="X">
+            <Input type="number" value={constant} onChange={(e) => null} />
+          </InlineField>
+          <InlineField labelWidth={3} label="Y">
+            <Input type="number" value={constant} onChange={(e) => null} />
+          </InlineField>
+          <InlineField labelWidth={3} label="Z">
+            <Input type="number" value={constant} onChange={(e) => null} />
+          </InlineField>
+        </InlineFieldRow>
       </div>
     );
-  }
-}
+  };
+
+  const RegularMode = () => {
+    return (
+      <InlineFieldRow>
+        <InlineField labelWidth={14} label="Node name" tooltip="Name of this node. Must be unique">
+          <Input width={20} type="text" value={queryText || ''} onChange={(e) => null} />
+        </InlineField>
+        <InlineFormLabel tooltip="Generate a full orbit from initial conditions in simulation mode">
+          Simulation Mode
+        </InlineFormLabel>
+        <InlineSwitch value={enableSimMode || false} onChange={onEnableSimModeChange} />
+      </InlineFieldRow>
+    );
+  };
+
+  return <div>{simMode ? SimulationMode() : RegularMode()}</div>;
+};
