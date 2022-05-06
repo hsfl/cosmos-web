@@ -4,39 +4,22 @@ COSMOS Web - a web application to visualize telemetry data from a satellite usin
 
 ![59270 9](https://user-images.githubusercontent.com/1541868/159378681-836b043d-a14a-44c6-a586-7de8fca09ad0.png)
 
-We recommend installing COSMOS via Docker. By using Docker containers you will get all the COSMOS dependencies automatically resolved. This process works well for users and developers.
-
-* [Install Docker Desktop](https://www.docker.com/get-started/)
-* [Install Docker Compose](https://docs.docker.com/compose/install/) (Only needed for a Linux OS. Docker compose is automatically installed on Docker Desktop on Windows and macOS)
+We recommend installing COSMOS via Docker. Refer to the instructions on the main cosmos repository: https://github.com/hsfl/cosmos to get started (if you have not done it yet)
 
 ## Install Instructions (via Docker)
 
-**Windows Instructions:** 
-
-Open a command prompt window and enter the following two commands: 
-
 ```shell
-git clone https://github.com/hsfl/cosmos.git c:/cosmos/docker/cosmos
-```
-this git clones clone cosmos core to c:/cosmos/docker/cosmos
- 
-```shell
-git clone https://github.com/hsfl/cosmos-web.git c:/cosmos/docker/cosmos-web
+git clone https://github.com/hsfl/cosmos-web.git c:/cosmos/tools/cosmos-web
 ```
 this git clones clone cosmos web to c:/cosmos/docker/cosmos-web
 
 
-**macOS Instructions:**
+** Linux/macOS Instructions:**
 
-Open a terminal window and enter the following two commands: 
+Open a terminal window and enter the following command: 
 
 ```shell
-git clone https://github.com/hsfl/cosmos.git ~/cosmos/docker/cosmos
-```
-this git clones clone cosmos core to ~/cosmos/docker/cosmos
- 
-```shell
-git clone https://github.com/hsfl/cosmos-web.git ~/cosmos/docker/cosmos-web
+git clone https://github.com/hsfl/cosmos-web.git ~/cosmos/tools/cosmos-web
 ```
 this git clones clone cosmos web to ~/cosmos/docker/cosmos-web
 
@@ -46,7 +29,7 @@ Building the cosmos image:
 
 1. Open terminal in your newly created cosmos-web folder
 ```shell
-cd cosmos/docker/cosmos-web
+cd cosmos/tools/cosmos-web
 ```
 2. Next, run the following command to get the containers up in the terminal, this builds the telegraf, influxdb, and grafana containers needed for COSMOS. (this process may take a few minutes)
 ```
