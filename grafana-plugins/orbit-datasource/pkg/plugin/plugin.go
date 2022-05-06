@@ -82,18 +82,23 @@ func (d *SampleDatasource) QueryData(ctx context.Context, req *backend.QueryData
 
 type queryModel struct {
 	// WithStreaming bool `json:"withStreaming"`
-	EnableSimMode bool `json:"enableSimMode"`
+	EnableSimMode bool            `json:"enableSimMode"`
+	Sim           propagator_args `json:"sim"`
 }
 
+// Send an array of these to the propagator
 type propagator_args struct {
-	Node_name string
-	Utc       float64
-	Px        float64
-	Py        float64
-	Pz        float64
-	Vx        float64
-	Vy        float64
-	Vz        float64
+	Node_name string  `json:"node_name"`
+	Utc       float64 `json:"utc"`
+	Px        float64 `json:"px"`
+	Py        float64 `json:"py"`
+	Pz        float64 `json:"pz"`
+	Vx        float64 `json:"vx"`
+	Vy        float64 `json:"vy"`
+	Vz        float64 `json:"vz"`
+	Simdt     float64 `json:"simdt,omitempty"`
+	Runcount  int32   `json:"runcount,omitempty"`
+	StartUtc  float64 `json:"startUtc"`
 }
 
 var buffer = make([]byte, 60000)
@@ -162,6 +167,58 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 		return response
 	}
 
+	// Perform different tasks depending on run mode: simulation or non-simulation
+	if qm.EnableSimMode {
+		response = d.SimMode(qm, pCtx)
+	} else {
+		response = d.NonSimMode(queryAPI, pCtx)
+	}
+
+	return response
+}
+
+// Simulation takes a set of initial conditions and propagates a full orbit with the orbital propagator
+func (d *SampleDatasource) SimMode(qm queryModel, pCtx backend.PluginContext) backend.DataResponse {
+	response := backend.DataResponse{}
+
+	// create data frame response.
+	frame := data.NewFrame("response")
+
+	var pargs []propagator_args
+	pargs = append(pargs, propagator_args{
+		Node_name: qm.Sim.Node_name,
+		Utc:       qm.Sim.Utc,
+		Px:        qm.Sim.Px,
+		Py:        qm.Sim.Py,
+		Pz:        qm.Sim.Pz,
+		Vx:        qm.Sim.Vx,
+		Vy:        qm.Sim.Vy,
+		Vz:        qm.Sim.Vz,
+		Runcount:  90,
+		StartUtc:  qm.Sim.Utc,
+	})
+	// Call orbital propagator to generate full orbit
+	predicted_orbit, err := orbitalPropagatorCall(pargs)
+	if err != nil {
+		log.DefaultLogger.Error("Error in orbitalPropagatorCall", err.Error())
+		response.Error = err
+		return response
+	}
+
+	// Create fields
+	frame.Fields = append(frame.Fields,
+		data.NewField("historical", nil, []string{""}),
+		data.NewField("predicted", nil, []string{predicted_orbit}),
+	)
+
+	// add the frames to the response.
+	response.Frames = append(response.Frames, frame)
+	return response
+}
+
+func (d *SampleDatasource) NonSimMode(queryAPI api.QueryAPI, pCtx backend.PluginContext) backend.DataResponse {
+	response := backend.DataResponse{}
+
 	// create data frame response.
 	frame := data.NewFrame("response")
 
@@ -204,7 +261,7 @@ func (d *SampleDatasource) query(_ context.Context, queryAPI api.QueryAPI, pCtx 
 	// If query called with streaming on then return a channel
 	// to subscribe on a client-side and consume updates from a plugin.
 	// Feel free to remove this if you don't need streaming for your datasource.
-	log.DefaultLogger.Info("qm", "qm", qm)
+	//log.DefaultLogger.Info("qm", "qm", qm)
 	// if qm.WithStreaming {
 	// 	channel := live.Channel{
 	// 		Scope:     live.ScopeDatasource,

@@ -69,7 +69,7 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   const czml0 = [
     {
       id: 'document',
-      name: 'OrbitDatasourceResponse-Historical',
+      name: 'CosmosOrbitalDisplay',
       version: '1.0',
     },
   ];
@@ -106,14 +106,24 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   setTimeout(() => {
     if (viewer.current?.cesiumElement && viewer.current?.cesiumElement.dataSources.length) {
       // viewer.current.cesiumElement is the Cesium Viewer
-      let myczml = viewer.current.cesiumElement.dataSources.getByName(
-        'OrbitDatasourceResponse-Historical'
-      ) as CesiumCzmlDataSource[];
+      // Get the czml document we started at the top of this file
+      let myczml = viewer.current.cesiumElement.dataSources.getByName('CosmosOrbitalDisplay') as CesiumCzmlDataSource[];
+      // There should only ever be one
+      // myczml[0] is our CZMLDataSource
       if (myczml.length === 1) {
-        // myczml[0] is our CZMLDataSource
-        let czmlres: CzmlPacket = JSON.parse(data.series[0].fields[0].values.get(0));
-        console.log(data.series[0].fields, czmlres);
-        myczml[0].process(czmlres);
+        // series is an array of query responses
+        // fields is an array of the fields in those responses (in this case, 'historical' and 'predicted')
+        // values are the rows within that field
+        let historical: string = data.series[0].fields.find((x) => x.name === 'historical')?.values.get(0);
+        if (historical !== '') {
+          let czmlified: CzmlPacket = JSON.parse(historical);
+          myczml[0].process(czmlified);
+        }
+        let predicted: string = data.series[0].fields.find((x) => x.name === 'predicted')?.values.get(0);
+        if (predicted !== '') {
+          let czmlified: CzmlPacket = JSON.parse(predicted);
+          myczml[0].process(czmlified);
+        }
       }
     }
   }, 2000);
@@ -124,7 +134,6 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   };
 
   console.log('rerender globe panel');
-  console.log(data.series);
 
   return (
     <div>
@@ -149,6 +158,7 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
         <Globe enableLighting />
       </Viewer>
       Sample text
+      {console.log(JSON.stringify(data))}
     </div>
   );
 };
