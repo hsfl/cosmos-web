@@ -1,0 +1,2 @@
+grafana-plugins/*
+!grafana-plugins/note_from_cosmos_web
