@@ -1,6 +1,5 @@
 load("json.star", "json")
 load("logging.star", "log")
-load("time.star", "time")
 
 # name: key of the current entry
 # entry: new entry to add as a field. Recurse on lists or dicts
@@ -59,12 +58,10 @@ def apply(metric):
 
 	# Convert agent_utc to metric timestamp in unix time
 	# precision is nanoseconds
-	unix_time = time.now().unix_nano
-	if "node_utc" in j:
-		mjd = j["node_utc"]
-		unix_time = int((mjd - 40587) * 86400 * 1000000000)
-		#log.debug("uxtj: {}".format(unix_time))
-		#log.debug("uxtn: {}".format(time.now().unix_nano))
+	mjd = j["node_utc"]
+	unix_time = int((mjd - 40587) * 86400 * 1000000000)
+	#log.debug("uxtj: {}".format(unix_time))
+	#log.debug("uxtn: {}".format(time.now().unix_nano))
 	
 	# Iterate over SOH json keys
 	for key in j:

@@ -1,6 +1,5 @@
 load("json.star", "json")
 load("logging.star", "log")
-load("time.star", "time")
 
 # name: key of the current entry
 # entry: new entry to add as a field. Recurse on lists or dicts

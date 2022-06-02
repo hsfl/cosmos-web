@@ -1,5 +1,4 @@
 load("json.star", "json")
-load("time.star", "time")
 #load("logging.star", "log")
 
 def apply(metric):
