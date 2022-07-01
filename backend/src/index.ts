@@ -8,11 +8,16 @@ const AGENT_COMM_ADDR = '192.168.150.66';
 // Where this is running
 const WEB_API_PORT = 10090;
 
+// Express modules
+const simRoute = require('./routes/sim');
+
 const app = express();
 app.use(cors({origin: true}), express.json());
 
-// Setting up a very minimal backend for cosmos web's grafana front end
+// Express module/middleware for routes
+app.use('/sim', simRoute);
 
+// Setting up a very minimal backend for cosmos web's grafana front end
 app.get('/', (req, res) => {
     console.log('req received')
     res.send('Hello World!\n')
