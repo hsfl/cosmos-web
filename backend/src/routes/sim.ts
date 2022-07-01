@@ -5,7 +5,7 @@ const router = express.Router();
 /** route POST /sim/propagator
     Calls propagator with parameters in body
     test with:
-    curl --data '{"start":59270,"runcount":5,"simdt":60,"telem":"poseci","nodes":[{"name":"node0","frame":"phys", "lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}]}' \
+    curl --data '{"start":59270,"runcount":5,"simdt":60,"telem":"ecipos","nodes":[{"name":"node0","frame":"phys", "lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}]}' \
       --request POST \
       --header "Content-Type: application/json" \
       http://localhost:10090/sim/propagator
@@ -32,14 +32,21 @@ router.post('/propagator', (req: Request, res: Response) => {
         res.json('Error in running subprocess, see logs.');
     });
     subprocess.on('close', (exitCode: number) => {
+        // Error in propagator
         if (!!stderr) {
             console.log('exited with:', exitCode);
             console.log(stderr);
             res.json(stderr);
         }
-        else {
+        // Propagator call successful
+        else if (!!stdout && exitCode === 0) {
             console.log('exited with:', exitCode);
             res.json(stdout);
+        }
+        // Some other error?? Could happen if 'error' event doesn't get triggered despite there being one
+        else {
+            console.log('How did this happen?');
+            return;
         }
     });
 });
