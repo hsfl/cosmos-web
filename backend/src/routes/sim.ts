@@ -43,9 +43,8 @@ router.post('/propagator', (req: Request, res: Response) => {
             console.log('exited with:', exitCode);
             res.json(stdout);
         }
-        // Some other error?? Could happen if 'error' event doesn't get triggered despite there being one
+        // Runs if 'error' event was triggered. res.json was already called, so don't call it again.
         else {
-            console.log('How did this happen?');
             return;
         }
     });
