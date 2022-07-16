@@ -6,8 +6,15 @@ def apply(metric):
 	#log.debug("soh value: {}".format(metric.fields.get("value")))
 	j = json.decode(metric.fields.get("value"))
 
-	new_metric = Metric(j["node_name"])
-	new_metric.tags["beacon_type"] = j["beacon_type"]
+	new_metric = Metric("beacon")
+    node_name = "unknown"
+    beacon_type = "unknown"
+	if "node_name" in j:
+        node_name = j["node_name"]
+    if "beacon_type" in j:
+        beacon_type = j["beacon_type"]
+	new_metric.tags["node_name"] = node_name
+	new_metric.tags["beacon_type"] = beacon_type
 
 	new_metric.time = time.now().unix_nano
 
