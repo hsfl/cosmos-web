@@ -32,33 +32,17 @@ def add_field(name, entry, metric):
 # Arg d is a dictionary, a single SOH
 # metrics is the list to append to and return
 def handleSOH(d, metrics):
-    node_name = d["node_name"]
-
-    # Convert agent_utc to metric timestamp in unix time
-    # precision is nanoseconds
-    unix_time = 0
-    time_key = ""
-    if "node_utc" in d:
-        time_key = "node_utc"
-    elif "utc" in d:
-        time_key = "utc"
-    if time_key != "":
-        mjd = d[time_key]
-        unix_time = int((mjd - 40587) * 86400 * 1000000000)
-    else:
-        unix_time = time.now().unix_nano
-    
-    # Measurement name is the node name,
-    # time as the mjd time if provided (reconsider?)
-    new_metric = Metric(node_name)
+    # Measurement name is simdata, so that it gets caught in the name filters in telegraf.conf
+    # and sent to Simulator_data
+    new_metric = Metric("simdata")
     # TODO: fix tag, also coordinate with namepass namedrop of buckets in .conf file
-    new_metric.tags["type"] = "simdata"
-    new_metric.time = unix_time
+    new_metric.tags["name"] = d["name"]
+    new_metric.time = time.now().unix_nano
     
     # Iterate over SOH json keys
     for key in d:
-        # Skip these since they are being used as the measurement name and timestamp, respectively
-        if key == "node_name" or key == "node_utc" or key == "utc":
+        # Skip these since they are being used as the measurement name
+        if key == "name":
             continue
 
         # Add sohstring keys as fields
