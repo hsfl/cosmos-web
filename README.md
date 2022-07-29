@@ -43,3 +43,21 @@ If you are using the docker install of cosmos, restart the grafana container wit
 ```
 docker restart cosmos_grafana
 ```
+
+## Grafana Instructions
+
+### Configuring Grafana
+
+Now that both COSMOS Web and the Grafana plugins are installed, we can create a dashboard in Grafana to display some data.
+
+#### Add Influxdb to Grafana
+
+If your COSMOS docker containers are not running, return to the instructions on the [main COSMOS repository](https://github.com/hsfl/cosmos) for help. You can check to see if they are running with:
+```
+docker ps
+```
+
+With your Grafana container running, go to http://localhost:3000 in your browser and log in with the username and password you specified in the .env file under GF_ADMIN_USER and GF_ADMIN_PASSWORD.
+
+After successfully logging in, look for a gear icon on the left side navigation bar and click on Data sources.
+
