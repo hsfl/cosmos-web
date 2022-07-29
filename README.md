@@ -11,9 +11,9 @@ We recommend installing COSMOS via Docker. Refer to the instructions on the main
 
 **Installing Grafana plugins**
 
-Download the three .zip files on the [cosmos-grafana-plugins release page](https://github.com/hsfl/cosmos-grafana-plugins/releases) under Assets and unzip them into the grafana-plugins folder (cw-button.zip, orbit-datasource.zip, orbitdisplay.zip).
+Download the three .zip files on the [cosmos-grafana-plugins latest release page](https://github.com/hsfl/cosmos-grafana-plugins/releases/latest) under Assets and unzip them into the grafana-plugins folder (cw-button.zip, orbit-datasource.zip, orbitdisplay.zip).
 
-You can also do this on the command line:
+You can also do this on the terminal on Linux:
 
 First go to the grafana-plugins folder in your cosmos-web installation location. If you followed the instructions on the [main cosmos repository](https://github.com/hsfl/cosmos), it should be in ~/cosmos/tools/cosmos-web/grafana-plugins:
 ```
@@ -41,5 +41,5 @@ or unzip manually in a file explorer.
 
 If you are using the docker install of cosmos, restart the grafana container with
 ```
-docker restart cosmos-grafana
+docker restart cosmos_grafana
 ```
