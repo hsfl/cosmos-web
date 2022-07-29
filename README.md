@@ -61,3 +61,24 @@ With your Grafana container running, go to http://localhost:3000 in your browser
 
 After successfully logging in, look for a gear icon on the left side navigation bar and click on Data sources.
 
+![config](https://user-images.githubusercontent.com/40340250/181689735-ebddd500-1d52-450d-b303-3faa41f390a1.png)
+
+In the Data sources tab of the Configuration page that shows up, search for InfluxDB and click on the InfluxDB data source option that shows up.
+
+![search](https://user-images.githubusercontent.com/40340250/181689931-ffa7dad8-2af5-4918-b9ce-41bda782e4ed.png)
+
+You will be asked to configure the InfluxDB data source. First change the Query Language from InfluxQL to Flux. Then under the HTTP section, enter http://influxdb:8086 into the URL input. The other options in the HTTP section can stay their defaults.
+
+![flux](https://user-images.githubusercontent.com/40340250/181690011-02be9b43-2fc0-4dac-afcb-d4d181cb84e3.png)
+![http](https://user-images.githubusercontent.com/40340250/181690193-61e66432-facb-418f-9da4-df054f8aa165.png)
+
+In the Auth section, enter in the username and password you specified in the .env file under INFLUXDB_INIT_ADMIN_USERNAME and INFLUXDB_INIT_ADMIN_PASSWORD. The other options can stay their defaults.
+
+![auth](https://user-images.githubusercontent.com/40340250/181690434-3ab81720-8190-4abf-99c1-47ace7faabcd.png)
+
+In the final section, InfluxDB Details, enter in for Organization and Token the values you specified in the .env file under INFLUXDB_INIT_ORG and INFLUXDB_INIT_ADMIN_TOKEN, respectively. In the Default Bucket input, enter Simulator_Data, as this is the bucket that simulated data will be sent to. The other options can stay their defaults.
+
+![influxdb](https://user-images.githubusercontent.com/40340250/181690736-636a1b5f-fbcf-40ea-a33c-af060dc15bb9.png)
+
+
+Click on Save & Test.
