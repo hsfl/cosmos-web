@@ -5,7 +5,7 @@ const router = express.Router();
 /** route POST /sim/propagator
     Calls propagator with parameters in body
     test with:
-    curl --data '{"start":59270,"runcount":5,"simdt":60,"telem":["ecipos"],"nodes":[{"name":"node0","frame":"phys", "lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}]}' \
+    curl --data '{"start":59270,"runcount":5,"simdt":60,"telem":["poseci"],"nodes":[{"name":"node0","phys":{"lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}}]}' \
       --request POST \
       --header "Content-Type: application/json" \
       http://localhost:10090/sim/propagator
@@ -53,10 +53,10 @@ router.post('/propagator', (req: Request, res: Response) => {
 /** route POST /sim/propagator_db
     Calls propagator with parameters in body
     test with:
-    curl --data '' \
+    curl --data '{"start":59270,"runcount":5,"simdt":60,"telem":["poseci", "veleci"], "db":true, "nodes":[{"name":"node0","phys":{"lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}}]}' \
       --request POST \
       --header "Content-Type: application/json" \
-      http://localhost:10090/sim/propagator
+      http://localhost:10090/sim/propagator_db
 */
 router.post('/propagator_db', (req: Request, res: Response) => {
     let args = [];
