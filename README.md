@@ -116,7 +116,7 @@ Similarly, add the Cosmos Simulator panel.
 
 ![final](https://user-images.githubusercontent.com/40340250/181693774-268bd86b-bc91-443b-82c6-a35a809d8cb3.png)
 
-In the Data source select 'InfluxDB'. 
+In the Data source select 'InfluxDB'. Then click "Save" and "Apply"
 
 <img width="903" alt="Screen Shot 2022-08-15 at 8 52 28 PM" src="https://user-images.githubusercontent.com/1541868/184697721-06604b91-52d4-4010-9e85-5e12b9d07e33.png">
 
