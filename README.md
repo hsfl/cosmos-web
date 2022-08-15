@@ -116,4 +116,8 @@ Similarly, add the Cosmos Simulator panel.
 
 ![final](https://user-images.githubusercontent.com/40340250/181693774-268bd86b-bc91-443b-82c6-a35a809d8cb3.png)
 
+In the Data source select 'InfluxDB'. 
+
+<img width="903" alt="Screen Shot 2022-08-15 at 8 52 28 PM" src="https://user-images.githubusercontent.com/1541868/184697721-06604b91-52d4-4010-9e85-5e12b9d07e33.png">
+
 The Cosmos Simulator plugin allows you to create some simulated orbital data for a number of numbers. The default values will generate an orbit for a number of satellites in a trailing formation. Click Submit to send the request, which will populate the database with data. The Orbital Display panel will then visualize this data. You can click on the refresh button on the top right of the screen to have all panels in the dashboard resend their queries. The Orbital Display panel should then display a nice orbit to view.
