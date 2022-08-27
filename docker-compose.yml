@@ -1,0 +1,64 @@
+version: '3.6'
+services:
+  database:
+    image: mysql/mysql-server:8.0.30
+    container_name: cosmos_db
+    #environment:
+    #  - MYSQL_ONETIME_PASSWORD=true
+    networks:
+      - cwnetwork
+    restart: always
+    volumes:
+      # Mount for data directory and configuration
+      - database:/var/lib/mysql
+      - ./database/my.cnf:/etc/my.cnf
+
+  grafana:
+    image: grafana/grafana
+    container_name: cosmos_grafana
+    depends_on:
+      - database
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:?err}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:?err}
+      - GF_DEFAULT_APP_MODE=${GF_APP_MODE:?err}
+    networks:
+      - cwnetwork
+    ports:
+      - '3000:3000'
+    restart: always
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-plugins:/var/lib/grafana/plugins
+  
+  backend:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+      target: base
+    command: npm run dev
+    #platform: linux/x86_64 # tentatively used for macOS M1 to compile grafana plugins
+    container_name: cosmos_backend
+    networks:
+      - cwnetwork
+    ports:
+      - '10090:10090'
+    restart: always
+    volumes:
+      - ./grafana-plugins:/grafana-plugins
+      - ./backend/src:/home/node/app/src
+      - ./backend/nodemon.json:/home/node/app/nodemon.json
+      - bin:/root/cosmos/bin
+      - resources:/root/cosmos/resources
+
+volumes:
+  bin: {}
+  resources: {}
+  grafana_data: {}
+  database: {}
+
+networks:
+  cwnetwork:
+    name: cosmos_cwnetwork
+    external: true
+    driver: bridge

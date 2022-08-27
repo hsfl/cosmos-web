@@ -30,3 +30,6 @@
 > docker restart [container_id]
 
 # To use the orbit panel, be sure to run propagator_web inside the cosmos/bin folder in the cosmos docker container
+
+
+# Need to clear mounted db volume to reobtain generated root password
