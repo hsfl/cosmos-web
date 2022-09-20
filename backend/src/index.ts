@@ -1,6 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dgram from 'dgram';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Import .env file environment variables into process.env
+dotenv.config({path: path.resolve(__dirname, '../.env')});
 
 // Port and address agent_comm is running/listening on
 const AGENT_COMM_PORT = 10091;

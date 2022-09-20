@@ -1,10 +1,12 @@
 version: '3.6'
 services:
   database:
-    image: mysql/mysql-server:8.0.30
+    image: mysql:8.0.30-debian
     container_name: cosmos_db
-    #environment:
-    #  - MYSQL_ONETIME_PASSWORD=true
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?err}
+      - DB_BACKEND_USER_PASSWORD=${DB_BACKEND_USER_PASSWORD:?err}
+      - DB_GRAFANA_USER_PASSWORD=${DB_GRAFANA_USER_PASSWORD:?err}
     networks:
       - cwnetwork
     restart: always
@@ -12,6 +14,8 @@ services:
       # Mount for data directory and configuration
       - database:/var/lib/mysql
       - ./database/my.cnf:/etc/my.cnf
+      - ./database/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+      - ./database/initusers.sh:/docker-entrypoint-initdb.d/initusers.sh
 
   grafana:
     image: grafana/grafana
@@ -30,6 +34,7 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana-plugins:/var/lib/grafana/plugins
+      - ./provisioning:/etc/grafana/provisioning
   
   backend:
     build:
