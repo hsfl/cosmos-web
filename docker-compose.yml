@@ -13,10 +13,7 @@ services:
     volumes:
       # Mount for data directory and configuration
       - database:/var/lib/mysql
-      - ./database/my.cnf:/etc/my.cnf
-      - ./database/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
-      - ./database/initusers.sh:/docker-entrypoint-initdb.d/initusers.sh
-
+      - ./database:/docker-entrypoint-initdb.d
   grafana:
     image: grafana/grafana
     container_name: cosmos_grafana
@@ -50,9 +47,14 @@ services:
       - '10090:10090'
     restart: always
     volumes:
+      # Install Grafana plugins
       - ./grafana-plugins:/grafana-plugins
+      # For syncing dev changes
       - ./backend/src:/home/node/app/src
-      - ./backend/nodemon.json:/home/node/app/nodemon.json
+      - ./backend/tests:/home/node/app/tests
+      # For accessing database stuff
+      - ./.env:/home/node/app/.env
+      # Access to COSMOS binaries
       - bin:/root/cosmos/bin
       - resources:/root/cosmos/resources
 
