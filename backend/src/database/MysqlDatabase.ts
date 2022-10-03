@@ -33,18 +33,42 @@ export default class MysqlDatabase extends BaseDatabase {
         console.log('Clear databasesss');
     }
 
-    public async write_telem(telem: Telem): Promise<void> {
-        // Format MJD timestamp to mysql-friendly string
-        const time = mjd_to_unix(telem.time);
-        const date = new Date(time);
-        const datestring = date.toJSON().replace('T', ' ').slice(0,-1);
-        this.pool.execute(
-            'INSERT INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
-            [telem.node_id, telem.name, datestring, telem.value],
-            (err) => {
-                console.log('err:',err);
-            }
-        );
+    public async write_telem(telem: Telem[]): Promise<void> {
+        for (let i =0; i < telem.length; i++) {
+            // Format MJD timestamp to mysql-friendly string
+            const time = mjd_to_unix(telem[i].time);
+            // Date takes unix milliseconds
+            const date = new Date(time*1000);
+            const datestring = date.toJSON().replace('T', ' ').slice(0,-1);
+            this.pool.execute(
+                'INSERT INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
+                [telem[i].node_id, telem[i].name, datestring, telem[i].value],
+                (err) => {
+                    if (err) {
+                        console.log('err:',err);
+                    }
+                }
+            );
+        }
+    }
+
+    public async write_telem_bulk(): Promise<void> {
+        for (let i =0; i < telem.length; i++) {
+            // Format MJD timestamp to mysql-friendly string
+            const time = mjd_to_unix(telem[i].time);
+            // Date takes unix milliseconds
+            const date = new Date(time*1000);
+            const datestring = date.toJSON().replace('T', ' ').slice(0,-1);
+            this.pool.execute(
+                'INSERT INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
+                [telem[i].node_id, telem[i].name, datestring, telem[i].value],
+                (err) => {
+                    if (err) {
+                        console.log('err:',err);
+                    }
+                }
+            );
+        } 
     }
 
     public async write_node(nodes: Node[]): Promise<void> {

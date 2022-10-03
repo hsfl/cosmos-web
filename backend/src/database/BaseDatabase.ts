@@ -1,6 +1,6 @@
 
 export interface Telem {
-    node_id: string;
+    node_id: number;
     name: string;
     time: number;
     value: number | null;
@@ -25,8 +25,12 @@ export default class BaseDatabase {
         console.log('Clear database');
     }
 
-    public async write_telem(telem: Telem): Promise<void> {
+    public async write_telem(telem: Telem[]): Promise<void> {
         console.log('Writing telem point', telem);
+    }
+
+    public async write_telem_bulk(): Promise<void> {
+        console.log('Writing telem in bulk', )
     }
 
     public async write_node(nodes: Node[]): Promise<void> {

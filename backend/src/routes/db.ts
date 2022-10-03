@@ -22,6 +22,12 @@ const router = express.Router();
       http://localhost:10090/sim/propagator
 */
 router.post('/telem', async (req: Request, res: Response) => {
+    if (req.body === undefined || !Array.isArray(req.body)) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'Argument format incorrect. Must be list of telem dicts.'
+        });
+    }
     const db = DBHandler.app_db();
     await db.write_telem(req.body);
     
@@ -32,7 +38,7 @@ router.post('/telem', async (req: Request, res: Response) => {
  * nodes: list of {id:number, name:string} node dicts
  */
 router.post('/node', async (req: Request, res: Response) => {
-    if (req.body.nodes === undefined || !Array.isArray(req.body.nodes)) {
+    if (req.body === undefined || !Array.isArray(req.body)) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
             description: 'Argument format incorrect. Must be list of {id:number, name:string} dicts.'

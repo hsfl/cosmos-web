@@ -69,3 +69,6 @@ networks:
     name: cosmos_cwnetwork
     external: true
     driver: bridge
+
+# TODO:
+# Add port configurations, don't want to use common ports like 3000, 5000, etc.
