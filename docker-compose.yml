@@ -15,7 +15,7 @@ services:
       - database:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana-oss:9.2.1
     container_name: cosmos_grafana
     depends_on:
       - database
@@ -30,9 +30,9 @@ services:
     restart: always
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana-plugins:/var/lib/grafana/plugins
+      - ./grafana-plugins:/var/lib/grafana/plugins/cosmos-plugins/
       - ./provisioning:/etc/grafana/provisioning
-  
+
   backend:
     build:
       context: ./backend/
