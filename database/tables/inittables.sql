@@ -31,10 +31,9 @@ CREATE TABLE IF NOT EXISTS agent (
     PRIMARY KEY (node_id)
 );
 
-# BATT Beacons
+# BATT devices
 # node_id: Node id
 # didx: Index of Battery in device table
-# device_batt_name: Human readable name of batt device
 # device_batt_utc: Telem timestamp (decisecond precision)
 # device_batt_volt: Voltage in V
 # device_batt_amp: Current in A
@@ -44,7 +43,6 @@ CREATE TABLE IF NOT EXISTS agent (
 CREATE TABLE IF NOT EXISTS device_batt (
     node_id TINYINT UNSIGNED NOT NULL,
     didx TINYINT UNSIGNED NOT NULL,
-    device_batt_name varchar(40) NOT NULL,
     device_batt_utc DATETIME(1) NOT NULL,
     device_batt_volt DECIMAL(5,2),
     device_batt_amp DECIMAL(5,2),
@@ -55,22 +53,7 @@ CREATE TABLE IF NOT EXISTS device_batt (
     PRIMARY KEY (node_id, didx, device_batt_utc)
 );
 
-# Maps bcreg ids to human-readable names
-# node_id: Node id
-# didx: Index of BCREG in device table
-CREATE TABLE IF NOT EXISTS devspec_bcreg (
-    node_id TINYINT UNSIGNED NOT NULL,
-    didx TINYINT UNSIGNED NOT NULL,
-    device_bcreg_name varchar(40) NOT NULL,
-
-    FOREIGN KEY (node_id)
-        REFERENCES node(node_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    PRIMARY KEY (node_id, didx)
-);
-
-# BCREG Beacons
+# BCREG devices
 # node_id: Node id
 # didx: Index of BCREG in device table
 # device_bcreg_utc: Telem timestamp (decisecond precision)
@@ -93,17 +76,12 @@ CREATE TABLE IF NOT EXISTS device_bcreg (
     device_bcreg_mpptout_amp DECIMAL(5,2),
     device_bcreg_mpptout_volt DECIMAL(5,2),
 
-    FOREIGN KEY (node_id, didx)
-        REFERENCES devspec_bcreg(node_id, didx)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
     PRIMARY KEY (node_id, didx, device_bcreg_utc)
 );
 
-# CPU Beacons
+# CPU devices
 # node_id: Node id
 # didx: Index of CPU in device table
-# device_cpu_name: Human readable name of cpu device
 # device_cpu_utc: Telem timestamp (decisecond precision)
 # device_cpu_uptime: Seconds CPU has been up
 # device_cpu_boot_count: Number of reboots
@@ -114,7 +92,6 @@ CREATE TABLE IF NOT EXISTS device_bcreg (
 CREATE TABLE IF NOT EXISTS device_cpu (
     node_id TINYINT UNSIGNED NOT NULL,
     didx TINYINT UNSIGNED NOT NULL,
-    device_cpu_name varchar(40) NOT NULL,
     device_cpu_utc DATETIME(1) NOT NULL,
     device_cpu_uptime INT UNSIGNED,
     device_cpu_boot_count INT UNSIGNED,
@@ -126,8 +103,7 @@ CREATE TABLE IF NOT EXISTS device_cpu (
     PRIMARY KEY (node_id, didx, device_cpu_utc)
 );
 
-
-# Magnetometer Beacons
+# Magnetometer
 # node_id: Node id
 # didx: Index of magnetometer in device table
 # device_mag_mag_utc: Telem timestamp (decisecond precision)
@@ -142,30 +118,10 @@ CREATE TABLE IF NOT EXISTS device_mag (
     device_mag_mag_y DECIMAL(5,2),
     device_mag_mag_z DECIMAL(5,2),
 
-    FOREIGN KEY (node_id)
-        REFERENCES node(node_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
     PRIMARY KEY (node_id, didx, device_mag_mag_utc)
 );
 
-# Maps EPS Switch ids to human-readable names
-# node_id: Node id
-# didx: Index of EPS Switch in device table
-# device_swch_name: Human readable name of switch device
-CREATE TABLE IF NOT EXISTS devspec_swch (
-    node_id TINYINT UNSIGNED NOT NULL,
-    didx TINYINT UNSIGNED NOT NULL,
-    device_swch_name varchar(40) NOT NULL,
-
-    FOREIGN KEY (node_id)
-        REFERENCES node(node_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    PRIMARY KEY (node_id, didx)
-);
-
-# EPS Switch Beacons
+# EPS Switch devices
 # node_id: Node id
 # didx: ID of switch in device table
 # device_swch_utc: Telem timestamp (decisecond precision)
@@ -180,30 +136,24 @@ CREATE TABLE IF NOT EXISTS device_swch (
     device_swch_amp DECIMAL(5,2),
     device_swch_power DECIMAL(5,2),
 
-    FOREIGN KEY (node_id, didx)
-        REFERENCES devspec_swch(node_id, didx)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
     PRIMARY KEY (node_id, didx, device_swch_utc)
 );
 
-# TSEN Beacons
+# TSEN devices
 # node_id: Index of TSEN in device table
 # didx: Index of TSEN in device table
-# device_tsen_name: Human readable name of tsen device
 # device_tsen_utc: Timestamp of telem point
 # device_tsen_temp: Temperature value of thermal sensor
 CREATE TABLE IF NOT EXISTS device_tsen (
     node_id TINYINT UNSIGNED NOT NULL,
     didx TINYINT UNSIGNED NOT NULL,
-    device_tsen_name varchar(40) NOT NULL,
     device_tsen_utc DATETIME(1) NOT NULL,
 	device_tsen_temp DECIMAL(5,2),
 
     PRIMARY KEY (node_id, didx, device_tsen_utc)
 );
 
-# Position values in supported reference frames
+# Position in ECI
 # node_id: Node id
 # node_loc_pos_eci_s_utc: Telem timestamp (decisecond precision)
 # node_loc_pos_eci_s_x: X position in ECI (in meters)
@@ -216,29 +166,56 @@ CREATE TABLE IF NOT EXISTS node_loc_pos_eci_s (
     node_loc_pos_eci_s_y DECIMAL(8,2),
     node_loc_pos_eci_s_z DECIMAL(8,2),
 
-    FOREIGN KEY (node_id)
-        REFERENCES node(node_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
     PRIMARY KEY (node_id, node_loc_pos_eci_s_utc)
 );
 
-# Position values in supported reference frames
+# Velocity in ECI
 # node_id: Node id
-# node_loc_pos_geod_s_utc: Telem timestamp (decisecond precision)
-# node_loc_pos_geod_s_lat: Latitude in Geodetic (in radians)
-# node_loc_pos_geod_s_lon: Longitude in Geodetic (in radians)
-# node_loc_pos_geod_s_h: Height in Geodetic (in meters)
-CREATE TABLE IF NOT EXISTS node_loc_pos_geod_s (
+# node_loc_pos_eci_v_utc: Telem timestamp (decisecond precision)
+# node_loc_pos_eci_v_x: X velocity in ECI (in meters)
+# node_loc_pos_eci_v_y: Y velocity in ECI (in meters)
+# node_loc_pos_eci_v_z: Z velocity in ECI (in meters)
+CREATE TABLE IF NOT EXISTS node_loc_pos_eci_v (
     node_id TINYINT UNSIGNED NOT NULL,
-    node_loc_pos_geod_s_utc DATETIME(1) NOT NULL,
-    node_loc_pos_geod_s_lat DECIMAL(5,4),
-    node_loc_pos_geod_s_lon DECIMAL(5,4),
-    node_loc_pos_geod_s_h DECIMAL(8,2),
+    node_loc_pos_eci_v_utc DATETIME(1) NOT NULL,
+    node_loc_pos_eci_v_x DECIMAL(8,2),
+    node_loc_pos_eci_v_y DECIMAL(8,2),
+    node_loc_pos_eci_v_z DECIMAL(8,2),
 
-    FOREIGN KEY (node_id)
-        REFERENCES node(node_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    PRIMARY KEY (node_id, node_loc_pos_geod_s_utc)
+    PRIMARY KEY (node_id, node_loc_pos_eci_v_utc)
 );
+
+# Acceleration in ECI
+# node_id: Node id
+# node_loc_pos_eci_a_utc: Telem timestamp (decisecond precision)
+# node_loc_pos_eci_a_x: X acceleration in ECI (in meters)
+# node_loc_pos_eci_a_y: Y Acceleration in ECI (in meters)
+# node_loc_pos_eci_a_z: Z Acceleration in ECI (in meters)
+CREATE TABLE IF NOT EXISTS node_loc_pos_eci_a (
+    node_id TINYINT UNSIGNED NOT NULL,
+    node_loc_pos_eci_a_utc DATETIME(1) NOT NULL,
+    node_loc_pos_eci_a_x DECIMAL(8,2),
+    node_loc_pos_eci_a_y DECIMAL(8,2),
+    node_loc_pos_eci_a_z DECIMAL(8,2),
+
+    PRIMARY KEY (node_id, node_loc_pos_eci_a_utc)
+);
+
+# Attitude in ECI, 0th derivative
+# node_id: Node id
+# node_loc_att_icrf_utc: Telem timestamp (decisecond precision)
+# node_loc_att_icrf_s_d_x: X quaternion in ICRF
+# node_loc_att_icrf_s_d_y: Y quaternion in ICRF
+# node_loc_att_icrf_s_d_z: Z quaternion in ICRF
+# node_loc_att_icrf_s_w: W quaternion in ICRF
+CREATE TABLE IF NOT EXISTS node_loc_pos_eci_a (
+    node_id TINYINT UNSIGNED NOT NULL,
+    node_loc_att_icrf_utc DATETIME(1) NOT NULL,
+    node_loc_att_icrf_s_d_x DECIMAL(8,2),
+    node_loc_att_icrf_s_d_y DECIMAL(8,2),
+    node_loc_att_icrf_s_d_z DECIMAL(8,2),
+    node_loc_att_icrf_s_w DECIMAL(8,2),
+
+    PRIMARY KEY (node_id, node_loc_att_icrf_utc)
+);
+
