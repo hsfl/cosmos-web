@@ -21,10 +21,10 @@ cd ~/cosmos/tools/cosmos-web/grafana-plugins
 ```
 Download the grafana plugins:
 ```
-wget https://github.com/hsfl/cosmos-grafana-plugins/releases/latest/download/cosmos-sim-plugin.zip
+wget https://github.com/hsfl/cosmos-grafana-plugins/releases/download/v0.11.0/cosmos-sim-plugin.zip
 ```
 ```
-wget https://github.com/hsfl/cosmos-grafana-plugins/releases/latest/download/orbit-display.zip
+wget https://github.com/hsfl/cosmos-grafana-plugins/releases/download/v0.11.0/orbit-display.zip
 ```
 ```
 wget https://github.com/hsfl/cosmos-grafana-plugins/releases/latest/download/orbit-datasource.zip
