@@ -3,6 +3,7 @@ import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
 import DBHandler from '../database/DBHandler';
 import { new_api_response } from '../utils/response';
+import { TimeRange } from '../types/cosmos_types';
 const router = express.Router();
 
 
@@ -64,6 +65,28 @@ router.post('/device', async (req: Request, res: Response) => {
     await db.write_device(req.body);
     
     res.status(200).json();
+});
+
+/**
+ * devices: list of {node_id:number, name:string, dname:string} node dicts
+ * 
+ * test with:
+    curl --request POST \
+      --header "Content-Type: application/json" \
+      http://localhost:10090/db/attitude
+ */
+ router.get('/attitude', async (req: Request<{},{},{},TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_attitude({from:req.query.from, to: req.query.to});
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
 });
 
 module.exports = router;

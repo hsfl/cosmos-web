@@ -4,6 +4,9 @@ import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
 import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
+import { attitude } from '../transforms/cosmos';
+import { avector, TimeRange } from '../types/cosmos_types';
+
 
 // MySQL Implementation of Database class
 export default class MysqlDatabase extends BaseDatabase {
@@ -25,12 +28,15 @@ export default class MysqlDatabase extends BaseDatabase {
             user: user,
             password: password,
             database: database,
+            decimalNumbers: true,
+            supportBigNumbers: true,
+            bigNumberStrings: false,
         });
         this.promisePool = this.pool.promise();
     }
 
     public async clearDatabase(): Promise<void> {
-        console.log('Clear databasesss');
+        console.log('Clear databases');
     }
 
     public async write_telem(telem: Telem[]): Promise<void> {
@@ -52,24 +58,24 @@ export default class MysqlDatabase extends BaseDatabase {
         }
     }
 
-    public async write_telem_bulk(): Promise<void> {
-        for (let i =0; i < telem.length; i++) {
-            // Format MJD timestamp to mysql-friendly string
-            const time = mjd_to_unix(telem[i].time);
-            // Date takes unix milliseconds
-            const date = new Date(time*1000);
-            const datestring = date.toJSON().replace('T', ' ').slice(0,-1);
-            this.pool.execute(
-                'INSERT INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
-                [telem[i].node_id, telem[i].name, datestring, telem[i].value],
-                (err) => {
-                    if (err) {
-                        console.log('err:',err);
-                    }
-                }
-            );
-        } 
-    }
+    // public async write_telem_bulk(): Promise<void> {
+    //     for (let i =0; i < telem.length; i++) {
+    //         // Format MJD timestamp to mysql-friendly string
+    //         const time = mjd_to_unix(telem[i].time);
+    //         // Date takes unix milliseconds
+    //         const date = new Date(time*1000);
+    //         const datestring = date.toJSON().replace('T', ' ').slice(0,-1);
+    //         this.pool.execute(
+    //             'INSERT INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
+    //             [telem[i].node_id, telem[i].name, datestring, telem[i].value],
+    //             (err) => {
+    //                 if (err) {
+    //                     console.log('err:',err);
+    //                 }
+    //             }
+    //         );
+    //     } 
+    // }
 
     public async write_node(nodes: Node[]): Promise<void> {
         // Clear out current node table
@@ -118,6 +124,24 @@ export default class MysqlDatabase extends BaseDatabase {
                 });
             }
             
+        }
+    }
+    // TODO: fix return type
+    public async get_attitude(timerange: TimeRange): Promise<avector[]> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                'SELECT node_loc_att_icrf_utc AS "Time", node_loc_att_icrf_s_d_x AS qx, node_loc_att_icrf_s_d_y AS qy, node_loc_att_icrf_s_d_z AS qz, node_loc_att_icrf_s_w AS qw FROM node_loc_att_icrf WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000',
+                [timerange.from, timerange.to],
+            );
+            const ret = attitude(rows);
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_attitude:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
         }
     }
 }

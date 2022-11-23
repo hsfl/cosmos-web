@@ -1,4 +1,6 @@
 
+import { avector, TimeRange } from '../types/cosmos_types';
+
 export interface Telem {
     node_id: number;
     name: string;
@@ -39,5 +41,10 @@ export default class BaseDatabase {
 
     public async write_device(devices: Device[]): Promise<void> {
         console.log('Writing devices', devices);
+    }
+
+    public async get_attitude(timerange: TimeRange): Promise<avector[]> {
+        console.log('Getting attitude');
+        return [];
     }
 }

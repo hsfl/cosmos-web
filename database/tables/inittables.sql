@@ -162,9 +162,9 @@ CREATE TABLE IF NOT EXISTS device_tsen (
 CREATE TABLE IF NOT EXISTS node_loc_pos_eci_s (
     node_id TINYINT UNSIGNED NOT NULL,
     node_loc_pos_eci_s_utc DATETIME(1) NOT NULL,
-    node_loc_pos_eci_s_x DECIMAL(8,2),
-    node_loc_pos_eci_s_y DECIMAL(8,2),
-    node_loc_pos_eci_s_z DECIMAL(8,2),
+    node_loc_pos_eci_s_x DECIMAL(10,2),
+    node_loc_pos_eci_s_y DECIMAL(10,2),
+    node_loc_pos_eci_s_z DECIMAL(10,2),
 
     PRIMARY KEY (node_id, node_loc_pos_eci_s_utc)
 );
@@ -201,20 +201,52 @@ CREATE TABLE IF NOT EXISTS node_loc_pos_eci_a (
     PRIMARY KEY (node_id, node_loc_pos_eci_a_utc)
 );
 
-# Attitude in ECI, 0th derivative
+# Attitude in ICRF, 0th derivative
 # node_id: Node id
 # node_loc_att_icrf_utc: Telem timestamp (decisecond precision)
 # node_loc_att_icrf_s_d_x: X quaternion in ICRF
 # node_loc_att_icrf_s_d_y: Y quaternion in ICRF
 # node_loc_att_icrf_s_d_z: Z quaternion in ICRF
 # node_loc_att_icrf_s_w: W quaternion in ICRF
-CREATE TABLE IF NOT EXISTS node_loc_pos_eci_a (
+CREATE TABLE IF NOT EXISTS node_loc_att_icrf (
     node_id TINYINT UNSIGNED NOT NULL,
     node_loc_att_icrf_utc DATETIME(1) NOT NULL,
     node_loc_att_icrf_s_d_x DECIMAL(8,2),
     node_loc_att_icrf_s_d_y DECIMAL(8,2),
     node_loc_att_icrf_s_d_z DECIMAL(8,2),
     node_loc_att_icrf_s_w DECIMAL(8,2),
+
+    PRIMARY KEY (node_id, node_loc_att_icrf_utc)
+);
+
+# Attitude in ICRF, 1st derivative
+# node_id: Node id
+# node_loc_att_icrf_utc: Telem timestamp (decisecond precision)
+# node_loc_att_icrf_v_col_0: X quaternion in ICRF
+# node_loc_att_icrf_v_col_1: Y quaternion in ICRF
+# node_loc_att_icrf_v_col_2: Z quaternion in ICRF
+CREATE TABLE IF NOT EXISTS node_loc_att_icrf (
+    node_id TINYINT UNSIGNED NOT NULL,
+    node_loc_att_icrf_utc DATETIME(1) NOT NULL,
+    node_loc_att_icrf_v_col_0 DECIMAL(8,2),
+    node_loc_att_icrf_v_col_1 DECIMAL(8,2),
+    node_loc_att_icrf_v_col_2 DECIMAL(8,2),
+
+    PRIMARY KEY (node_id, node_loc_att_icrf_utc)
+);
+
+# Attitude in ICRF, 2nd derivative
+# node_id: Node id
+# node_loc_att_icrf_utc: Telem timestamp (decisecond precision)
+# node_loc_att_icrf_a_col_0: X quaternion in ICRF
+# node_loc_att_icrf_a_col_1: Y quaternion in ICRF
+# node_loc_att_icrf_a_col_2: Z quaternion in ICRF
+CREATE TABLE IF NOT EXISTS node_loc_att_icrf (
+    node_id TINYINT UNSIGNED NOT NULL,
+    node_loc_att_icrf_utc DATETIME(1) NOT NULL,
+    node_loc_att_icrf_a_col_0 DECIMAL(8,2),
+    node_loc_att_icrf_a_col_1 DECIMAL(8,2),
+    node_loc_att_icrf_a_col_2 DECIMAL(8,2),
 
     PRIMARY KEY (node_id, node_loc_att_icrf_utc)
 );
