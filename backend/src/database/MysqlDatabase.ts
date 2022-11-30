@@ -5,7 +5,7 @@ import { mjd_to_unix } from '../utils/time';
 import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
 import { attitude } from '../transforms/cosmos';
-import { avector, TimeRange } from '../types/cosmos_types';
+import { TimeRange, cosmosresponse } from '../types/cosmos_types';
 
 
 // MySQL Implementation of Database class
@@ -127,13 +127,41 @@ export default class MysqlDatabase extends BaseDatabase {
         }
     }
     // TODO: fix return type
-    public async get_attitude(timerange: TimeRange): Promise<avector[]> {
+    public async get_attitude(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-                'SELECT node_loc_att_icrf_utc AS "Time", node_loc_att_icrf_s_d_x AS qx, node_loc_att_icrf_s_d_y AS qy, node_loc_att_icrf_s_d_z AS qz, node_loc_att_icrf_s_w AS qw FROM node_loc_att_icrf WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000',
+`SELECT
+node_loc_att_icrf_utc AS "Time",
+node_loc_att_icrf_s_d_x AS qsx,
+node_loc_att_icrf_s_d_y AS qsy,
+node_loc_att_icrf_s_d_z AS qsz,
+node_loc_att_icrf_s_w AS qsw
+FROM node_loc_att_icrf_s
+WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
-            const ret = attitude(rows);
+            const [vrows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+`SELECT
+node_loc_att_icrf_utc AS "Time",
+node_loc_att_icrf_v_col_0 AS qvx,
+node_loc_att_icrf_v_col_1 AS qvy,
+node_loc_att_icrf_v_col_2 AS qvz
+FROM node_loc_att_icrf_v
+WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+                [timerange.from, timerange.to],
+            );
+            const [arows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+`SELECT
+node_loc_att_icrf_utc AS "Time",
+node_loc_att_icrf_a_col_0 AS qax,
+node_loc_att_icrf_a_col_1 AS qay,
+node_loc_att_icrf_a_col_2 AS qaz
+FROM node_loc_att_icrf_a
+WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+                [timerange.from, timerange.to],
+            );
+            const ret = {"avectors":attitude(rows), "qvatts": vrows, "qaatts":arows};
+            //const ret = attitude(rows);
             return ret;
         }
         catch (error) {

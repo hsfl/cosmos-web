@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS node_loc_pos_eci_a (
 # node_loc_att_icrf_s_d_y: Y quaternion in ICRF
 # node_loc_att_icrf_s_d_z: Z quaternion in ICRF
 # node_loc_att_icrf_s_w: W quaternion in ICRF
-CREATE TABLE IF NOT EXISTS node_loc_att_icrf (
+CREATE TABLE IF NOT EXISTS node_loc_att_icrf_s (
     node_id TINYINT UNSIGNED NOT NULL,
     node_loc_att_icrf_utc DATETIME(1) NOT NULL,
     node_loc_att_icrf_s_d_x DECIMAL(8,2),
@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS node_loc_att_icrf (
 # node_loc_att_icrf_v_col_0: X quaternion in ICRF
 # node_loc_att_icrf_v_col_1: Y quaternion in ICRF
 # node_loc_att_icrf_v_col_2: Z quaternion in ICRF
-CREATE TABLE IF NOT EXISTS node_loc_att_icrf (
+CREATE TABLE IF NOT EXISTS node_loc_att_icrf_v (
     node_id TINYINT UNSIGNED NOT NULL,
     node_loc_att_icrf_utc DATETIME(1) NOT NULL,
     node_loc_att_icrf_v_col_0 DECIMAL(8,2),
@@ -241,7 +241,7 @@ CREATE TABLE IF NOT EXISTS node_loc_att_icrf (
 # node_loc_att_icrf_a_col_0: X quaternion in ICRF
 # node_loc_att_icrf_a_col_1: Y quaternion in ICRF
 # node_loc_att_icrf_a_col_2: Z quaternion in ICRF
-CREATE TABLE IF NOT EXISTS node_loc_att_icrf (
+CREATE TABLE IF NOT EXISTS node_loc_att_icrf_a (
     node_id TINYINT UNSIGNED NOT NULL,
     node_loc_att_icrf_utc DATETIME(1) NOT NULL,
     node_loc_att_icrf_a_col_0 DECIMAL(8,2),

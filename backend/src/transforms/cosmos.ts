@@ -16,11 +16,11 @@ export const attitude = (rows: mysql.RowDataPacket[]) => {
     rows.forEach((row) => {
         const q:quaternion = {
             d:{
-                x:row.qx,
-                y:row.qy,
-                z:row.qz,
+                x:row.qsx,
+                y:row.qsy,
+                z:row.qsz,
             },
-            w:row.qw,
+            w:row.qsw,
         };
         const av:avector = (cosmos.a_quaternion2euler(q));
         //const time  

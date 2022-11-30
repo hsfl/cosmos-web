@@ -71,9 +71,7 @@ router.post('/device', async (req: Request, res: Response) => {
  * devices: list of {node_id:number, name:string, dname:string} node dicts
  * 
  * test with:
-    curl --request POST \
-      --header "Content-Type: application/json" \
-      http://localhost:10090/db/attitude
+    curl --request GET "http://localhost:10090/db/attitude?from=2022-10-22+20:00:00&to=2022-10-22+21:00:00"
  */
  router.get('/attitude', async (req: Request<{},{},{},TimeRange>, res: Response) => {
     const db = DBHandler.app_db();

@@ -41,3 +41,27 @@ export interface TimeRange {
     from: string;
     to: string;
 }
+
+export interface qsatt {
+    qsx: number;
+    qsy: number;
+    qsz: number;
+}
+export interface qvatt {
+    qvx: number;
+    qvy: number;
+    qvz: number;
+}
+export interface qaatt {
+    qax: number;
+    qay: number;
+    qaz: number;
+}
+export interface TimePacket {
+    "Time"?: number;
+    [column: string]: any;
+}
+
+export interface cosmosresponse {
+    [column: string]: TimePacket[];
+}
