@@ -23,7 +23,6 @@ const router = express.Router();
       http://localhost:10090/sim/propagator
 */
 router.post('/telem', async (req: Request, res: Response) => {
-    console.log(req.body.metrics[0].tags);
     if (req.body === undefined || !Array.isArray(req.body)) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
