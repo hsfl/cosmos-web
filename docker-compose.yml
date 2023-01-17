@@ -50,10 +50,7 @@ services:
       - web_core_dist:/build/dist
 
   backend:
-    build:
-      context: ./backend/
-      dockerfile: Dockerfile
-      target: base
+    image: hsfl2/web_core:latest
     command: npm run dev
     #platform: linux/x86_64 # tentatively used for macOS M1 to compile grafana plugins
     container_name: cosmos_backend
