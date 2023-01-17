@@ -20,7 +20,7 @@ services:
       - database:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d
   grafana:
-    image: grafana/grafana-oss:9.2.1
+    image: grafana/grafana-oss:9.3.2
     container_name: cosmos_grafana
     depends_on:
       - database
@@ -84,7 +84,7 @@ services:
       - web_core_dist:/root/web_core_dist
 
   influxdb:
-    image: influxdb:2.1.1
+    image: influxdb:2.6.1
     container_name: cosmos_influxdb
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
@@ -109,7 +109,7 @@ services:
       - influxdb2:/var/lib/influxdb2
 
   telegraf:
-    image: telegraf:1.24.4
+    image: telegraf:1.25.0
     container_name: cosmos_telegraf
     environment:
       # InfluxDB output setup
