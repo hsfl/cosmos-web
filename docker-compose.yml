@@ -45,6 +45,7 @@ services:
 
   # Builds webasm for backend
   web-core:
+    container_name: cosmos_web_core
     image: hsfl2/web_core:latest
     volumes:
       - web_core_dist:/build/dist
