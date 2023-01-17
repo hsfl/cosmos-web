@@ -45,7 +45,7 @@ services:
 
   # Builds webasm for backend
   web-core:
-    image: ginoscottdev/web_core:latest
+    image: hsfl2/web_core:latest
     volumes:
       - web_core_dist:/build/dist
 
