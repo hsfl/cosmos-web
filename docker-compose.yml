@@ -112,7 +112,7 @@ services:
     environment:
       # InfluxDB output setup
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_INIT_ORG:?err}
-      - DOCKER_INFLUXDB_INIT_BUCKET=Simulator_Data
+      - DOCKER_INFLUXDB_INIT_BUCKET=COSMOS_Dev_Bucket
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_INIT_ADMIN_TOKEN:?err}
       # Reserve ports for data ingestion
       - COSMOS_DEV_PORT=10095
