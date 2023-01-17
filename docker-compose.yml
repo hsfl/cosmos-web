@@ -52,7 +52,7 @@ services:
 
   backend:
     image: hsfl2/web_core:latest
-    command: npm run dev
+    command: bash "npm run dev"
     #platform: linux/x86_64 # tentatively used for macOS M1 to compile grafana plugins
     container_name: cosmos_backend
     depends_on:
