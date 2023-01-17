@@ -172,4 +172,138 @@ WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
             });
         }
     }
+
+    public async get_position(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+`SELECT
+node_loc_pos_eci_s_utc AS "Time",
+node_loc_pos_eci_s_x AS sx,
+node_loc_pos_eci_s_y AS sy,
+node_loc_pos_eci_s_z AS sz
+FROM node_loc_pos_eci_s
+WHERE node_loc_pos_eci_s_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            const ret = {"ecis": rows};
+            //const ret = attitude(rows);
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_attitude:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_battery(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+`SELECT
+  device_batt_utc AS "time",
+  CONCAT(node_name, ':', didx) as node,
+  device_batt_amp AS amp,
+  device_batt_power AS power
+FROM device_batt
+INNER JOIN node ON device_batt.node_id = node.node_id
+WHERE device_batt_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            const ret = {"batts": rows};
+            //const ret = attitude(rows);
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_battery:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_bcreg(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+`SELECT
+  device_bcreg_utc AS "time",
+  CONCAT(node_name, ':', didx) as node,
+  device_bcreg_amp AS amp,
+  device_bcreg_power AS power
+FROM device_bcreg
+INNER JOIN node ON device_bcreg.node_id = node.node_id
+WHERE device_bcreg_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            const ret = {"bcregs": rows};
+            //const ret = attitude(rows);
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_bcreg:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_tsen(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+`SELECT
+  device_tsen_utc AS "time",
+  CONCAT(node_name, ':', didx) as node,
+  device_tsen_temp AS temp
+FROM device_tsen
+INNER JOIN node ON device_tsen.node_id = node.node_id
+WHERE device_tsen_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            const ret = {"tsens": rows};
+            //const ret = attitude(rows);
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_tsen:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_cpu(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+`SELECT
+  device_cpu_utc AS "time",
+  CONCAT(node_name, ':', didx) as node,
+  device_cpu_load as "load",
+  device_cpu_gib as gib,
+  device_cpu_storage as storage
+FROM device_cpu
+INNER JOIN node ON device_cpu.node_id = node.node_id
+WHERE device_cpu_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            const ret = {"cpus": rows};
+            //const ret = attitude(rows);
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_cpu:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
 }

@@ -23,6 +23,7 @@ const router = express.Router();
       http://localhost:10090/sim/propagator
 */
 router.post('/telem', async (req: Request, res: Response) => {
+    console.log(req.body.metrics);
     if (req.body === undefined || !Array.isArray(req.body)) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
@@ -82,6 +83,76 @@ router.post('/device', async (req: Request, res: Response) => {
         });
     }
     const ret = await db.get_attitude({from:req.query.from, to: req.query.to});
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+router.get('/position', async (req: Request<{},{},{},TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_position({from:req.query.from, to: req.query.to});
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+router.get('/battery', async (req: Request<{},{},{},TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_battery({from:req.query.from, to: req.query.to});
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+router.get('/bcreg', async (req: Request<{},{},{},TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_bcreg({from:req.query.from, to: req.query.to});
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+router.get('/tsen', async (req: Request<{},{},{},TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_tsen({from:req.query.from, to: req.query.to});
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+router.get('/cpu', async (req: Request<{},{},{},TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_cpu({from:req.query.from, to: req.query.to});
     const response = new_api_response('success');
     response.payload = ret;
     res.status(200).json(response);

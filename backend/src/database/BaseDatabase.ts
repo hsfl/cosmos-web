@@ -46,4 +46,29 @@ export default class BaseDatabase {
         console.log('Getting attitude');
         return {};
     }
+
+    public async get_position(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting position');
+        return {};
+    }
+
+    public async get_battery(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting batteries');
+        return {};
+    }
+
+    public async get_bcreg(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting bcregs');
+        return {};
+    }
+
+    public async get_tsen(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting tsens');
+        return {};
+    }
+
+    public async get_cpu(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting cpus');
+        return {};
+    }
 }
