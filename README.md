@@ -27,7 +27,7 @@ wget https://github.com/hsfl/cosmos-grafana-plugins/releases/download/v0.11.0/co
 wget https://github.com/hsfl/cosmos-grafana-plugins/releases/download/v0.11.0/orbit-display.zip
 ```
 ```
-wget https://github.com/hsfl/cosmos-grafana-plugins/releases/latest/download/orbit-datasource.zip
+wget https://github.com/hsfl/cosmos-grafana-plugins/releases/download/v0.12.0/orbit-datasource.zip
 ```
 Unzip the files:
 ```
