@@ -1,9 +1,14 @@
 version: '3.6'
 services:
   grafana:
+    container_name: cosmos_grafana
+    image: grafana/grafana-oss:9.3.2
     volumes:
       - ./grafana-plugins/cosmos-grafana-plugins/build:/var/lib/grafana/plugins/cosmos-plugins/
+
   backend:
+    container_name: cosmos_backend
+    image: hsfl2/web_backend:latest
     volumes:
       # Install Grafana plugins
       - ./grafana-plugins:/grafana-plugins
