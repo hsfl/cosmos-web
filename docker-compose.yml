@@ -19,6 +19,7 @@ services:
       # Mount for data directory and configuration
       - database:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d
+
   grafana:
     image: grafana/grafana-oss:9.3.2
     container_name: cosmos_grafana
