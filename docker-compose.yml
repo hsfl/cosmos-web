@@ -30,7 +30,6 @@ services:
       - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:?err}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:?err}
       - GF_DEFAULT_APP_MODE=${GF_APP_MODE:?err}
-      - GF_INSTALL_PLUGINS=https://github.com/hsfl/cosmos-grafana-plugins/releases/download/v1.0.0-alpha/cosmos-grafana-plugins.zip;cosmos-grafana-plugins
     logging:
       driver: "local"
       options:
@@ -60,8 +59,7 @@ services:
       - web_core_dist:/build/dist
 
   backend:
-    image: hsfl2/web_core:latest
-    command: bash "npm run dev"
+    image: hsfl2/web_backend:latest
     #platform: linux/x86_64 # tentatively used for macOS M1 to compile grafana plugins
     container_name: cosmos_backend
     depends_on:
