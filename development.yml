@@ -3,3 +3,12 @@ services:
   grafana:
     volumes:
       - ./grafana-plugins/cosmos-grafana-plugins/build:/var/lib/grafana/plugins/cosmos-plugins/
+  backend:
+    volumes:
+      # Install Grafana plugins
+      - ./grafana-plugins:/grafana-plugins
+      # For syncing dev changes
+      - ./backend/src:/home/node/app/src
+      - ./backend/tests:/home/node/app/tests
+      # For accessing database stuff
+      - ./.env:/home/node/app/.env
