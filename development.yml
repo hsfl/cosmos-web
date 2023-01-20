@@ -10,8 +10,6 @@ services:
     container_name: cosmos_backend
     image: hsfl2/web_backend:latest
     volumes:
-      # Install Grafana plugins
-      - ./grafana-plugins:/grafana-plugins
       # For syncing dev changes
       - ./backend/src:/home/node/app/src
       - ./backend/tests:/home/node/app/tests
