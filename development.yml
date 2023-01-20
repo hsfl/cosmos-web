@@ -2,4 +2,4 @@ version: '3.6'
 services:
   grafana:
     volumes:
-      - ./grafana-plugins:/var/lib/grafana/plugins/cosmos-plugins/
+      - ./grafana-plugins/cosmos-grafana-plugins/build:/var/lib/grafana/plugins/cosmos-plugins/
