@@ -25,6 +25,7 @@ services:
     container_name: cosmos_grafana
     depends_on:
       - database
+      - grafana_plugins
     environment:
       - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:?err}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:?err}
@@ -42,7 +43,14 @@ services:
     restart: always
     volumes:
       - grafana_data:/var/lib/grafana
+      - grafana_panel_plugins:/var/lib/grafana/plugins/cosmos-grafana-plugins
       - ./provisioning:/etc/grafana/provisioning
+    
+  grafana-plugins:
+    image: hsfl2/grafana_plugins
+    container_name: cosmos_grafana_plugins
+    volumes:
+      - grafana_panel_plugins:/home/cosmos-grafana-plugins/build
 
   # Builds webasm for backend
   web-core:
@@ -162,6 +170,7 @@ volumes:
   database: {}
   logs: {}
   grafana_data: {}
+  grafana_panel_plugins: {}
   influxdb2: {}
 
 networks:
