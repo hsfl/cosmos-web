@@ -3,7 +3,7 @@ load("time.star", "time")
 #load("logging.star", "log")
 
 def apply(metric):
-    #log.debug("soh value: {}".format(metric.fields.get("value")))
+    #log.debug("Loki value: {}".format(metric.fields.get("value")))
     j = json.decode(metric.fields.get("value"))
 
     new_metric = Metric("log")
@@ -26,11 +26,8 @@ def apply(metric):
 
         # Add other keys as fields
         entry = j[key]
-        etype = type(entry)
-        if (etype != "string"):
-            # skip non-strings
-            continue
-        new_metric.fields[key] = entry
+
+        new_metric.fields[key] = str(entry)
     
     new_metric.tags["telegraf_datatag"] = "cosmos_log"
 
