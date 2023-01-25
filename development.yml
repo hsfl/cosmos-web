@@ -4,7 +4,7 @@ services:
     container_name: cosmos_grafana
     image: grafana/grafana-oss:9.3.2
     volumes:
-      - ./grafana-plugins/cosmos-grafana-plugins/build:/var/lib/grafana/plugins/cosmos-plugins/
+      - ./grafana-plugins/cosmos-grafana-plugins/src:/var/lib/grafana/plugins/cosmos-plugins/
 
   backend:
     container_name: cosmos_backend
@@ -13,5 +13,3 @@ services:
       # For syncing dev changes
       - ./backend/src:/home/node/app/src
       - ./backend/tests:/home/node/app/tests
-      # For accessing database stuff
-      - ./.env:/home/node/app/.env
