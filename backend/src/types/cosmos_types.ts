@@ -38,8 +38,8 @@ export interface timepoint {
 }
 
 export interface TimeRange {
-    from: string;
-    to: string;
+    from: number;
+    to: number;
 }
 
 export interface qsatt {

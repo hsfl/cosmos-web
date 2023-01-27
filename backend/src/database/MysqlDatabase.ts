@@ -173,6 +173,27 @@ WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
         }
     }
 
+    public async get_event(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+`SELECT * FROM cosmos_event
+WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            const ret = {"ecis": rows};
+            //const ret = attitude(rows);
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_position:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
     public async get_position(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
@@ -191,7 +212,7 @@ WHERE node_loc_pos_eci_s_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_attitude:', error);
+            console.log('Error in get_position:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'

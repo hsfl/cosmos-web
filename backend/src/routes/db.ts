@@ -88,6 +88,21 @@ router.post('/device', async (req: Request, res: Response) => {
     res.status(200).json(response);
 });
 
+// curl --request GET "http://localhost:10090/db/event?from=59874.83333333&to=59874.87333333"
+router.get('/event', async (req: Request<{},{},{},TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_event({from:req.query.from, to: req.query.to});
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
 router.get('/position', async (req: Request<{},{},{},TimeRange>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.from === undefined || req.query.to === undefined) {
