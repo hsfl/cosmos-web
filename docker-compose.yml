@@ -43,7 +43,7 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - grafana_panel_plugins:/var/lib/grafana/plugins/cosmos-plugins
-    
+
   grafana-plugins:
     image: hsfl2/grafana_plugins
     container_name: cosmos_grafana_plugins
