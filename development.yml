@@ -4,7 +4,14 @@ services:
     container_name: cosmos_grafana
     image: grafana/grafana-oss:9.3.2
     volumes:
-      - ./grafana-plugins/cosmos-grafana-plugins/src:/var/lib/grafana/plugins/cosmos-plugins/
+      - ./grafana-plugins/cosmos-grafana-plugins/src:/var/lib/grafana/plugins/cosmos-plugins
+
+  grafana-plugins-dev:
+    command: tail -f /dev/null
+    image: hsfl2/grafana_plugins_dev_env
+    container_name: cosmos_grafana_plugins_dev_env
+    volumes:
+      - ./grafana-plugins/cosmos-grafana-plugins:/home/cosmos-grafana-plugins
 
   backend:
     container_name: cosmos_backend
