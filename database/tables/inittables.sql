@@ -1,253 +1,161 @@
 # Note, should be run with a database specified (see inittables.sh)
 # The docker mysql entrypoint script will ignore this folder
 
-####################################################
-### TABLES #########################################
-####################################################
-# List of nodes in the realm
-# node_id: Node id within realm
-# node_name: Node name
-# node_utcstart: Node utcstart time
+# drop database if exists cosmos;
+# create database cosmos;
+# use cosmos;
+
 CREATE TABLE IF NOT EXISTS node (
-    node_id TINYINT UNSIGNED NOT NULL UNIQUE,
-    node_name VARCHAR(40) NOT NULL UNIQUE,
-    device_utc DATETIME(1),
-    node_utcstart DATETIME(1),
-
-    PRIMARY KEY (node_id)
+# node_id TINYINT UNSIGNED NOT NULL UNIQUE,
+node_name VARCHAR(40) NOT NULL UNIQUE,
+agent_name VARCHAR(40) NOT NULL,
+utc DOUBLE,
+utcstart DOUBLE,
+PRIMARY KEY (node_name)
 );
 
-# List of agents in the realm
-# node_id: Node id of node agent belongs to
-# node_agent: Agent name
-CREATE TABLE IF NOT EXISTS agent (
-    node_id TINYINT UNSIGNED NOT NULL,
-    node_agent VARCHAR(40) NOT NULL,
-
-    FOREIGN KEY (node_id)
-        REFERENCES node(node_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    PRIMARY KEY (node_id)
+# COSMOS device
+# All COSMOS devices inherit from devicestruc and are stored in the devices vector
+# node_name: Name of node
+# type: Device type, defined in jsondef.h
+# cidx: Component index, index of the specific device in its appropriate devspec vector
+# didx: Device index, index in devices vector
+CREATE TABLE IF NOT EXISTS device (
+    node_name VARCHAR(40) NOT NULL,
+    type SMALLINT UNSIGNED NOT NULL,
+    cidx SMALLINT UNSIGNED NOT NULL,
+    didx SMALLINT UNSIGNED NOT NULL,
+    name VARCHAR(40) NOT NULL,
+    PRIMARY KEY (node_name, didx)
 );
 
-# BATT devices
-# node_id: Node id
-# didx: Index of Battery in device table
-# device_batt_utc: Telem timestamp (decisecond precision)
-# device_batt_volt: Voltage in V
-# device_batt_amp: Current in A
-# device_batt_power: Power in W
-# device_batt_temp: Temperature in K
-# device_batt_percentage: Disk space usage percentage
-CREATE TABLE IF NOT EXISTS device_batt (
-    node_id TINYINT UNSIGNED NOT NULL,
-    didx TINYINT UNSIGNED NOT NULL,
-    device_batt_utc DATETIME(1) NOT NULL,
-    device_batt_volt DECIMAL(5,2),
-    device_batt_amp DECIMAL(5,2),
-    device_batt_power DECIMAL(5,2),
-    device_batt_temp DECIMAL(5,2),
-    device_batt_percentage DECIMAL(5,2),
-
-    PRIMARY KEY (node_id, didx, device_batt_utc)
+CREATE TABLE IF NOT EXISTS battstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+volt DECIMAL(5,2),
+amp DECIMAL(5,2),
+power DECIMAL(5,2),
+temp DECIMAL(5,2),
+percentage DECIMAL(5,2),
+PRIMARY KEY (node_name, didx, utc)
 );
 
-# BCREG devices
-# node_id: Node id
-# didx: Index of BCREG in device table
-# device_bcreg_utc: Telem timestamp (decisecond precision)
-# device_bcreg_volt: Voltage in V
-# device_bcreg_amp: Current in A
-# device_bcreg_power: Power in W
-# device_bcreg_mpptin_amp: Current in A
-# device_bcreg_mpptin_volt: Current in V
-# device_bcreg_mpptout_amp: Current in A
-# device_bcreg_mpptout_volt: Current in V
-CREATE TABLE IF NOT EXISTS device_bcreg (
-    node_id TINYINT UNSIGNED NOT NULL,
-    didx TINYINT UNSIGNED NOT NULL,
-    device_bcreg_utc DATETIME(1) NOT NULL,
-    device_bcreg_volt DECIMAL(5,2),
-    device_bcreg_amp DECIMAL(5,2),
-    device_bcreg_power DECIMAL(5,2),
-    device_bcreg_mpptin_amp DECIMAL(5,2),
-    device_bcreg_mpptin_volt DECIMAL(5,2),
-    device_bcreg_mpptout_amp DECIMAL(5,2),
-    device_bcreg_mpptout_volt DECIMAL(5,2),
-
-    PRIMARY KEY (node_id, didx, device_bcreg_utc)
+CREATE TABLE IF NOT EXISTS bcregstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+volt DECIMAL(5,2),
+amp DECIMAL(5,2),
+power DECIMAL(5,2),
+temp DECIMAL(5,2),
+mpptin_amp DECIMAL(5,2),   
+mpptin_volt DECIMAL(5,2),  
+mpptout_amp DECIMAL(5,2),  
+mpptout_volt DECIMAL(5,2), 
+PRIMARY KEY (node_name, didx, utc)
 );
 
-# CPU devices
-# node_id: Node id
-# didx: Index of CPU in device table
-# device_cpu_utc: Telem timestamp (decisecond precision)
-# device_cpu_uptime: Seconds CPU has been up
-# device_cpu_boot_count: Number of reboots
-# device_cpu_load: Current CPU load
-# device_cpu_gib: Memory usage (RAM + Virtual) in gib
-# device_cpu_storage: Disk space usage percentage
-# device_cpu_temp: CPU temperature (in C)
-CREATE TABLE IF NOT EXISTS device_cpu (
-    node_id TINYINT UNSIGNED NOT NULL,
-    didx TINYINT UNSIGNED NOT NULL,
-    device_cpu_utc DATETIME(1) NOT NULL,
-    device_cpu_uptime INT UNSIGNED,
-    device_cpu_boot_count INT UNSIGNED,
-    device_cpu_load DECIMAL(5,2),
-    device_cpu_gib DECIMAL(5,2),
-    device_cpu_storage DECIMAL(3,2),
-    device_cpu_temp DECIMAL(5,2),
-
-    PRIMARY KEY (node_id, didx, device_cpu_utc)
+CREATE TABLE IF NOT EXISTS cpustruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+temp DECIMAL(5,2),
+uptime INT UNSIGNED,   
+cpu_load DECIMAL(5,2), 
+gib DECIMAL(5,2),  
+boot_count INT UNSIGNED,   
+storage DECIMAL(5,2),  
+PRIMARY KEY (node_name, didx, utc)
 );
 
-# Magnetometer
-# node_id: Node id
-# didx: Index of magnetometer in device table
-# device_mag_mag_utc: Telem timestamp (decisecond precision)
-# device_mag_mag_x: Magnetometer reading x axis
-# device_mag_mag_y: Magnetometer reading y axis
-# device_mag_mag_z: Magnetometer reading z axis
-CREATE TABLE IF NOT EXISTS device_mag (
-    node_id TINYINT UNSIGNED NOT NULL,
-    didx TINYINT UNSIGNED NOT NULL,
-    device_mag_mag_utc DATETIME(1) NOT NULL,
-    device_mag_mag_x DECIMAL(5,2),
-    device_mag_mag_y DECIMAL(5,2),
-    device_mag_mag_z DECIMAL(5,2),
-
-    PRIMARY KEY (node_id, didx, device_mag_mag_utc)
+CREATE TABLE IF NOT EXISTS magstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+mag_x DECIMAL(5,2),
+mag_y DECIMAL(5,2),
+mag_z DECIMAL(5,2),
+PRIMARY KEY (node_name, didx, utc)
 );
 
-# EPS Switch devices
-# node_id: Node id
-# didx: ID of switch in device table
-# device_swch_utc: Telem timestamp (decisecond precision)
-# device_swch_volt: Voltage in V
-# device_swch_amp: Current in A
-# device_swch_power: Power in W
-CREATE TABLE IF NOT EXISTS device_swch (
-    node_id TINYINT UNSIGNED NOT NULL,
-    didx TINYINT UNSIGNED NOT NULL,
-    device_swch_utc DATETIME(1) NOT NULL,
-    device_swch_volt DECIMAL(5,2),
-    device_swch_amp DECIMAL(5,2),
-    device_swch_power DECIMAL(5,2),
-
-    PRIMARY KEY (node_id, didx, device_swch_utc)
+CREATE TABLE IF NOT EXISTS swchstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+volt DECIMAL(5,2),
+amp DECIMAL(5,2),
+power DECIMAL(5,2),
+temp DECIMAL(5,2),
+PRIMARY KEY (node_name, didx, utc)
 );
 
-# TSEN devices
-# node_id: Index of TSEN in device table
-# didx: Index of TSEN in device table
-# device_tsen_utc: Timestamp of telem point
-# device_tsen_temp: Temperature value of thermal sensor
-CREATE TABLE IF NOT EXISTS device_tsen (
-    node_id TINYINT UNSIGNED NOT NULL,
-    didx TINYINT UNSIGNED NOT NULL,
-    device_tsen_utc DATETIME(1) NOT NULL,
-	device_tsen_temp DECIMAL(5,2),
-
-    PRIMARY KEY (node_id, didx, device_tsen_utc)
+CREATE TABLE IF NOT EXISTS tsenstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+temp DECIMAL(5,2),
+PRIMARY KEY (node_name, didx, utc)
 );
 
-# Position in ECI
-# node_id: Node id
-# node_loc_pos_eci_s_utc: Telem timestamp (decisecond precision)
-# node_loc_pos_eci_s_x: X position in ECI (in meters)
-# node_loc_pos_eci_s_y: Y position in ECI (in meters)
-# node_loc_pos_eci_s_z: Z position in ECI (in meters)
-CREATE TABLE IF NOT EXISTS node_loc_pos_eci_s (
-    node_id TINYINT UNSIGNED NOT NULL,
-    node_loc_pos_eci_s_utc DATETIME(1) NOT NULL,
-    node_loc_pos_eci_s_x DECIMAL(10,2),
-    node_loc_pos_eci_s_y DECIMAL(10,2),
-    node_loc_pos_eci_s_z DECIMAL(10,2),
-
-    PRIMARY KEY (node_id, node_loc_pos_eci_s_utc)
+CREATE TABLE IF NOT EXISTS locstruc_eci (
+node_name VARCHAR(40) NOT NULL,
+utc DOUBLE NOT NULL,
+s_x DOUBLE,
+s_y DOUBLE,
+s_z DOUBLE,
+v_x DOUBLE,
+v_y DOUBLE,
+v_z DOUBLE,
+a_x DOUBLE,
+a_y DOUBLE,
+a_z DOUBLE,
+PRIMARY KEY (node_name, utc)
 );
 
-# Velocity in ECI
-# node_id: Node id
-# node_loc_pos_eci_v_utc: Telem timestamp (decisecond precision)
-# node_loc_pos_eci_v_x: X velocity in ECI (in meters)
-# node_loc_pos_eci_v_y: Y velocity in ECI (in meters)
-# node_loc_pos_eci_v_z: Z velocity in ECI (in meters)
-CREATE TABLE IF NOT EXISTS node_loc_pos_eci_v (
-    node_id TINYINT UNSIGNED NOT NULL,
-    node_loc_pos_eci_v_utc DATETIME(1) NOT NULL,
-    node_loc_pos_eci_v_x DECIMAL(8,2),
-    node_loc_pos_eci_v_y DECIMAL(8,2),
-    node_loc_pos_eci_v_z DECIMAL(8,2),
-
-    PRIMARY KEY (node_id, node_loc_pos_eci_v_utc)
+CREATE TABLE IF NOT EXISTS attstruc_icrf (
+node_name VARCHAR(40) NOT NULL,
+utc DOUBLE NOT NULL,
+s_x DOUBLE,
+s_y DOUBLE,
+s_z DOUBLE,
+s_w DOUBLE,
+omega_x DOUBLE,
+omega_y DOUBLE,
+omega_z DOUBLE,
+alpha_x DOUBLE,
+alpha_y DOUBLE,
+alpha_z DOUBLE,
+PRIMARY KEY (node_name, utc)
 );
 
-# Acceleration in ECI
-# node_id: Node id
-# node_loc_pos_eci_a_utc: Telem timestamp (decisecond precision)
-# node_loc_pos_eci_a_x: X acceleration in ECI (in meters)
-# node_loc_pos_eci_a_y: Y Acceleration in ECI (in meters)
-# node_loc_pos_eci_a_z: Z Acceleration in ECI (in meters)
-CREATE TABLE IF NOT EXISTS node_loc_pos_eci_a (
-    node_id TINYINT UNSIGNED NOT NULL,
-    node_loc_pos_eci_a_utc DATETIME(1) NOT NULL,
-    node_loc_pos_eci_a_x DECIMAL(8,2),
-    node_loc_pos_eci_a_y DECIMAL(8,2),
-    node_loc_pos_eci_a_z DECIMAL(8,2),
+# List of events types
+# event_id: Node id of node agent belongs to
+# event_type: events types
+CREATE TABLE IF NOT EXISTS event_type (
+    event_id TINYINT UNSIGNED NOT NULL,
+    event_type VARCHAR(40) NOT NULL,
 
-    PRIMARY KEY (node_id, node_loc_pos_eci_a_utc)
+    PRIMARY KEY (event_id)
 );
 
-# Attitude in ICRF, 0th derivative
-# node_id: Node id
-# node_loc_att_icrf_utc: Telem timestamp (decisecond precision)
-# node_loc_att_icrf_s_d_x: X quaternion in ICRF
-# node_loc_att_icrf_s_d_y: Y quaternion in ICRF
-# node_loc_att_icrf_s_d_z: Z quaternion in ICRF
-# node_loc_att_icrf_s_w: W quaternion in ICRF
-CREATE TABLE IF NOT EXISTS node_loc_att_icrf_s (
-    node_id TINYINT UNSIGNED NOT NULL,
-    node_loc_att_icrf_utc DATETIME(1) NOT NULL,
-    node_loc_att_icrf_s_d_x DECIMAL(8,2),
-    node_loc_att_icrf_s_d_y DECIMAL(8,2),
-    node_loc_att_icrf_s_d_z DECIMAL(8,2),
-    node_loc_att_icrf_s_w DECIMAL(8,2),
+# COSMOS event
+# node_name: Node name
+# utc: Telem timestamp (decisecond precision)
+# duration: Seconds of event duration
+# event_id: Numeric encoding of event type
+# event_name: Event name
+CREATE TABLE IF NOT EXISTS cosmos_event (
+    node_name VARCHAR(40) NOT NULL,
+    utc DOUBLE(17, 8) NOT NULL,
+    duration INT UNSIGNED,
+    event_id TINYINT UNSIGNED NOT NULL,
+    event_name VARCHAR(40) NOT NULL,
 
-    PRIMARY KEY (node_id, node_loc_att_icrf_utc)
+    PRIMARY KEY (node_name, utc, event_name)
 );
 
-# Attitude in ICRF, 1st derivative
-# node_id: Node id
-# node_loc_att_icrf_utc: Telem timestamp (decisecond precision)
-# node_loc_att_icrf_v_col_0: X quaternion in ICRF
-# node_loc_att_icrf_v_col_1: Y quaternion in ICRF
-# node_loc_att_icrf_v_col_2: Z quaternion in ICRF
-CREATE TABLE IF NOT EXISTS node_loc_att_icrf_v (
-    node_id TINYINT UNSIGNED NOT NULL,
-    node_loc_att_icrf_utc DATETIME(1) NOT NULL,
-    node_loc_att_icrf_v_col_0 DECIMAL(8,2),
-    node_loc_att_icrf_v_col_1 DECIMAL(8,2),
-    node_loc_att_icrf_v_col_2 DECIMAL(8,2),
-
-    PRIMARY KEY (node_id, node_loc_att_icrf_utc)
-);
-
-# Attitude in ICRF, 2nd derivative
-# node_id: Node id
-# node_loc_att_icrf_utc: Telem timestamp (decisecond precision)
-# node_loc_att_icrf_a_col_0: X quaternion in ICRF
-# node_loc_att_icrf_a_col_1: Y quaternion in ICRF
-# node_loc_att_icrf_a_col_2: Z quaternion in ICRF
-CREATE TABLE IF NOT EXISTS node_loc_att_icrf_a (
-    node_id TINYINT UNSIGNED NOT NULL,
-    node_loc_att_icrf_utc DATETIME(1) NOT NULL,
-    node_loc_att_icrf_a_col_0 DECIMAL(8,2),
-    node_loc_att_icrf_a_col_1 DECIMAL(8,2),
-    node_loc_att_icrf_a_col_2 DECIMAL(8,2),
-
-    PRIMARY KEY (node_id, node_loc_att_icrf_utc)
-);
-
+# All available agent commands
+# node_name: Node name
+# request: The agent request
+# 
