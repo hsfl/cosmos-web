@@ -14,19 +14,29 @@ utcstart DOUBLE,
 PRIMARY KEY (node_name)
 );
 
+# COSMOS device types
+# Each specific device has a unique device type ID
+# name: Name of the device type
+# id: Device type id, defined in jsondef.h
+CREATE TABLE IF NOT EXISTS device_type (
+    name VARCHAR(40) NOT NULL,
+    id SMALLINT UNSIGNED NOT NULL UNIQUE,
+    PRIMARY KEY (id)
+);
+
 # COSMOS device
 # All COSMOS devices inherit from devicestruc and are stored in the devices vector
 # node_name: Name of node
-# type: Device type, defined in jsondef.h
-# cidx: Component index, index of the specific device in its appropriate devspec vector
-# didx: Device index, index in devices vector
+# type: Device type id, defined in jsondef.h
+# cidx: Component index, index in devices vector
+# didx: Device index, index of the specific device in its appropriate devspec vector
 CREATE TABLE IF NOT EXISTS device (
     node_name VARCHAR(40) NOT NULL,
     type SMALLINT UNSIGNED NOT NULL,
     cidx SMALLINT UNSIGNED NOT NULL,
     didx SMALLINT UNSIGNED NOT NULL,
     name VARCHAR(40) NOT NULL,
-    PRIMARY KEY (node_name, didx)
+    PRIMARY KEY (node_name, type, didx)
 );
 
 CREATE TABLE IF NOT EXISTS battstruc (
