@@ -196,7 +196,7 @@ WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_position:', error);
+            console.log('Error in get_event:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -208,12 +208,12 @@ WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-node_loc_pos_eci_s_utc AS "Time",
-node_loc_pos_eci_s_x AS sx,
-node_loc_pos_eci_s_y AS sy,
-node_loc_pos_eci_s_z AS sz
-FROM node_loc_pos_eci_s
-WHERE node_loc_pos_eci_s_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+utc AS "Time",
+s_x, s_y, s_z,
+v_x, v_y, v_z,
+a_x, a_y, a_z
+FROM locstruc_eci
+WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
