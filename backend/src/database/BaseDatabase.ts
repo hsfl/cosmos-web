@@ -1,10 +1,18 @@
 import { cosmosresponse, TimeRange } from '../types/cosmos_types';
 
-export interface Telem {
-    node_id: number;
+export interface TelegrafMetric {
+    fields: {
+        value: string;
+    };
     name: string;
-    time: number;
-    value: number | null;
+    tags: {
+        host: string;
+    };
+    timestamp: number;
+}
+
+export interface TelegrafBody {
+    metrics: TelegrafMetric[]
 }
 
 export interface Node {
@@ -26,7 +34,7 @@ export default class BaseDatabase {
         console.log('Clear database');
     }
 
-    public async write_telem(telem: Telem[]): Promise<void> {
+    public async write_telem(telem: TelegrafMetric[]): Promise<void> {
         console.log('Writing telem point', telem);
     }
 
