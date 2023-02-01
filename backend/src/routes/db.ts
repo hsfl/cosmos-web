@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import DBHandler from '../database/DBHandler';
 import { new_api_response } from '../utils/response';
 import { TimeRange } from '../types/cosmos_types';
+import { TelegrafBody } from '../database/BaseDatabase';
 const router = express.Router();
 
 
@@ -17,21 +18,21 @@ const router = express.Router();
     value: Value of the telem point
 
     test with:
-    curl --data '{"start":59270,"runcount":5,"simdt":60,"telem":["poseci"],"nodes":[{"name":"node0","phys":{"lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}}]}' \
+    curl --data "PUTTELEMHERE" \
       --request POST \
       --header "Content-Type: application/json" \
       http://localhost:10090/sim/propagator
 */
-router.post('/telem', async (req: Request, res: Response) => {
-    console.log(req.body.metrics);
-    if (req.body === undefined || !Array.isArray(req.body)) {
+router.post('/telem', async (req: Request<{},{},TelegrafBody>, res: Response) => {
+    // console.log('in telem', req.body.metrics);
+    if (req.body === undefined || req.body.metrics === undefined) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
-            description: 'Argument format incorrect. Must be list of telem dicts.'
+            description: 'Argument format incorrect.'
         });
     }
     const db = DBHandler.app_db();
-    await db.write_telem(req.body);
+    await db.write_telem(req.body.metrics);
     
     res.status(202).json(new_api_response('success'));
 });

@@ -1,4 +1,4 @@
-import BaseDatabase, { Device, Node, Telem } from "./BaseDatabase";
+import BaseDatabase, { Device, Node, TelegrafMetric } from "./BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -39,22 +39,23 @@ export default class MysqlDatabase extends BaseDatabase {
         console.log('Clear databases');
     }
 
-    public async write_telem(telem: Telem[]): Promise<void> {
+    public async write_telem(telem: TelegrafMetric[]): Promise<void> {
         for (let i =0; i < telem.length; i++) {
-            // Format MJD timestamp to mysql-friendly string
-            const time = mjd_to_unix(telem[i].time);
-            // Date takes unix milliseconds
-            const date = new Date(time*1000);
-            const datestring = date.toJSON().replace('T', ' ').slice(0,-1);
-            this.pool.execute(
-                'INSERT INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
-                [telem[i].node_id, telem[i].name, datestring, telem[i].value],
-                (err) => {
-                    if (err) {
-                        console.log('err:',err);
-                    }
+            console.log('telem:', telem[i]);
+            this.pool.query(telem[i].fields.value, (err) => {
+                if (err) {
+                    console.log(err);
                 }
-            );
+            });
+            // this.pool.execute(
+            //     'INSERT INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
+            //     [telem[i].node_id, telem[i].name, datestring, telem[i].value],
+            //     (err) => {
+            //         if (err) {
+            //             console.log('err:',err);
+            //         }
+            //     }
+            // );
         }
     }
 
@@ -191,7 +192,7 @@ WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_position:', error);
+            console.log('Error in get_event:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -230,12 +231,12 @@ WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-node_loc_pos_eci_s_utc AS "Time",
-node_loc_pos_eci_s_x AS sx,
-node_loc_pos_eci_s_y AS sy,
-node_loc_pos_eci_s_z AS sz
-FROM node_loc_pos_eci_s
-WHERE node_loc_pos_eci_s_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+utc AS "Time",
+s_x, s_y, s_z,
+v_x, v_y, v_z,
+a_x, a_y, a_z
+FROM locstruc_eci
+WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
