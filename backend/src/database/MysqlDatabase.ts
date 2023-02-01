@@ -172,17 +172,26 @@ WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
             });
         }
     }
-
+//  node_name VARCHAR(40) NOT NULL,
+// utc DOUBLE(17, 8) NOT NULL,
+// duration INT UNSIGNED,
+// event_id TINYINT UNSIGNED NOT NULL,
+// event_name VARCHAR(40) NOT NULL,
     public async get_event(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT * FROM cosmos_event
+`SELECT 
+utc AS "Time",
+node_name,
+duration,
+event_id,
+event_name
+FROM cosmos_event
 WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = {"ecis": rows};
-            //const ret = attitude(rows);
+            const ret = {"events": rows};
             return ret;
         }
         catch (error) {
