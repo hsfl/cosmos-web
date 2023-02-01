@@ -172,11 +172,7 @@ WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
             });
         }
     }
-//  node_name VARCHAR(40) NOT NULL,
-// utc DOUBLE(17, 8) NOT NULL,
-// duration INT UNSIGNED,
-// event_id TINYINT UNSIGNED NOT NULL,
-// event_name VARCHAR(40) NOT NULL,
+
     public async get_event(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
@@ -192,6 +188,33 @@ WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
             );
             console.log(rows[0])
             const ret = {"events": rows};
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_position:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+`SELECT 
+utc AS "Time",
+node_name,
+didx,
+mag_x,
+mag_y,
+mag_z
+FROM magstruc
+WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            const ret = {"mags": rows};
             return ret;
         }
         catch (error) {
@@ -287,12 +310,13 @@ WHERE device_bcreg_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-  device_tsen_utc AS "time",
-  CONCAT(node_name, ':', didx) as node,
-  device_tsen_temp AS temp
-FROM device_tsen
-INNER JOIN node ON device_tsen.node_id = node.node_id
-WHERE device_tsen_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+  utc AS "Time",
+  node_name,
+  didx,
+  temp
+FROM tsenstruc
+INNER JOIN node ON tsenstruc.node_name = node.node_name
+WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])

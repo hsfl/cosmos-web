@@ -47,11 +47,6 @@ export default class BaseDatabase {
         return {};
     }
 
-    public async get_event(timerange: TimeRange): Promise<cosmosresponse> {
-        console.log('Getting event');
-        return {};
-    }
-
     public async get_position(timerange: TimeRange): Promise<cosmosresponse> {
         console.log('Getting position');
         return {};
@@ -76,4 +71,15 @@ export default class BaseDatabase {
         console.log('Getting cpus');
         return {};
     }
+
+    public async get_event(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting events');
+        return {};
+    }
+
+    public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting mags');
+        return {};
+    }
+
 }
