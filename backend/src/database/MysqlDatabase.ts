@@ -311,13 +311,14 @@ WHERE device_bcreg_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-  utc AS "Time",
-  node_name,
-  didx,
-  temp
-FROM tsenstruc
-INNER JOIN node ON tsenstruc.node_name = node.node_name
-WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+utc AS "time",
+CONCAT(devspec.node_name, ':', device.name) as "node:device",
+devspec.temp
+FROM tsenstruc AS devspec
+INNER JOIN device ON device.didx = devspec.didx
+WHERE
+  device.type = 15 AND
+devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
