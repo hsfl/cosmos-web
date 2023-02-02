@@ -3,6 +3,8 @@ services:
   database:
     image: mysql:8.0.30-debian
     container_name: cosmos_db
+    cap_add:
+      - SYS_NICE  # Fix mbind issue
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?err}
       - DB_BACKEND_USER_PASSWORD=${DB_BACKEND_USER_PASSWORD:?err}
