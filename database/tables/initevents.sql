@@ -8,6 +8,10 @@
 # List of events types
 # event_id: Node id of node agent belongs to
 # event_type: events types
+
+DROP TABLE event_type;
+DROP TABLE cosmos_event;
+
 CREATE TABLE IF NOT EXISTS event_type (
     event_id TINYINT UNSIGNED NOT NULL,
     event_type VARCHAR(40) NOT NULL,
@@ -31,19 +35,19 @@ CREATE TABLE IF NOT EXISTS cosmos_event (
     PRIMARY KEY (node_name, utc, event_name)
 );
 
-INSERT INTO event_type VALUES (1, 'Orbital');
-INSERT INTO event_type VALUES (2, 'Ground station');
-INSERT INTO event_type VALUES (3, 'Target');
-INSERT INTO event_type VALUES (4, 'Umbra');
-INSERT INTO event_type VALUES (5, 'Earth occultation');
+REPLACE INTO event_type VALUES (0, 'Umbra');
+REPLACE INTO event_type VALUES (1, 'kauai');
+REPLACE INTO event_type VALUES (2, 'surrey');
+REPLACE INTO event_type VALUES (3, 'payload1');
+REPLACE INTO event_type VALUES (4, 'payload2');
 
-INSERT INTO cosmos_event VALUES ('mothership', 59874.83333333, 200, 1, 'Npole');
-INSERT INTO cosmos_event VALUES ('mothership', 59874.84027778, 2000, 1, 'Spole');
-INSERT INTO cosmos_event VALUES ('mothership', 59874.85333333, 200, 1, 'EQA');
-INSERT INTO cosmos_event VALUES ('mothership', 59874.86333333, 2000, 1, 'EQD');
-INSERT INTO cosmos_event VALUES ('mothership', 59874.86733333, 200, 1, 'MaxN');
-INSERT INTO cosmos_event VALUES ('mothership', 59874.87333333, 2000, 1, 'MaxS');
-INSERT INTO cosmos_event VALUES ('mothership', 59874.87500000, 200, 4, 'UMB_In');
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.83333333, 200, 3, 'Npole');
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.84333333, 1000, 3, 'Spole');
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.85333333, 400, 4, 'EQA');
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.86333333, 2000, 4, 'EQD');
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.86733333, 300, 3, 'MaxN');
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.85027778, 1000, 3, 'MaxS');
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.86027778, 900, 0, 'UMB_In');
 
-INSERT INTO cosmos_event VALUES ('mothership', 59874.84027778, 200, 2, 'AOS000');
-INSERT INTO cosmos_event VALUES ('mothership', 59874.84027799, 200, 2, 'LOS000');
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.84027778, 1728, 2, 'AOS000');
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.86027799, 0, 2, 'LOS000');
