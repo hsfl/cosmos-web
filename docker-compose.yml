@@ -20,7 +20,7 @@ services:
     volumes:
       # Mount for data directory and configuration
       - database:/var/lib/mysql
-      - ./database:/docker-entrypoint-initdb.d
+      - ${COSMOSWEBDIR:-.}/database:/docker-entrypoint-initdb.d
 
   grafana:
     image: grafana/grafana-oss:9.3.2
@@ -77,7 +77,7 @@ services:
     restart: always
     volumes:
       # For accessing database stuff
-      - ./.env:/home/node/app/.env
+      - ${COSMOSWEBDIR:-.}/.env:/home/node/app/.env
       # Access to COSMOS binaries
       - bin:/root/cosmos/bin
       - resources:/root/cosmos/resources
@@ -135,8 +135,8 @@ services:
       - '10098:10098/udp'
     restart: always
     volumes:
-    - ./telegraf_scripts/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    - ./telegraf_scripts:/telegraf_scripts:ro
+    - ${COSMOSWEBDIR:-.}/telegraf_scripts/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    - ${COSMOSWEBDIR:-.}/telegraf_scripts:/telegraf_scripts:ro
     depends_on:
       - influxdb
 
