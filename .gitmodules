@@ -1,0 +1,3 @@
+[submodule "grafana-plugins/cosmos-grafana-plugins"]
+	path = grafana-plugins/cosmos-grafana-plugins
+	url = https://github.com/hsfl/cosmos-grafana-plugins.git
