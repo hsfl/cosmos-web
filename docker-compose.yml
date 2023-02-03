@@ -1,0 +1,177 @@
+version: '3.6'
+services:
+  database:
+    image: mysql:8.0.30-debian
+    container_name: cosmos_db
+    cap_add:
+      - SYS_NICE  # Fix mbind issue
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?err}
+      - DB_BACKEND_USER_PASSWORD=${DB_BACKEND_USER_PASSWORD:?err}
+      - DB_GRAFANA_USER_PASSWORD=${DB_GRAFANA_USER_PASSWORD:?err}
+    logging:
+      driver: "local"
+      options:
+        max-file: 5
+        max-size: 10m
+    networks:
+      - cwnetwork
+    restart: always
+    volumes:
+      # Mount for data directory and configuration
+      - database:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+
+  grafana:
+    image: grafana/grafana-oss:9.3.2
+    container_name: cosmos_grafana
+    depends_on:
+      - database
+      - grafana-plugins
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:?err}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:?err}
+      - GF_DEFAULT_APP_MODE=${GF_APP_MODE:?err}
+    logging:
+      driver: "local"
+      options:
+        max-file: 5
+        max-size: 10m
+    networks:
+      - cwnetwork
+    ports:
+      - '3000:3000'
+    restart: always
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - grafana_panel_plugins:/var/lib/grafana/plugins/cosmos-plugins
+
+  grafana-plugins:
+    image: hsfl2/grafana_plugins
+    container_name: cosmos_grafana_plugins
+    volumes:
+      - grafana_panel_plugins:/home/cosmos-grafana-plugins/build
+
+  # Builds webasm for backend
+  web-core:
+    container_name: cosmos_web_core
+    image: hsfl2/web_core:latest
+    volumes:
+      - web_core_dist:/build/dist
+
+  backend:
+    image: hsfl2/web_backend:latest
+    #platform: linux/x86_64 # tentatively used for macOS M1 to compile grafana plugins
+    container_name: cosmos_backend
+    depends_on:
+      - web-core
+    logging:
+      driver: "local"
+      options:
+        max-file: 5
+        max-size: 10m
+    networks:
+      - cwnetwork
+    ports:
+      - '10090:10090'
+    restart: always
+    volumes:
+      # For accessing database stuff
+      - ./.env:/home/node/app/.env
+      # Access to COSMOS binaries
+      - bin:/root/cosmos/bin
+      - resources:/root/cosmos/resources
+      # Webasm binary
+      - web_core_dist:/root/web_core_dist
+
+  influxdb:
+    image: influxdb:2.6.1
+    container_name: cosmos_influxdb
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_INIT_ADMIN_USERNAME:?err}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_INIT_ADMIN_PASSWORD:?err}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_INIT_ORG:?err}
+      - DOCKER_INFLUXDB_INIT_BUCKET=COSMOS_Dev_Bucket
+      # - DOCKER_INFLUXDB_INIT_RETENTION=48h # Keep forever
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_INIT_ADMIN_TOKEN:?err}
+    logging:
+      driver: "local"
+      options:
+        max-file: 5
+        max-size: 10m
+    networks:
+      - cwnetwork
+    ports:
+      - '8086:8086'
+    restart: always
+    volumes:
+      # Mount for influxdb data directory and configuration
+      - influxdb2:/var/lib/influxdb2
+
+  telegraf:
+    image: telegraf:1.25.0
+    container_name: cosmos_telegraf
+    environment:
+      # InfluxDB output setup
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_INIT_ORG:?err}
+      - DOCKER_INFLUXDB_INIT_BUCKET=COSMOS_Dev_Bucket
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_INIT_ADMIN_TOKEN:?err}
+      # Reserve ports for data ingestion
+      - COSMOS_DEV_PORT=10095
+      - AGENT_BEACON_PORT=10096
+      - LOG_PORT=10098
+    logging:
+      driver: "local"
+      options:
+        max-file: 5
+        max-size: 10m
+    networks:
+      - cwnetwork
+    ports:
+      # accessible to agent_ground and other external programs
+      - '10095:10095/udp'
+      - '10096:10096/udp'
+      - '10098:10098/udp'
+    restart: always
+    volumes:
+    - ./telegraf_scripts/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    - ./telegraf_scripts:/telegraf_scripts:ro
+    depends_on:
+      - influxdb
+
+  loki:
+    image: grafana/loki:2.7.0
+    container_name: cosmos_log
+    command: -config.file=/etc/loki/local-config.yaml
+    logging:
+      driver: "local"
+      options:
+        max-file: 5
+        max-size: 10m
+    networks:
+      - cwnetwork
+    ports:
+      - '3100:3100'
+    restart: always
+    volumes:
+      - logs:/loki
+
+volumes:
+  bin: {}
+  web_core_dist: {}
+  resources: {}
+  database: {}
+  logs: {}
+  grafana_data: {}
+  grafana_panel_plugins: {}
+  influxdb2: {}
+
+networks:
+  cwnetwork:
+    name: cosmos_cwnetwork
+    external: true
+    driver: bridge
+
+# TODO:
+# Add port configurations, don't want to use common ports like 3000, 5000, etc.

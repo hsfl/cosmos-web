@@ -1,0 +1,4 @@
+Unit and integration tests are implemented using Jest and supertest
+
+Run test suites with:
+npm run test

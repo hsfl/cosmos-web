@@ -32,20 +32,28 @@ def add_field(name, entry, metric):
 # Arg d is a dictionary, a single SOH
 # metrics is the list to append to and return
 def handleSOH(d, metrics):
-    # Measurement name is simdata, so that it gets caught in the name filters in telegraf.conf
-    # and sent to Simulator_data
-    new_metric = Metric("simdata")
-    # TODO: fix tag, also coordinate with namepass namedrop of buckets in .conf file
-    new_metric.tags["name"] = d["name"]
+    new_metric = Metric("beacon")
+    node_name = "unknown"
+    beacon_type = "unknown"
+    if "node_name" in d:
+        node_name = d["node_name"]
+    if "beacon_type" in d:
+        beacon_type = d["beacon_type"]
+    new_metric.tags["node_name"] = node_name
+    new_metric.tags["beacon_type"] = beacon_type
+
     new_metric.time = time.now().unix_nano
-    
+
+    # Used to tag influxdb-type input data. Removed in telegraf.conf before output
+    new_metric.tags["telegraf_datatag"] = "cosmos_influxdb"
+
     # Iterate over SOH json keys
     for key in d:
-        # Skip these since they are being used as the measurement name
-        if key == "name":
+        # Skip these since they are already dealt with
+        if key == "node_name" or key == "beacon_type":
             continue
 
-        # Add sohstring keys as fields
+        # Add json keys as fields
         #log.debug("k-------: {}".format(key))
         add_field(key, d[key], new_metric)
     #log.debug("--------SOH END: {} {}".format(node_name, new_metric))
