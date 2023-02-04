@@ -6,45 +6,84 @@ COSMOS Web - a web application to visualize telemetry data from a satellite usin
 
 We recommend installing COSMOS via Docker. Refer to the instructions on the main cosmos repository: https://github.com/hsfl/cosmos to get started (if you have not done it yet)
 
-
 ## Install Instructions
 
-**Installing Grafana plugins**
+**Running the COSMOS Web Docker Containers**
 
-Download the three .zip files on the [cosmos-grafana-plugins latest release page](https://github.com/hsfl/cosmos-grafana-plugins/releases/latest) under Assets and unzip them (cw-button.zip, orbit-datasource.zip, orbitdisplay.zip) into the grafana-plugins folder (~/cosmos/tools/cosmos-web/grafana-plugins).
+The following guide assumes that steps 1-3 of the **Install Instructions (via Docker)** were successfully completed on the [COSMOS Readme](https://github.com/hsfl/cosmos) page.
 
-You can also do this on the terminal on Linux:
+1. Change directories to the root of the cosmos folder:
 
-First go to the grafana-plugins folder in your cosmos-web installation location. If you followed the instructions on the [main cosmos repository](https://github.com/hsfl/cosmos) this folder should be in ~/cosmos/tools/cosmos-web/grafana-plugins:
+In a terminal window (Linux/MacOS) or WSL window (Windows), change directories to the root of your cosmos installation:
+```bash
+cd ~/cosmos
 ```
-cd ~/cosmos/tools/cosmos-web/grafana-plugins
-```
-Download the grafana plugins:
-```
-wget https://github.com/hsfl/cosmos-grafana-plugins/releases/download/v0.11.0/cosmos-sim-plugin.zip
-```
-```
-wget https://github.com/hsfl/cosmos-grafana-plugins/releases/download/v0.11.0/orbit-display.zip
-```
-```
-wget https://github.com/hsfl/cosmos-grafana-plugins/releases/download/v0.12.0/orbit-datasource.zip
-```
-Unzip the files:
-```
-unzip '*.zip'
-```
-If unzip is not installed, install with 
-```
-sudo apt install unzip
-```
-or unzip manually in a file explorer.
 
-If you are using the docker install of cosmos, restart the grafana container with
+2. Initialize git submodules:
+
+Then run the following command to initialize the git submodules of the cosmos repository, which will pull COSMOS Web and the grafana plugins:
+```bash
+git submodule update --init --recursive
 ```
-docker restart cosmos_grafana
+
+
+3. Modify cosmos .env file
+
+We will need to modify two .env files to configure the COSMOS Web setup. Let's start with the .env in the root folder of cosmos that we created in step 2 from the previous [COSMOS Installation guide](https://github.com/hsfl/cosmos). Open the .env file at ```~/cosmos/.env``` with your preferred text editor (you can also open the entire cosmos folder in VSCode).
+
+The bottom half of the file has several lines commented out, with only this line uncommented:
 ```
+# Run only COSMOS Core
+COMPOSE_FILE=./docker-compose.yml
+```
+
+The COMPOSE_FILE environment variable is where we specify which Docker Compose configuration files to use when running ```docker compose``` commands. To run COSMOS Web, we will want to uncomment either this COMPOSE_FILE line:
+```
+# Cosmos-Web release ver:
+COMPOSE_FILE=./docker-compose.yml:$COSMOSWEBDIR/docker-compose.yml
+```
+or this COMPOSE_FILE line, if you are using a Mac computer with the new ARM chips:
+```
+# Cosmos-Web release ver for Mac users with the new ARM chip:
+COMPOSE_FILE=./docker-compose.yml:$COSMOSWEBDIR/docker-compose.yml:$COSMOSWEBDIR/docker-compose-mac-m2.yml
+```
+
+After uncommenting out the appropriate line for your use, save the file and proceed.
+
+4. Modify cosmos-web .env file
+
+Make a copy of the .env.example file in tools/cosmos-web and rename it to .env. Do this either in the file explorer, an IDE, or if using the terminal, use this command:
+```bash
+cp tools/cosmos-web/.env.example tools/cosmos-web/.env
+```
+Then open up the newly copied tools/cosmos-web/.env file in your preferred text editor and wherever there are blank values for the username and password variables, add default initial values for startup.
+
+Example:
+```
+...
+DOCKER_INFLUXDB_INIT_ORG=myorganization (you may also change this variable, which is by default set to 'hsfl')
+DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=mycustominfluxdbtoken (you may also change this variable)
+...
+GF_SECURITY_ADMIN_USER=myusername
+GF_SECURITY_ADMIN_PASSWORD=mypassword
+...
+etc.
+```
+
+
+5. Run COSMOS Web Containers
+
+Start up the COSMOS Web containers with the following command:
+```bash
+docker compose up -d
+```
+
+And that's it!
+
 
 ## Grafana Instructions
+
+**THIS SECTION IS OUTDATED AND NEEDS TO BE UPDATED. THE GENERAL SETUP TO GET GRAFANA PANELS, DASHBOARDS, AND DATASOURCES ADDED AND DISPLAY ARE STILL VALID, BUT THE FINAL PLUGINS WILL LIKELY NOT WORK UNTIL FIXED**
 
 ### Configuring Grafana
 
