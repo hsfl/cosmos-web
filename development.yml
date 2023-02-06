@@ -11,7 +11,10 @@ services:
     image: hsfl2/grafana_plugins_dev_env
     container_name: cosmos_grafana_plugins_dev_env
     volumes:
-      - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/home/cosmos-grafana-plugins
+      #- ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/home/cosmos-grafana-plugins
+      - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/home/cosmos/${COSMOSWEBDIR}/grafana-plugins/cosmos-grafana-plugins
+      # Grabbing root git folder for submodule
+      - ./.git:/home/cosmos/.git
 
   backend:
     container_name: cosmos_backend
