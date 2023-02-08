@@ -15,6 +15,8 @@ services:
       - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/home/cosmos/${COSMOSWEBDIR}/grafana-plugins/cosmos-grafana-plugins
       # Grabbing root git folder for submodule
       - ./.git:/home/cosmos/.git
+      # Save yarn cache to avoid redownload each time
+      - yarn_cache:/usr/local/share/.cache/yarn
 
   backend:
     container_name: cosmos_backend
@@ -23,3 +25,5 @@ services:
       # For syncing dev changes
       - ${COSMOSWEBDIR:-.}/backend/src:/home/node/app/src
       - ${COSMOSWEBDIR:-.}/backend/tests:/home/node/app/tests
+volumes:
+  yarn_cache: {}
