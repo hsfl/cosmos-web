@@ -132,33 +132,33 @@ export default class MysqlDatabase extends BaseDatabase {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-node_loc_att_icrf_utc AS "Time",
-node_loc_att_icrf_s_d_x AS qsx,
-node_loc_att_icrf_s_d_y AS qsy,
-node_loc_att_icrf_s_d_z AS qsz,
-node_loc_att_icrf_s_w AS qsw
-FROM node_loc_att_icrf_s
-WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+utc AS "Time",
+s_x AS qsx,
+s_y AS qsy,
+s_z AS qsz,
+s_w AS qsw
+FROM attstruc_icrf
+WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             const [vrows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-node_loc_att_icrf_utc AS "Time",
-node_loc_att_icrf_v_col_0 AS qvx,
-node_loc_att_icrf_v_col_1 AS qvy,
-node_loc_att_icrf_v_col_2 AS qvz
-FROM node_loc_att_icrf_v
-WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+utc AS "Time",
+omega_x AS qvx,
+omega_y AS qvy,
+omega_z AS qvz
+FROM attstruc_icrf
+WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             const [arows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-node_loc_att_icrf_utc AS "Time",
-node_loc_att_icrf_a_col_0 AS qax,
-node_loc_att_icrf_a_col_1 AS qay,
-node_loc_att_icrf_a_col_2 AS qaz
-FROM node_loc_att_icrf_a
-WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+utc AS "Time",
+alpha_x AS qax,
+alpha_y AS qay,
+alpha_z AS qaz
+FROM attstruc_icrf
+WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             const ret = {"avectors":attitude(rows), "qvatts": vrows, "qaatts":arows};
@@ -178,13 +178,13 @@ WHERE node_loc_att_icrf_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT 
-utc AS "Time",
+utc AS "time",
 node_name,
 duration,
 event_id,
 event_name
 FROM cosmos_event
-WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
+WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
@@ -204,14 +204,14 @@ WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT 
-utc AS "Time",
+utc AS "time",
 node_name,
 didx,
 mag_x,
 mag_y,
 mag_z
 FROM magstruc
-WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
+WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
@@ -231,12 +231,12 @@ WHERE utc BETWEEN ? and ? ORDER BY utc limit 1000;`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-utc AS "Time",
+utc AS "time",
 s_x, s_y, s_z,
 v_x, v_y, v_z,
 a_x, a_y, a_z
 FROM locstruc_eci
-WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
@@ -257,13 +257,15 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-  device_batt_utc AS "time",
-  CONCAT(node_name, ':', didx) as node,
-  device_batt_amp AS amp,
-  device_batt_power AS power
-FROM device_batt
-INNER JOIN node ON device_batt.node_id = node.node_id
-WHERE device_batt_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+  utc AS "time",
+  CONCAT(devspec.node_name, ':', device.name) as "node",
+  amp,
+  power
+FROM battstruc AS devspec
+INNER JOIN device ON device.didx = devspec.didx
+WHERE
+  device.type = 12 AND
+devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
@@ -290,7 +292,7 @@ WHERE device_batt_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
   device_bcreg_power AS power
 FROM device_bcreg
 INNER JOIN node ON device_bcreg.node_id = node.node_id
-WHERE device_bcreg_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+WHERE device_bcreg_utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
@@ -339,14 +341,13 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
 `SELECT
-  device_cpu_utc AS "time",
+  utc AS "time",
   CONCAT(node_name, ':', didx) as node,
-  device_cpu_load as "load",
-  device_cpu_gib as gib,
-  device_cpu_storage as storage
-FROM device_cpu
-INNER JOIN node ON device_cpu.node_id = node.node_id
-WHERE device_cpu_utc BETWEEN ? and ? ORDER BY Time limit 1000`,
+  cpu_load as "load",
+  gib,
+  storage
+FROM cpustruc
+WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
