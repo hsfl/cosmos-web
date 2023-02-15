@@ -1,25 +1,5 @@
 version: "3.6"
 services:
-  telegraf:
-    container_name: cosmos_telegraf
-    image: telegraf:1.25.0
-    platform: linux/amd64
-
-  loki:
-    container_name: cosmos_log
-    image: grafana/loki:2.7.0
-    platform: linux/x86_64
-
-  web-core:
-    container_name: cosmos_web_core
-    image: hsfl2/web_core:latest
-    platform: linux/amd64
-
-  influxdb:
-    container_name: cosmos_influxdb
-    image: influxdb:2.6.1
-    platform: linux/amd64
-
   database:
     image: mysql:8.0.30-debian
     container_name: cosmos_db
