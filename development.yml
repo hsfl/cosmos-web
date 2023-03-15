@@ -12,7 +12,8 @@ services:
     container_name: cosmos_grafana_plugins_dev_env
     volumes:
       #- ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/home/cosmos-grafana-plugins
-      - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/home/cosmos/${COSMOSWEBDIR}/grafana-plugins/cosmos-grafana-plugins
+      # - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/home/cosmos/${COSMOSWEBDIR}/grafana-plugins/cosmos-grafana-plugins
+      - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/var/lib/grafana/plugins/cosmos-plugins
       # Grabbing root git folder for submodule
       - ./.git:/home/cosmos/.git
       # Save yarn cache to avoid redownload each time
