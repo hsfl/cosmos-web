@@ -79,6 +79,14 @@ storage DECIMAL(5,2),
 PRIMARY KEY (node_name, didx, utc)
 );
 
+CREATE TABLE IF NOT EXISTS gyrostruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+omega DECIMAL(5,2),
+PRIMARY KEY (node_name, didx, utc)
+);
+
 CREATE TABLE IF NOT EXISTS magstruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
@@ -86,6 +94,28 @@ utc DOUBLE NOT NULL,
 mag_x DECIMAL(5,2),
 mag_y DECIMAL(5,2),
 mag_z DECIMAL(5,2),
+PRIMARY KEY (node_name, didx, utc)
+);
+
+CREATE TABLE IF NOT EXISTS mtrstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+mom DECIMAL(5,2),
+align_w DECIMAL(5,2),
+align_x DECIMAL(5,2),
+align_y DECIMAL(5,2),
+align_z DECIMAL(5,2),
+PRIMARY KEY (node_name, didx, utc)
+);
+
+CREATE TABLE IF NOT EXISTS rwstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+amp DECIMAL(5,2),
+omg DECIMAL(5,2),
+romg DECIMAL(5,2),
 PRIMARY KEY (node_name, didx, utc)
 );
 
