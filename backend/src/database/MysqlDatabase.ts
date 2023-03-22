@@ -4,8 +4,8 @@ import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
 import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
-import { attitude } from '../transforms/cosmos';
-import { TimeRange, cosmosresponse } from '../types/cosmos_types';
+import { attitude, position, eci_position, geod_position, geos_position, lvlh_attitude } from '../transforms/cosmos';
+import { TimeRange, cosmosresponse, LocType } from '../types/cosmos_types';
 
 
 // MySQL Implementation of Database class
@@ -40,7 +40,7 @@ export default class MysqlDatabase extends BaseDatabase {
     }
 
     public async write_telem(telem: TelegrafMetric[]): Promise<void> {
-        for (let i =0; i < telem.length; i++) {
+        for (let i = 0; i < telem.length; i++) {
             console.log('telem:', telem[i]);
             this.pool.query(telem[i].fields.value, (err) => {
                 if (err) {
@@ -86,7 +86,7 @@ export default class MysqlDatabase extends BaseDatabase {
             }
         });
         // Load in new nodes
-        for (let i=0; i < nodes.length; i++) {
+        for (let i = 0; i < nodes.length; i++) {
             this.pool.execute(
                 'INSERT INTO node (id, name) VALUES (?,?)',
                 [nodes[i].id, nodes[i].name],
@@ -111,7 +111,7 @@ export default class MysqlDatabase extends BaseDatabase {
             });
         }
         // Load in new devices mappings
-        for (let i=0; i < devices.length; i++) {
+        for (let i = 0; i < devices.length; i++) {
             try {
                 await this.promisePool.execute(
                     'INSERT INTO device (node_id, name, dname) VALUES (?,?,?)',
@@ -124,14 +124,14 @@ export default class MysqlDatabase extends BaseDatabase {
                     description: 'Failure adding devices'
                 });
             }
-            
+
         }
     }
     // TODO: fix return type
     public async get_attitude(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT
+                `SELECT
 utc AS "Time",
 s_x AS qsx,
 s_y AS qsy,
@@ -142,7 +142,7 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             const [vrows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT
+                `SELECT
 utc AS "Time",
 omega_x AS qvx,
 omega_y AS qvy,
@@ -152,7 +152,7 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             const [arows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT
+                `SELECT
 utc AS "Time",
 alpha_x AS qax,
 alpha_y AS qay,
@@ -161,7 +161,7 @@ FROM attstruc_icrf
 WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
-            const ret = {"avectors":attitude(rows), "qvatts": vrows, "qaatts":arows};
+            const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
             //const ret = attitude(rows);
             return ret;
         }
@@ -177,7 +177,7 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
     public async get_event(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT 
+                `SELECT 
 utc AS "time",
 node_name,
 duration,
@@ -188,7 +188,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = {"events": rows};
+            const ret = { "events": rows };
             return ret;
         }
         catch (error) {
@@ -203,7 +203,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
     public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT 
+                `SELECT 
 utc AS "time",
 node_name,
 didx,
@@ -215,7 +215,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = {"mags": rows};
+            const ret = { "mags": rows };
             return ret;
         }
         catch (error) {
@@ -226,22 +226,42 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             });
         }
     }
-
-    public async get_position(timerange: TimeRange): Promise<cosmosresponse> {
+    // add output type option variable to the function inputs // , type: string
+    public async get_position(loctype: LocType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT
+                `SELECT
 utc AS "time",
-s_x, s_y, s_z,
-v_x, v_y, v_z,
-a_x, a_y, a_z
-FROM locstruc_eci
+eci_s_x, eci_s_y, eci_s_z,
+eci_v_x, eci_v_y, eci_v_z,
+icrf_s_x, icrf_s_y, icrf_s_z, 
+icrf_s_w, icrf_v_x, icrf_v_y, 
+icrf_v_z
+FROM locstruc
 WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
-                [timerange.from, timerange.to],
+                [loctype.from, loctype.to],
             );
             console.log(rows[0])
-            const ret = {"ecis": rows};
-            //const ret = attitude(rows);
+            // let type = "eci";
+            let type = loctype.type;
+            if (type == "eci") {
+                const ret = { "ecis": eci_position(rows) };
+                return ret;
+            } else if (type == "geod") {
+                const ret = { "geods": geod_position(rows) };
+                return ret;
+            } else if (type == "geos") {
+                const ret = { "geoss": geos_position(rows) };
+                return ret;
+            } else if (type == "lvlh") {
+                const ret = { "lvlhs": lvlh_attitude(rows) };
+                return ret;
+            }
+            const ret = { "ecis": position(rows) };
+            // needs switch statement here also to parse type option passed in from request
+            // passing the type for the list of sub-structures { geoidpos ... }
+            // { "avectors": position(rows), "qvatts": vrows, "qaatts": arows }
+            //const ret = position(rows, type); pass output type variable to handler
             return ret;
         }
         catch (error) {
@@ -256,7 +276,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
     public async get_battery(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT
+                `SELECT
   utc AS "time",
   CONCAT(devspec.node_name, ':', device.name) as "node",
   amp,
@@ -269,7 +289,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = {"batts": rows};
+            const ret = { "batts": rows };
             //const ret = attitude(rows);
             return ret;
         }
@@ -285,7 +305,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
     public async get_bcreg(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT
+                `SELECT
   device_bcreg_utc AS "time",
   CONCAT(node_name, ':', didx) as node,
   device_bcreg_amp AS amp,
@@ -296,7 +316,7 @@ WHERE device_bcreg_utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = {"bcregs": rows};
+            const ret = { "bcregs": rows };
             //const ret = attitude(rows);
             return ret;
         }
@@ -312,7 +332,7 @@ WHERE device_bcreg_utc BETWEEN ? and ? ORDER BY time limit 1000`,
     public async get_tsen(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT
+                `SELECT
 utc AS "time",
 CONCAT(devspec.node_name, ':', device.name) as "node:device",
 devspec.temp
@@ -324,7 +344,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = {"tsens": rows};
+            const ret = { "tsens": rows };
             //const ret = attitude(rows);
             return ret;
         }
@@ -340,7 +360,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
     public async get_cpu(timerange: TimeRange): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-`SELECT
+                `SELECT
   utc AS "time",
   CONCAT(node_name, ':', didx) as node,
   cpu_load as "load",
@@ -351,7 +371,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = {"cpus": rows};
+            const ret = { "cpus": rows };
             //const ret = attitude(rows);
             return ret;
         }

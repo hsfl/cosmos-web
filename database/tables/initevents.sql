@@ -51,3 +51,6 @@ REPLACE INTO cosmos_event VALUES ('mothership', 59874.86027778, 900, 0, 'UMB_In'
 
 REPLACE INTO cosmos_event VALUES ('mothership', 59874.84027778, 1728, 2, 'AOS000');
 REPLACE INTO cosmos_event VALUES ('mothership', 59874.86027799, 0, 2, 'LOS000');
+
+# test different dates for manual computation accuracy; 2023
+REPLACE INTO cosmos_event VALUES ('mothership', 59874.86027799, 0, 2, 'LOS222');

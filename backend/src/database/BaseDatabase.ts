@@ -1,4 +1,4 @@
-import { cosmosresponse, TimeRange } from '../types/cosmos_types';
+import { cosmosresponse, TimeRange, LocType } from '../types/cosmos_types';
 
 export interface TelegrafMetric {
     fields: {
@@ -28,7 +28,7 @@ export interface Device {
 
 // Base database class, derived classes should override the interfaces
 export default class BaseDatabase {
-    constructor() {}
+    constructor() { }
 
     public async clearDatabase(): Promise<void> {
         console.log('Clear database');
@@ -39,7 +39,7 @@ export default class BaseDatabase {
     }
 
     public async write_telem_bulk(): Promise<void> {
-        console.log('Writing telem in bulk', )
+        console.log('Writing telem in bulk',)
     }
 
     public async write_node(nodes: Node[]): Promise<void> {
@@ -55,7 +55,7 @@ export default class BaseDatabase {
         return {};
     }
 
-    public async get_position(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_position(loctype: LocType): Promise<cosmosresponse> {
         console.log('Getting position');
         return {};
     }
