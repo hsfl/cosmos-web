@@ -1,10 +1,10 @@
-version: '3.6'
+version: "3.6"
 services:
   database:
     image: mysql:8.0.30-debian
     container_name: cosmos_db
     cap_add:
-      - SYS_NICE  # Fix mbind issue
+      - SYS_NICE # Fix mbind issue
     env_file:
       - ${COSMOSWEBDIR:-.}/.env
     logging:
@@ -36,7 +36,7 @@ services:
     networks:
       - cwnetwork
     ports:
-      - '3000:3000'
+      - "3000:3000"
     restart: always
     volumes:
       - grafana_data:/var/lib/grafana
@@ -69,16 +69,17 @@ services:
     networks:
       - cwnetwork
     ports:
-      - '10090:10090'
+      - "10090:10090"
     restart: always
     volumes:
       # For accessing database stuff
       - ${COSMOSWEBDIR:-.}/.env:/home/node/app/.env
       # Access to COSMOS binaries
-      - bin:/root/cosmos/bin
-      - resources:/root/cosmos/resources
+      - bin:/home/web_user/cosmos/bin
+      - resources:/home/web_user/cosmos/resources
       # Webasm binary
       - web_core_dist:/root/web_core_dist
+      - web_core_dist/CosmosWebCore.data:/home/node/app
 
   influxdb:
     image: influxdb:2.6.1
@@ -96,7 +97,7 @@ services:
     networks:
       - cwnetwork
     ports:
-      - '8086:8086'
+      - "8086:8086"
     restart: always
     volumes:
       # Mount for influxdb data directory and configuration
@@ -123,13 +124,13 @@ services:
       - cwnetwork
     ports:
       # accessible to agent_ground and other external programs
-      - '10095:10095/udp'
-      - '10096:10096/udp'
-      - '10098:10098/udp'
+      - "10095:10095/udp"
+      - "10096:10096/udp"
+      - "10098:10098/udp"
     restart: always
     volumes:
-    - ${COSMOSWEBDIR:-.}/telegraf_scripts/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    - ${COSMOSWEBDIR:-.}/telegraf_scripts:/telegraf_scripts:ro
+      - ${COSMOSWEBDIR:-.}/telegraf_scripts/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ${COSMOSWEBDIR:-.}/telegraf_scripts:/telegraf_scripts:ro
     depends_on:
       - influxdb
 
@@ -145,7 +146,7 @@ services:
     networks:
       - cwnetwork
     ports:
-      - '3100:3100'
+      - "3100:3100"
     restart: always
     volumes:
       - logs:/loki
@@ -165,6 +166,5 @@ networks:
     name: cosmos_cwnetwork
     external: true
     driver: bridge
-
 # TODO:
 # Add port configurations, don't want to use common ports like 3000, 5000, etc.
