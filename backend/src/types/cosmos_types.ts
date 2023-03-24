@@ -77,10 +77,6 @@ export interface TimePacket {
 export interface cosmosresponse {
     [column: string]: TimePacket[];
 }
-// process code TODO remove
-// export interface locresponse {
-//     [column: string]: (any & timepoint)[];
-// }
 
 //ECI to Geod types
 export interface locstruc {
@@ -134,8 +130,6 @@ export interface gfcartpos {
 
 export interface rvector {
     col: [number, number, number];
-    // col:  [number, number, number]
-    // col: number; // array double col[3] = {0.};
 }
 
 export interface attstruc {

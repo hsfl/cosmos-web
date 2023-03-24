@@ -323,7 +323,7 @@ export const eci_position = (rows: mysql.RowDataPacket[]) => {
 }
 
 export const geod_position = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<gfgeoidpos & timepoint> = [];
+    const ret: Array<geoidpos & timepoint> = [];
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
@@ -332,20 +332,20 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
         loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
 
         const geod: geoidpos = (cosmos.ecitogeod(loc));
-        const gfgeod: gfgeoidpos = {
-            utc: geod.utc,
-            s_lat: geod.s.lat,
-            s_lon: geod.s.lon,
-            s_h: geod.s.h,
-            v_lat: geod.v.lat,
-            v_lon: geod.v.lon,
-            v_h: geod.v.h,
-            a_lat: geod.a.lat,
-            a_lon: geod.a.lon,
-            a_h: geod.a.h,
-        }
+        // const gfgeod: gfgeoidpos = {
+        //     utc: geod.utc,
+        //     s_lat: geod.s.lat,
+        //     s_lon: geod.s.lon,
+        //     s_h: geod.s.h,
+        //     v_lat: geod.v.lat,
+        //     v_lon: geod.v.lon,
+        //     v_h: geod.v.h,
+        //     a_lat: geod.a.lat,
+        //     a_lon: geod.a.lon,
+        //     a_h: geod.a.h,
+        // }
         //const time  
-        ret.push({ Time: row.time, ...gfgeod });
+        ret.push({ Time: row.time, ...geod });
     });
     loc.pos.eci.utc = 0;
     loc.pos.eci.pass = 0;
@@ -357,7 +357,7 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
 }
 
 export const geos_position = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<gfspherpos & timepoint> = [];
+    const ret: Array<spherpos & timepoint> = [];
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
@@ -366,20 +366,20 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
         loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
 
         const geos: spherpos = (cosmos.loc2geos(loc));
-        const gfgeos: gfspherpos = {
-            utc: geos.utc,
-            s_phi: geos.s.phi,
-            s_lambda: geos.s.lambda,
-            s_r: geos.s.r,
-            v_phi: geos.v.phi,
-            v_lambda: geos.v.lambda,
-            v_r: geos.v.r,
-            a_phi: geos.a.phi,
-            a_lambda: geos.a.lambda,
-            a_r: geos.a.r
-        }
+        // const gfgeos: gfspherpos = {
+        //     utc: geos.utc,
+        //     s_phi: geos.s.phi,
+        //     s_lambda: geos.s.lambda,
+        //     s_r: geos.s.r,
+        //     v_phi: geos.v.phi,
+        //     v_lambda: geos.v.lambda,
+        //     v_r: geos.v.r,
+        //     a_phi: geos.a.phi,
+        //     a_lambda: geos.a.lambda,
+        //     a_r: geos.a.r
+        // }
         //const time  
-        ret.push({ Time: row.time, ...gfgeos });
+        ret.push({ Time: row.time, ...geos });
     });
     loc.pos.eci.utc = 0;
     loc.pos.eci.pass = 0;
@@ -391,7 +391,7 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
 }
 
 export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<gfqatt & timepoint> = [];
+    const ret: Array<qatt & timepoint> = [];
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
@@ -412,21 +412,21 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
             w: row.icrf_s_w
         };
         const lvlh: qatt = (cosmos.loc2lvlh(loc));
-        const gflvlh: gfqatt = {
-            utc: lvlh.utc,
-            s_d_x: lvlh.s.d.x,
-            s_d_y: lvlh.s.d.y,
-            s_d_z: lvlh.s.d.z,
-            s_w: lvlh.s.w,
-            v_x: lvlh.v.col[0],
-            v_y: lvlh.v.col[1],
-            v_z: lvlh.v.col[2],
-            a_x: lvlh.a.col[0],
-            a_y: lvlh.a.col[1],
-            a_z: lvlh.a.col[2],
-        }
+        // const gflvlh: gfqatt = {
+        //     utc: lvlh.utc,
+        //     s_d_x: lvlh.s.d.x,
+        //     s_d_y: lvlh.s.d.y,
+        //     s_d_z: lvlh.s.d.z,
+        //     s_w: lvlh.s.w,
+        //     v_x: lvlh.v.col[0],
+        //     v_y: lvlh.v.col[1],
+        //     v_z: lvlh.v.col[2],
+        //     a_x: lvlh.a.col[0],
+        //     a_y: lvlh.a.col[1],
+        //     a_z: lvlh.a.col[2],
+        // }
         //const time  
-        ret.push({ Time: row.time, ...gflvlh });
+        ret.push({ Time: row.time, ...lvlh });
     });
     loc.pos.eci.utc = 0;
     loc.pos.eci.pass = 0;

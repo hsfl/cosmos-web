@@ -4,7 +4,7 @@ import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
 import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
-import { attitude, position, eci_position, geod_position, geos_position, lvlh_attitude } from '../transforms/cosmos';
+import { attitude, eci_position, geod_position, geos_position, lvlh_attitude } from '../transforms/cosmos';
 import { TimeRange, cosmosresponse, LocType } from '../types/cosmos_types';
 
 
@@ -162,7 +162,7 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
-            //const ret = attitude(rows);
+            //const ret = attitude(rows);;
             return ret;
         }
         catch (error) {
@@ -248,20 +248,18 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 const ret = { "ecis": eci_position(rows) };
                 return ret;
             } else if (type == "geod") {
-                const ret = { "geods": geod_position(rows) };
+                const ret = { "geoidposs": geod_position(rows) };
                 return ret;
             } else if (type == "geos") {
-                const ret = { "geoss": geos_position(rows) };
+                const ret = { "spherposs": geos_position(rows) };
                 return ret;
             } else if (type == "lvlh") {
-                const ret = { "lvlhs": lvlh_attitude(rows) };
+                const ret = { "qatts": lvlh_attitude(rows) };
                 return ret;
             }
-            const ret = { "ecis": position(rows) };
-            // needs switch statement here also to parse type option passed in from request
+            const ret = { "ecis": eci_position(rows) };
+            // switch statement here also to parse type option passed in from request
             // passing the type for the list of sub-structures { geoidpos ... }
-            // { "avectors": position(rows), "qvatts": vrows, "qaatts": arows }
-            //const ret = position(rows, type); pass output type variable to handler
             return ret;
         }
         catch (error) {
