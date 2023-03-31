@@ -231,14 +231,17 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
-utc AS "time",
+locstruc.utc AS "time", 
+locstruc.node_name as "node_name",
+node.node_type as "node_type",
 eci_s_x, eci_s_y, eci_s_z,
 eci_v_x, eci_v_y, eci_v_z,
 icrf_s_x, icrf_s_y, icrf_s_z, 
 icrf_s_w, icrf_v_x, icrf_v_y, 
 icrf_v_z
-FROM locstruc
-WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
+FROM locstruc 
+INNER JOIN node ON locstruc.node_name = node.node_name
+WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [loctype.from, loctype.to],
             );
             console.log(rows[0])

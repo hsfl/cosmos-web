@@ -18,6 +18,17 @@ export interface TelegrafBody {
 export interface Node {
     id: number;
     name: string;
+    type: number;
+}
+
+export interface NodeType {
+    id: number;
+    name: string;
+}
+
+export interface GFNodeType {
+    Node_name: string;
+    Node_type: number;
 }
 
 export interface Device {

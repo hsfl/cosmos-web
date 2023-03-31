@@ -1,5 +1,6 @@
 import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, cartpos, qatt, geoidpos, gfgeoidpos, gfcartpos, gfspherpos, gfqatt } from '../types/cosmos_types';
 import mysql from 'mysql2';
+import { GFNodeType } from '../database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
 // TODO: probably a better way of doing this
@@ -7,7 +8,6 @@ let cosmos: CosmosModule;
 COSMOSJS().then((cosmos_module: CosmosModule) => {
     cosmos = cosmos_module;
     console.log('CosmosModule successfully imported');
-
     return;
 });
 
@@ -302,7 +302,7 @@ const loc: locstruc = {
 
 
 export const eci_position = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<gfcartpos & timepoint> = [];
+    const ret: Array<gfcartpos & timepoint & GFNodeType> = [];
     rows.forEach((row) => {
         const gfeci: gfcartpos = {
             utc: row.time,
@@ -312,24 +312,31 @@ export const eci_position = (rows: mysql.RowDataPacket[]) => {
             v_x: row.eci_v_x,
             v_y: row.eci_v_y,
             v_z: row.eci_v_z,
-            a_x: row.eci_a_x,
-            a_y: row.eci_a_y,
-            a_z: row.eci_a_z
+            a_x: 0,
+            a_y: 0,
+            a_z: 0
+            // a_x: row.eci_a_x,
+            // a_y: row.eci_a_y,
+            // a_z: row.eci_a_z
         }
-        ret.push({ Time: row.time, ...gfeci });
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...gfeci });
     });
     console.log('iret:', rows[0], ret[0]);
     return ret;
 }
 
 export const geod_position = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<geoidpos & timepoint> = [];
+    const ret: Array<geoidpos & timepoint & GFNodeType> = [];
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
         loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
         loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
         loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        // const typed_node: GFNodeType = {
+        //     name: row.node_name,
+        //     type: 0,
+        // }
 
         const geod: geoidpos = (cosmos.ecitogeod(loc));
         // const gfgeod: gfgeoidpos = {
@@ -345,7 +352,7 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
         //     a_h: geod.a.h,
         // }
         //const time  
-        ret.push({ Time: row.time, ...geod });
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...geod });
     });
     loc.pos.eci.utc = 0;
     loc.pos.eci.pass = 0;
@@ -357,7 +364,7 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
 }
 
 export const geos_position = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<spherpos & timepoint> = [];
+    const ret: Array<spherpos & timepoint & GFNodeType> = [];
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
@@ -379,7 +386,7 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
         //     a_r: geos.a.r
         // }
         //const time  
-        ret.push({ Time: row.time, ...geos });
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...geos });
     });
     loc.pos.eci.utc = 0;
     loc.pos.eci.pass = 0;
@@ -391,7 +398,7 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
 }
 
 export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<qatt & timepoint> = [];
+    const ret: Array<qatt & timepoint & GFNodeType> = [];
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
@@ -426,7 +433,7 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
         //     a_z: lvlh.a.col[2],
         // }
         //const time  
-        ret.push({ Time: row.time, ...lvlh });
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...lvlh });
     });
     loc.pos.eci.utc = 0;
     loc.pos.eci.pass = 0;
@@ -448,3 +455,4 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
     console.log('iret:', rows[0], ret[0]);
     return ret;
 }
+

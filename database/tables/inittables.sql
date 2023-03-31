@@ -5,9 +5,16 @@
 # create database cosmos;
 # use cosmos;
 
+CREATE TABLE IF NOT EXISTS node_type (
+    id SMALLINT UNSIGNED NOT NULL UNIQUE,
+    name VARCHAR(40) NOT NULL,
+    PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS node (
-# node_id TINYINT UNSIGNED NOT NULL UNIQUE,
+node_id TINYINT UNSIGNED NOT NULL UNIQUE,
 node_name VARCHAR(40) NOT NULL UNIQUE,
+node_type SMALLINT UNSIGNED NOT NULL,
 agent_name VARCHAR(40) NOT NULL,
 utc DOUBLE,
 utcstart DOUBLE,
