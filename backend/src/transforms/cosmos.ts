@@ -1,6 +1,6 @@
-import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, cartpos, qatt, geoidpos, gfgeoidpos, gfcartpos, gfspherpos, gfqatt } from '../types/cosmos_types';
+import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, cartpos, qatt, geoidpos, gfcartpos } from '../types/cosmos_types';
 import mysql from 'mysql2';
-import { GFNodeType } from '../database/BaseDatabase';
+import { GFNodeType, deviceswch, devicebatt } from '../database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
 // TODO: probably a better way of doing this
@@ -455,4 +455,169 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
     console.log('iret:', rows[0], ret[0]);
     return ret;
 }
+
+
+/// beacon parsing section
+
+// node name needed. append to object for post into SQL database,
+// determine when node is assigned, where sourced in beacon parsing
+
+// TODO remaining sql tables for namespace 1.0
+// completed: device_swch, device_batt
+
+export const parse_device_swch = (deviceswch: Object) => {
+    const ret: Array<deviceswch> = [];
+    let Ob: deviceswch = {
+        node_name: "",
+        didx: 0,
+        utc: 0,
+        amp: 0,
+        volt: 0,
+        power: 0,
+        temp: 0,
+    };
+    for (const [key, value] of Object.entries(deviceswch)) {
+        // console.log(`${key}: ${value}`);
+        if (key.includes("device_swch_utc")) {
+            let tid = key.slice(16, 19);
+            // three digit id string is parsed into an integer... i.e. "001" becomes 1
+            Ob.didx = parseInt(tid);
+            // console.log("didx parsed string to int: ", Ob.didx);
+            Ob.utc = value;
+        }
+        if (key.includes("device_swch_amp") && key.includes(String(Ob.didx))) {
+            let tid = key.slice(16, 19);
+            Ob.amp = value;
+        }
+        if (key.includes("device_swch_volt") && key.includes(String(Ob.didx))) {
+            let tid = key.slice(17, 20);
+            Ob.volt = value;
+        }
+        if (key.includes("device_swch_power") && key.includes(String(Ob.didx))) {
+            let tid = key.slice(18, 21);
+            Ob.power = value;
+            // runs after all columns have been parsed
+            // set type object
+            const deviceswchobject: deviceswch = {
+                node_name: Ob.node_name,
+                utc: Ob.utc,
+                didx: Ob.didx,
+                amp: Ob.amp,
+                volt: Ob.volt,
+                power: Ob.power,
+                temp: 0,
+            };
+            // push object to type array
+            ret.push(deviceswchobject);
+            // reset type object
+            Ob.node_name = "";
+            Ob.didx = 0;
+            Ob.utc = 0;
+            Ob.amp = 0;
+            Ob.volt = 0;
+            Ob.power = 0;
+            Ob.temp = 0;
+        }
+    }
+    return ret
+};
+
+export const parse_device_batt = (devicebatt: Object) => {
+    const ret: Array<devicebatt> = [];
+    let Ob: devicebatt = {
+        node_name: "",
+        didx: 0,
+        utc: 0,
+        amp: 0,
+        volt: 0,
+        power: 0,
+        temp: 0,
+        percentage: 0,
+    };
+    for (const [key, value] of Object.entries(devicebatt)) {
+        // console.log(`${key}: ${value}`);
+        if (key.includes("device_batt_utc")) {
+            let tid = key.slice(16, 19);
+            // three digit id string is parsed into an integer... i.e. "001" becomes 1
+            Ob.didx = parseInt(tid);
+            // console.log("didx parsed string to int: ", Ob.didx);
+            Ob.utc = value;
+        }
+        if (key.includes("device_batt_amp") && key.includes(String(Ob.didx))) {
+            let tid = key.slice(16, 19);
+            Ob.amp = value;
+        }
+        if (key.includes("device_batt_volt") && key.includes(String(Ob.didx))) {
+            let tid = key.slice(17, 20);
+            Ob.volt = value;
+        }
+        if (key.includes("device_batt_power") && key.includes(String(Ob.didx))) {
+            let tid = key.slice(18, 21);
+            Ob.power = value;
+        }
+        if (key.includes("device_batt_temp") && key.includes(String(Ob.didx))) {
+            let tid = key.slice(17, 20);
+            Ob.temp = value;
+        }
+        if (key.includes("device_batt_percentage") && key.includes(String(Ob.didx))) {
+            let tid = key.slice(23, 26);
+            Ob.percentage = value;
+            // runs after all columns have been parsed
+            // set type object
+            const device_batt_object: devicebatt = {
+                node_name: Ob.node_name,
+                utc: Ob.utc,
+                didx: Ob.didx,
+                amp: Ob.amp,
+                volt: Ob.volt,
+                power: Ob.power,
+                temp: Ob.temp,
+                percentage: Ob.percentage
+            };
+            // push object to type array
+            ret.push(device_batt_object);
+            // reset type object
+            Ob.node_name = "";
+            Ob.didx = 0;
+            Ob.utc = 0;
+            Ob.amp = 0;
+            Ob.volt = 0;
+            Ob.power = 0;
+            Ob.temp = 0;
+            Ob.percentage = 0;
+        }
+    }
+    return ret
+};
+
+// SQL POST request format must be an array of dictionaries; SQL sub function requires a type specific array of object
+// return list of objects for single type
+export const beacon2obj = (beacon: string) => {
+    const object: Object = JSON.parse(beacon);
+    // console.log("beacon Telem Object fields.value string: ", object);
+    // console.log("object 1 key ", Object.entries(object)[1][0]);
+    const keycomp: Array<string> = Object.entries(object)[1][0].split('_');
+    const typekey: string = keycomp[0] + "_" + keycomp[1];
+    // console.log("type key: ", typekey);
+
+    // device_swch
+    if (typekey == "device_swch") {
+        // function to parse device swch, returns list of objects for type
+        const device_swch_array = parse_device_swch(object);
+        // add the format ["sqlTableName", [{}, {}, {}, ...]] for the response to the db.ts call
+        const ret: Array<any> = ["swchstruc", device_swch_array];
+        // console.log("device object type: ", (ret)[0]);
+        return ret;
+    }
+
+    // device_batt
+    if (typekey == "device_batt") {
+        // function to parse device batt, returns list of objects for type
+        const device_batt_array = parse_device_batt(object);
+        // add the format ["sqlTableName", [{}, {}, {}, ...]] for the response to the db.ts call
+        const ret: Array<any> = ["battstruc", device_batt_array];
+        // console.log("device object type: ", (ret)[0]);
+        return ret;
+    }
+};
 
