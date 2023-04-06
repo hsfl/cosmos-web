@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import DBHandler from '../database/DBHandler';
 import { new_api_response } from '../utils/response';
 import { TimeRange, LocType } from '../types/cosmos_types';
+import { beacon2obj } from '../transforms/cosmos';
 import { TelegrafBody } from '../database/BaseDatabase';
 const router = express.Router();
 
@@ -24,7 +25,7 @@ const router = express.Router();
       http://localhost:10090/sim/propagator
 */
 router.post('/telem', async (req: Request<{}, {}, TelegrafBody>, res: Response) => {
-    // console.log('in telem', req.body.metrics);
+    console.log('in telem', req.body.metrics);
     if (req.body === undefined || req.body.metrics === undefined) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
@@ -36,6 +37,49 @@ router.post('/telem', async (req: Request<{}, {}, TelegrafBody>, res: Response) 
 
     res.status(202).json(new_api_response('success'));
 });
+
+
+/**
+ * beacon: Request = list of single type beacon objects in namespace 1.0
+ * dynamic function parses beacon data for type, and translates into formated row objects
+ * parsed beacon returns array of ["sql_table_name", [{database type row object}, ...] ]
+ * this array[0] and array[1] are passed to dynamic sql insert statement function
+ * 
+ * curl -X POST -H "Content-Type: application/json" --data '{"device_batt_utc_000":59970.640430555555,"device_batt_amp_000":-0.061999999,"device_batt_volt_000":15.382,"device_batt_power_000":-0.95368397,"device_batt_temp_000":296.88,"device_batt_percentage_000":0.92000002,"device_batt_utc_001":59970.640430555555,"device_batt_amp_001":-0.064000003,"device_batt_volt_001":15.384,"device_batt_power_001":-0.98457605,"device_batt_temp_001":298.44,"device_batt_percentage_001":0.9011111111,"device_batt_utc_002":59970.640430555555,"device_batt_amp_002":0.001,"device_batt_volt_002":15.381,"device_batt_power_002":0.015381,"device_batt_temp_002":272.32999,"device_batt_percentage_002":0.92222222}
+' http://localhost:10090/db/beacon
+
+curl -X POST -H "Content-Type: application/json" --data '{
+    "device_swch_utc_000": 59970.2222222222, "device_swch_amp_000": 0, "device_swch_volt_000": -0.15899999, "device_swch_power_000": -0.222222222,
+        "device_swch_utc_001": 59970.368290509257, "device_swch_amp_001": 0, "device_swch_volt_001": -0.15899999, "device_swch_power_001": -0,
+            "device_swch_utc_002": 59970.368290509257, "device_swch_amp_002": 0, "device_swch_volt_002": -0.16599999, "device_swch_power_002": -0,
+                "device_swch_utc_003": 59970.368290509257, "device_swch_amp_003": 0, "device_swch_volt_003": -0.15899999, "device_swch_power_003": -0,
+                    "device_swch_utc_004": 59970.368290509257, "device_swch_amp_004": 0, "device_swch_volt_004": -0.15899999, "device_swch_power_004": -0.222222222
+}
+' http://localhost:10090/db/beacon
+ */
+
+router.post('/beacon', async (req: Request, res: Response) => {
+    // console.log(req.body);
+    if ((req.body) === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'Argument format incorrect. Must be list of objects'
+        });
+    }
+    // extract body, format of object as string
+    const body_ob: string = JSON.stringify(req.body);
+    // parse string object into appropriate array of ["sql_table_name", [{database type row object}, ...] ]
+    const parsedbeacon = beacon2obj(body_ob);
+    // check to make sure beacon is parsed with successful response, then sort on key
+    if (parsedbeacon !== undefined) {
+        // open database connection
+        const db = DBHandler.app_db();
+        // dynamic sql insert statement; takes (table: string, objectArray: any[])
+        await db.write_beacon(parsedbeacon[0], parsedbeacon[1]);
+        res.status(202).json(new_api_response('success'));
+    }
+});
+
 
 /**
  * nodes: list of {id:number, name:string} node dicts
@@ -55,8 +99,12 @@ router.post('/node', async (req: Request, res: Response) => {
 
 /**
  * devices: list of {node_id:number, name:string, dname:string} node dicts
+ * 
+ * curl -X POST -H "Content-Type: application/json" --data '[{"node_name":"mothership","type":1,"cidx":5,"didx":8,"name":"test"}]' http://localhost:10090/db/device
  */
+
 router.post('/device', async (req: Request, res: Response) => {
+    // console.log(req.body);
     if (!Array.isArray(req.body)) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
