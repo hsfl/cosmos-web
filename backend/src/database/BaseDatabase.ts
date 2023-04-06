@@ -1,4 +1,4 @@
-import { cosmosresponse, TimeRange, LocType } from '../types/cosmos_types';
+import { cosmosresponse, TimeRange, LocType, BeaconMap, sqltablecosmos } from '../types/cosmos_types';
 
 export interface TelegrafMetric {
     fields: {
@@ -26,15 +26,41 @@ export interface NodeType {
     name: string;
 }
 
+
+// swchstruc
+export interface deviceswch {
+    node_name: string;
+    didx: number;
+    utc: number; // double
+    volt: number;
+    amp: number;
+    power: number;
+    temp: number;
+}
+
+// battstruc
+export interface devicebatt {
+    node_name: string;
+    didx: number;
+    utc: number; // double
+    volt: number;
+    amp: number;
+    power: number;
+    temp: number;
+    percentage: number;
+}
+
 export interface GFNodeType {
     Node_name: string;
     Node_type: number;
 }
 
 export interface Device {
-    node_id: number;
+    node_name: string;
+    type: number;
+    cidx: number;
+    didx: number;
     name: string;
-    dname: string;
 }
 
 // Base database class, derived classes should override the interfaces
@@ -100,5 +126,23 @@ export default class BaseDatabase {
         console.log('Getting mags');
         return {};
     }
+
+    public async get_map_beacon(beaconmap: BeaconMap): Promise<cosmosresponse> {
+        console.log('Getting beacon map');
+        return {};
+    }
+
+    public async write_beacon(table: string, objectArray: any[]): Promise<void> {
+        console.log('Writing beacon');
+    }
+
+    public async write_swchstruc(swchstruc: deviceswch[]): Promise<void> {
+        console.log('Writing swchstruc');
+    }
+
+    public async write_battstruc(swchstruc: devicebatt[]): Promise<void> {
+        console.log('Writing battstruc');
+    }
+
 
 }
