@@ -1,4 +1,4 @@
-import BaseDatabase, { Device, Node, TelegrafMetric } from "./BaseDatabase";
+import BaseDatabase, { Device, Node, TelegrafMetric, deviceswch, devicebatt } from "./BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -100,7 +100,7 @@ export default class MysqlDatabase extends BaseDatabase {
     }
 
     public async write_device(devices: Device[]): Promise<void> {
-        // Clear out current device table
+        // Clear out current device table TODO remove after development 
         try {
             await this.promisePool.query('DELETE FROM device');
         } catch (error) {
@@ -114,8 +114,11 @@ export default class MysqlDatabase extends BaseDatabase {
         for (let i = 0; i < devices.length; i++) {
             try {
                 await this.promisePool.execute(
-                    'INSERT INTO device (node_id, name, dname) VALUES (?,?,?)',
-                    [devices[i].node_id, devices[i].name, devices[i].dname]
+                    // node_name, type, cidx, didx, name
+                    // string, int, int, int, string
+                    // [{"node_name":"mothership","type":1,"cidx":5,"didx":8,"name":"test"}]
+                    'INSERT INTO device (node_name, type, cidx, didx, name) VALUES (?,?,?,?,?)',
+                    [devices[i].node_name, devices[i].type, devices[i].cidx, devices[i].didx, devices[i].name]
                 );
             } catch (error) {
                 console.log(error);
@@ -127,6 +130,152 @@ export default class MysqlDatabase extends BaseDatabase {
 
         }
     }
+
+    // dynamic function maps over sql tables, takes parsed array of single type specific objects, constructs insert statement
+    // pools response to post each row object using constructed insert statement
+    public async write_beacon(table: string, objectArray: any[]): Promise<void> {
+        // map of cosmos sql tables; 
+        // note the column order must match sql order; key names must match sql table names; naming must be exact
+        const sqlmap: Object = {
+            "swchstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp"],
+            "battstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "percentage"],
+            "bcregstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "mpptin_amp", "mpptin_volt", "mpptout_amp", "mpptout_volt"],
+            "cpustruc": ["node_name", "didx", "utc", "temp", "uptime", "cpu_load", "gib", "boot_count", "storage"],
+            "device": ["node_name", "type", "cidx", "didx", "name"],
+            "device_type": ["name", "id"],
+            "locstruc": ["node_name", "utc", "eci_s_x", "eci_s_y", "eci_s_z", "eci_v_x", "eci_v_y", "eci_v_z", "icrf_s_x", "icrf_s_y", "icrf_s_z", "icrf_s_w", "icrf_v_x", "icrf_v_y", "icrf_v_z"],
+            "magstruc": ["node_name", "didx", "utc", "mag_x", "mag_y", "mag_z"],
+            "node": ["node_id", "node_name", "node_type", "agent_name", "utc", "utcstart"],
+            "tsenstruc": ["node_name", "didx", "utc", "temp"]
+        }
+        // build the insert statement and extract the column list for the applicable table type
+        let insert_statement: string = "";
+        let dynamic_col_array: Array<any> = [];
+        try {
+            for (const [key, value] of Object.entries(sqlmap)) {
+                // console.log(`${key}: ${value}`);
+                if (key === table) {
+                    let dynamic_insert: string = 'INSERT INTO ' + key;
+                    let table_cols: string = ' (';
+                    let table_variables: string = ') VALUES (';
+                    for (let i = 0; i < value.length; i++) {
+                        dynamic_col_array.push(value[i]);
+                        if ((i + 1) == value.length) {
+                            table_cols += value[i];
+                            table_variables += '?)'
+                        } else {
+                            table_cols += value[i] + ", ";
+                            table_variables += '?,'
+                        }
+                    }
+                    insert_statement = dynamic_insert.concat(table_cols, table_variables);
+                    console.log("insert statement construct: ", insert_statement);
+                    console.log("dynamic col array: ", dynamic_col_array);
+                }
+            }
+        } catch (error) {
+            console.log(error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Error writing sql insert statement'
+            });
+        }
+
+
+        // development delete table contents statement for repeat sample posts TODO remove 
+        try {
+            await this.promisePool.query('DELETE FROM ' + table);
+        } catch (error) {
+            console.log(error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Error clearing table'
+            });
+        }
+
+        // console.log("object array: ", objectArray);
+
+        // // Load in new beacon mappings
+        // transition from array of row objects through each row object
+        for (let i = 0; i < objectArray.length; i++) {
+            let row_value_array: Array<any> = [];
+            row_value_array = dynamic_col_array.map(x => objectArray[i][x]);
+            console.log("parsed row values array: ", row_value_array);
+
+            try {
+                await this.promisePool.execute(
+                    insert_statement,
+                    row_value_array
+                );
+            } catch (error) {
+                console.log(error);
+                throw new AppError({
+                    httpCode: StatusCodes.BAD_REQUEST,
+                    description: 'Failure adding row'
+                });
+            }
+
+        }
+    }
+
+    public async write_swchstruc(swchstruc: deviceswch[]): Promise<void> {
+        try {
+            await this.promisePool.query('DELETE FROM swchstruc');
+        } catch (error) {
+            console.log(error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Error updating swch struc'
+            });
+        }
+        // Load in new beacon mappings
+        for (let i = 0; i < swchstruc.length; i++) {
+            try {
+                await this.promisePool.execute(
+                    // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0}]
+                    'INSERT INTO swchstruc (node_name, didx, utc, volt, amp, power, temp) VALUES (?,?,?,?,?,?,?)',
+                    [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
+                );
+            } catch (error) {
+                console.log(error);
+                throw new AppError({
+                    httpCode: StatusCodes.BAD_REQUEST,
+                    description: 'Failure adding devices'
+                });
+            }
+
+        }
+    }
+
+    public async write_battstruc(battstruc: devicebatt[]): Promise<void> {
+        try {
+            await this.promisePool.query('DELETE FROM battstruc');
+        } catch (error) {
+            console.log(error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Error updating batt struc'
+            });
+        }
+        // Load in new beacon mappings
+        for (let i = 0; i < battstruc.length; i++) {
+            try {
+                await this.promisePool.execute(
+                    // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0,"percentage":0.92000002}]
+                    'INSERT INTO battstruc (node_name, didx, utc, volt, amp, power, temp, percentage) VALUES (?,?,?,?,?,?,?,?)',
+                    [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
+                );
+            } catch (error) {
+                console.log(error);
+                throw new AppError({
+                    httpCode: StatusCodes.BAD_REQUEST,
+                    description: 'Failure adding devices'
+                });
+            }
+
+        }
+    }
+
     // TODO: fix return type
     public async get_attitude(timerange: TimeRange): Promise<cosmosresponse> {
         try {
@@ -226,7 +375,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             });
         }
     }
-    // add output type option variable to the function inputs // , type: string
+    // LocType adds output type option variable to the function inputs // , type: string
     public async get_position(loctype: LocType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
