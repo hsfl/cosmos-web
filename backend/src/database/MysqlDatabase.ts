@@ -1,4 +1,4 @@
-import BaseDatabase, { Device, Node, TelegrafMetric, deviceswch, devicebatt } from "./BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, Device, Node, TelegrafMetric, deviceswch, devicebatt } from "./BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -136,18 +136,18 @@ export default class MysqlDatabase extends BaseDatabase {
     public async write_beacon(table: string, objectArray: any[]): Promise<void> {
         // map of cosmos sql tables; 
         // note the column order must match sql order; key names must match sql table names; naming must be exact
-        const sqlmap: Object = {
-            "swchstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp"],
-            "battstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "percentage"],
-            "bcregstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "mpptin_amp", "mpptin_volt", "mpptout_amp", "mpptout_volt"],
-            "cpustruc": ["node_name", "didx", "utc", "temp", "uptime", "cpu_load", "gib", "boot_count", "storage"],
-            "device": ["node_name", "type", "cidx", "didx", "name"],
-            "device_type": ["name", "id"],
-            "locstruc": ["node_name", "utc", "eci_s_x", "eci_s_y", "eci_s_z", "eci_v_x", "eci_v_y", "eci_v_z", "icrf_s_x", "icrf_s_y", "icrf_s_z", "icrf_s_w", "icrf_v_x", "icrf_v_y", "icrf_v_z"],
-            "magstruc": ["node_name", "didx", "utc", "mag_x", "mag_y", "mag_z"],
-            "node": ["node_id", "node_name", "node_type", "agent_name", "utc", "utcstart"],
-            "tsenstruc": ["node_name", "didx", "utc", "temp"]
-        }
+        // const sqlmap: Object = {
+        //     "swchstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp"],
+        //     "battstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "percentage"],
+        //     "bcregstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "mpptin_amp", "mpptin_volt", "mpptout_amp", "mpptout_volt"],
+        //     "cpustruc": ["node_name", "didx", "utc", "temp", "uptime", "cpu_load", "gib", "boot_count", "storage"],
+        //     "device": ["node_name", "type", "cidx", "didx", "name"],
+        //     "device_type": ["name", "id"],
+        //     "locstruc": ["node_name", "utc", "eci_s_x", "eci_s_y", "eci_s_z", "eci_v_x", "eci_v_y", "eci_v_z", "icrf_s_x", "icrf_s_y", "icrf_s_z", "icrf_s_w", "icrf_v_x", "icrf_v_y", "icrf_v_z"],
+        //     "magstruc": ["node_name", "didx", "utc", "mag_x", "mag_y", "mag_z"],
+        //     "node": ["node_id", "node_name", "node_type", "agent_name", "utc", "utcstart"],
+        //     "tsenstruc": ["node_name", "didx", "utc", "temp"]
+        // }
         // build the insert statement and extract the column list for the applicable table type
         let insert_statement: string = "";
         let dynamic_col_array: Array<any> = [];
@@ -170,7 +170,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     }
                     insert_statement = dynamic_insert.concat(table_cols, table_variables);
                     console.log("insert statement construct: ", insert_statement);
-                    console.log("dynamic col array: ", dynamic_col_array);
+                    // console.log("dynamic col array: ", dynamic_col_array);
                 }
             }
         } catch (error) {
@@ -375,6 +375,97 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             });
         }
     }
+
+    // get latest position
+    // dynamic query of most recent row value for type table, for all unique node / node+device keys 
+
+    // need to return list of latest values for list of each unique key
+    // future need: return specific latest column value for unique key
+
+    // function requires sql_mode variable configuration to exclude ONLY_FULL_GROUP_BY
+    // run this command from sql terminal to check:
+    // SELECT @@sql_mode ;
+    // or also
+    // SHOW GLOBAL VARIABLES LIKE 'sql_mode';
+    //
+    // remove the specified config with:
+    // SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
+
+    // this needs a fix... sql seems to update and revert back to only full group by on restart... TODO
+
+    public async get_now(table: string, timerange: TimeRange): Promise<cosmosresponse> {
+        let query_statement: string = "";
+        try {
+            for (const [key, value] of Object.entries(sqlmap)) {
+                // console.log(`${key}: ${value}`);
+                if (key === table) {
+                    let dynamic_query: string = 'SELECT ';
+                    let table: string = ' FROM ' + key;
+                    let mtime: string = '';
+                    for (let i = 0; i < value.length; i++) {
+                        // dynamic_col_array.push(value[i]);
+                        if (value[i] === "utc") {
+                            mtime = 'MAX(utc) as "latest_timestamp"';
+                        }
+                        else {
+                            dynamic_query += value[i] + ", ";
+                        }
+                    }
+                    let query_group: string = ' GROUP BY ';
+                    for (const [qkey, qvalue] of Object.entries(sqlquerykeymap)) {
+                        // console.log(`${key}: ${value}`);
+                        if (qkey === key) {
+                            for (let i = 0; i < qvalue.length; i++) {
+                                if ((i + 1) == qvalue.length) {
+                                    query_group += qvalue[i];
+                                } else {
+                                    query_group += qvalue[i] + ", ";
+                                }
+                            }
+                        }
+                    }
+                    query_statement = dynamic_query.concat(mtime, table, query_group);
+                    console.log("query max(utc) statement construct: ", query_statement);
+                    // console.log("dynamic col array: ", dynamic_col_array);
+                }
+            }
+        } catch (error) {
+            console.log(error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Error writing sql insert statement'
+            });
+        }
+        // query_statement ... need to add timerange limits, and row length limit? or is simple max(utc) ok
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                query_statement
+            );
+            // const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+            //     `SELECT
+            //     node_name,
+            //     node_type,
+            //     node_id,
+            //     agent_name,
+            //     MAX(utc) as "latest timestamp"
+            //     FROM node
+            //     WHERE node_name="mothership" and utc BETWEEN ? and ? ORDER BY time limit 1000`,
+            //     [timerange.from, timerange.to],
+            // );
+
+            console.log(rows[0])
+            const ret = { table: rows };
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_now:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
     // LocType adds output type option variable to the function inputs // , type: string
     public async get_position(loctype: LocType): Promise<cosmosresponse> {
         try {
