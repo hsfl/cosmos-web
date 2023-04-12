@@ -13,6 +13,7 @@ DROP TABLE locstruc;
 
 CREATE TABLE IF NOT EXISTS locstruc (
     node_name VARCHAR(40) NOT NULL,
+    typeid DOUBLE NOT NULL,
     utc DOUBLE NOT NULL,
     eci_s_x DOUBLE,
     eci_s_y DOUBLE,
