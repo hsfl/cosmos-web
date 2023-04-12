@@ -1,4 +1,4 @@
-import { cosmosresponse, TimeRange, LocType, BeaconMap } from '../types/cosmos_types';
+import { cosmosresponse, TimeRange, LocType } from '../types/cosmos_types';
 
 // map of cosmos sql tables; 
 // note the column order must match sql order; key names must match sql table names; naming must be exact
@@ -155,11 +155,6 @@ export default class BaseDatabase {
 
     public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
         console.log('Getting mags');
-        return {};
-    }
-
-    public async get_map_beacon(beaconmap: BeaconMap): Promise<cosmosresponse> {
-        console.log('Getting beacon map');
         return {};
     }
 
