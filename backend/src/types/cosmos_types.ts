@@ -54,6 +54,11 @@ export interface LocType {
     type: string;
 }
 
+export interface KeyType {
+    dtype: number;
+    dname: string;
+}
+
 export interface qsatt {
     qsx: number;
     qsy: number;

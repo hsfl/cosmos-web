@@ -183,6 +183,9 @@ router.get('/position', async (req: Request<{}, {}, {}, LocType>, res: Response)
     res.status(200).json(response);
 });
 
+// // curl --request GET "http://localhost:10090/db/battery?from=59874.83333333&to=59874.87333333"
+// out of range device key test: 
+// curl --request GET "http://localhost:10090/db/battery?from=69874.83333333&to=69874.87333333"
 router.get('/battery', async (req: Request<{}, {}, {}, TimeRange>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.from === undefined || req.query.to === undefined) {

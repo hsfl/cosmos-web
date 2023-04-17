@@ -40,3 +40,8 @@ REPLACE INTO locstruc VALUES ('c', 59872.83333333, 2230000, 3730750, 5210750, -5
 REPLACE INTO node VALUES (0, 'mothership', 0, 'agent name', 59874.83333333, 59874.83333333);
 REPLACE INTO node VALUES (1, 'c', 0, 'agent name', 59874.83333333, 59874.83333333);
 
+
+REPLACE INTO battstruc VALUES ('mothership', 0, 59874.83333333, 0, 0, 0, 0, 0);
+
+REPLACE INTO device VALUES ('mothership', 12, 0, 0, 'test');
+

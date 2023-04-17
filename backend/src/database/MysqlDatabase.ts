@@ -5,7 +5,7 @@ import { mjd_to_unix } from '../utils/time';
 import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
 import { attitude, eci_position, geod_position, geos_position, lvlh_attitude } from '../transforms/cosmos';
-import { TimeRange, cosmosresponse, LocType } from '../types/cosmos_types';
+import { TimeRange, cosmosresponse, LocType, KeyType } from '../types/cosmos_types';
 
 
 // MySQL Implementation of Database class
@@ -276,6 +276,39 @@ export default class MysqlDatabase extends BaseDatabase {
         }
     }
 
+    // // // /// 
+    // get list of unique device keys given empty query return for given struc type
+    // "device": ["node_name", "type", "cidx", "didx", "name"],
+    // "device_type": ["name", "id"],
+    public async get_device_keys(keytype: KeyType): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT
+                node_name,
+                didx
+FROM device
+WHERE
+  type = ? limit 1000`,
+                [keytype.dtype],
+            );
+            console.log(rows[0])
+            const dname: string = keytype.dname;
+            // const ret = { dname: rows };
+            const ret = { dname: rows };
+            console.log("device return: ", ret);
+            //const ret = attitude(rows);
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_device_keys:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+    // // // /// 
+
     // TODO: fix return type
     public async get_attitude(timerange: TimeRange): Promise<cosmosresponse> {
         try {
@@ -403,7 +436,6 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                     let table: string = ' FROM ' + key;
                     let mtime: string = '';
                     for (let i = 0; i < value.length; i++) {
-                        // dynamic_col_array.push(value[i]);
                         if (value[i] === "utc") {
                             mtime = 'MAX(utc) as "latest_timestamp"';
                         }
@@ -426,7 +458,6 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                     }
                     query_statement = dynamic_query.concat(mtime, table, query_group);
                     console.log("query max(utc) statement construct: ", query_statement);
-                    // console.log("dynamic col array: ", dynamic_col_array);
                 }
             }
         } catch (error) {
@@ -485,6 +516,9 @@ WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [loctype.from, loctype.to],
             );
             console.log(rows[0])
+            if (rows.length == 0) {
+                console.log("empty rows");
+            }
             // let type = "eci";
             let type = loctype.type;
             if (type == "eci") {
@@ -530,9 +564,36 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = { "batts": rows };
-            //const ret = attitude(rows);
-            return ret;
+            if (rows.length == 0) {
+                // console.log("empty rows");
+                const key_array = await this.get_device_keys({ dtype: 12, dname: "batts" })
+                // console.log("key_array: ", key_array);
+                const battrows: Array<devicebatt> = [];
+                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        // console.log("qvalue[i]: ", qvalue[i]);
+                        const devbatt: devicebatt = {
+                            node_name: qvalue[i].node_name,
+                            didx: qvalue[i].didx,
+                            utc: timerange.to,
+                            volt: 0,
+                            amp: 0,
+                            power: 0,
+                            temp: 0,
+                            percentage: 0
+                        }
+                        battrows.push({ ...devbatt });
+                    }
+                }
+                const ret = { "batts": battrows };
+                // console.log("compiled mock batt return: ", ret);
+                return ret;
+            } else {
+                const ret = { "batts": rows };
+                return ret;
+            }
+            // const ret = { "batts": rows };
+            // return ret;
         }
         catch (error) {
             console.log('Error in get_battery:', error);
