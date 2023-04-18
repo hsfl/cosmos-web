@@ -44,4 +44,27 @@ REPLACE INTO node VALUES (1, 'c', 0, 'agent name', 59874.83333333, 59874.8333333
 REPLACE INTO battstruc VALUES ('mothership', 0, 59874.83333333, 0, 0, 0, 0, 0);
 
 REPLACE INTO device VALUES ('mothership', 12, 0, 0, 'test');
+REPLACE INTO device VALUES ('mothership', 30, 0, 0, 'test');
+REPLACE INTO device VALUES ('mothership', 15, 0, 0, 'test');
+REPLACE INTO device VALUES ('mothership', 15, 0, 15, 'test');
+REPLACE INTO device VALUES ('mothership', 5, 0, 5, 'test');
+REPLACE INTO device VALUES ('mothership', 32, 0, 32, 'test');
 
+REPLACE INTO bcregstruc VALUES ("mothership", 30, 59874.83333333, 0, 0, 0, 0, 0, 0, 0, 0);
+
+REPLACE INTO tsenstruc VALUES ("mothership", 15, 59874.83333333, 0);
+
+REPLACE INTO cpustruc VALUES ("mothership", 15, 59874.83333333, 0, 0, 0, 0, 0, 0);
+
+REPLACE INTO magstruc VALUES ("mothership", 32, 59874.83333333, 0, 0, 0);
+
+
+CREATE TABLE IF NOT EXISTS magstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+mag_x DECIMAL(5,2),
+mag_y DECIMAL(5,2),
+mag_z DECIMAL(5,2),
+PRIMARY KEY (node_name, didx, utc)
+);

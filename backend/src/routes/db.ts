@@ -3,7 +3,7 @@ import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
 import DBHandler from '../database/DBHandler';
 import { new_api_response } from '../utils/response';
-import { TimeRange, LocType } from '../types/cosmos_types';
+import { TimeRange, LocType, NowType } from '../types/cosmos_types';
 import { beacon2obj } from '../transforms/cosmos';
 import { TelegrafBody } from '../database/BaseDatabase';
 const router = express.Router();
@@ -168,8 +168,8 @@ router.get('/now', async (req: Request<{}, {}, {}, LocType>, res: Response) => {
     res.status(200).json(response);
 });
 
-// // curl --request GET "http://localhost:10090/db/position?from=59874.83333333&to=59874.87333333&type=eci"
-router.get('/position', async (req: Request<{}, {}, {}, LocType>, res: Response) => {
+// // curl --request GET "http://localhost:10090/db/position?from=59874.83333333&to=59874.87333333&type=eci&getnow=true"
+router.get('/position', async (req: Request<{}, {}, {}, NowType>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.from === undefined || req.query.to === undefined || req.query.type === undefined) {
         throw new AppError({
@@ -177,6 +177,7 @@ router.get('/position', async (req: Request<{}, {}, {}, LocType>, res: Response)
             description: 'URL Query incorrect, must provide time range from and to'
         });
     }
+    console.log("position curl getnow: ", req.query.getnow);
     const ret = await db.get_position({ from: req.query.from, to: req.query.to, type: req.query.type });
     const response = new_api_response('success');
     response.payload = ret;
@@ -200,6 +201,9 @@ router.get('/battery', async (req: Request<{}, {}, {}, TimeRange>, res: Response
     res.status(200).json(response);
 });
 
+// // curl --request GET "http://localhost:10090/db/bcreg?from=59874.83333333&to=59874.87333333"
+// out of range device key test: 
+// curl --request GET "http://localhost:10090/db/bcreg?from=69874.83333333&to=69874.87333333"
 router.get('/bcreg', async (req: Request<{}, {}, {}, TimeRange>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.from === undefined || req.query.to === undefined) {
@@ -214,6 +218,9 @@ router.get('/bcreg', async (req: Request<{}, {}, {}, TimeRange>, res: Response) 
     res.status(200).json(response);
 });
 
+// // curl --request GET "http://localhost:10090/db/tsen?from=59874.83333333&to=59874.87333333"
+// out of range device key test: 
+// curl --request GET "http://localhost:10090/db/tsen?from=69874.83333333&to=69874.87333333"
 router.get('/tsen', async (req: Request<{}, {}, {}, TimeRange>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.from === undefined || req.query.to === undefined) {
@@ -228,6 +235,9 @@ router.get('/tsen', async (req: Request<{}, {}, {}, TimeRange>, res: Response) =
     res.status(200).json(response);
 });
 
+// // curl --request GET "http://localhost:10090/db/cpu?from=59874.83333333&to=59874.87333333"
+// out of range device key test: 
+// curl --request GET "http://localhost:10090/db/cpu?from=69874.83333333&to=69874.87333333"
 router.get('/cpu', async (req: Request<{}, {}, {}, TimeRange>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.from === undefined || req.query.to === undefined) {
@@ -237,6 +247,23 @@ router.get('/cpu', async (req: Request<{}, {}, {}, TimeRange>, res: Response) =>
         });
     }
     const ret = await db.get_cpu({ from: req.query.from, to: req.query.to });
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+// // curl --request GET "http://localhost:10090/db/mag?from=59874.83333333&to=59874.87333333"
+// out of range device key test: 
+// curl --request GET "http://localhost:10090/db/mag?from=69874.83333333&to=69874.87333333"
+router.get('/mag', async (req: Request<{}, {}, {}, TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_mag({ from: req.query.from, to: req.query.to });
     const response = new_api_response('success');
     response.payload = ret;
     res.status(200).json(response);

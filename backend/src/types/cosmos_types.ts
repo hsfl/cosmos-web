@@ -54,6 +54,13 @@ export interface LocType {
     type: string;
 }
 
+export interface NowType {
+    from: number;
+    to: number;
+    type: string;
+    getnow: boolean;
+}
+
 export interface KeyType {
     dtype: number;
     dname: string;

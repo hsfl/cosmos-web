@@ -1,4 +1,4 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, Device, Node, TelegrafMetric, deviceswch, devicebatt } from "./BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, Device, Node, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag } from "./BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -234,7 +234,7 @@ export default class MysqlDatabase extends BaseDatabase {
                 await this.promisePool.execute(
                     // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0}]
                     'INSERT INTO swchstruc (node_name, didx, utc, volt, amp, power, temp) VALUES (?,?,?,?,?,?,?)',
-                    [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
+                    // [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
                 );
             } catch (error) {
                 console.log(error);
@@ -263,7 +263,7 @@ export default class MysqlDatabase extends BaseDatabase {
                 await this.promisePool.execute(
                     // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0,"percentage":0.92000002}]
                     'INSERT INTO battstruc (node_name, didx, utc, volt, amp, power, temp, percentage) VALUES (?,?,?,?,?,?,?,?)',
-                    [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
+                    // [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
                 );
             } catch (error) {
                 console.log(error);
@@ -285,18 +285,17 @@ export default class MysqlDatabase extends BaseDatabase {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
                 node_name,
-                didx
+                didx,
+                name
 FROM device
 WHERE
   type = ? limit 1000`,
                 [keytype.dtype],
             );
-            console.log(rows[0])
+            // console.log(rows[0])
             const dname: string = keytype.dname;
-            // const ret = { dname: rows };
             const ret = { dname: rows };
-            console.log("device return: ", ret);
-            //const ret = attitude(rows);
+            // console.log("device return: ", ret);
             return ret;
         }
         catch (error) {
@@ -344,7 +343,6 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [timerange.from, timerange.to],
             );
             const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
-            //const ret = attitude(rows);;
             return ret;
         }
         catch (error) {
@@ -375,33 +373,6 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
         catch (error) {
             console.log('Error in get_event:', error);
-            throw new AppError({
-                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
-                description: 'Failure getting rows'
-            });
-        }
-    }
-
-    public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
-        try {
-            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-                `SELECT 
-utc AS "time",
-node_name,
-didx,
-mag_x,
-mag_y,
-mag_z
-FROM magstruc
-WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
-                [timerange.from, timerange.to],
-            );
-            console.log(rows[0])
-            const ret = { "mags": rows };
-            return ret;
-        }
-        catch (error) {
-            console.log('Error in get_position:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -553,7 +524,7 @@ WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 1000`,
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
   utc AS "time",
-  CONCAT(devspec.node_name, ':', device.name) as "node",
+  CONCAT(devspec.node_name, ':', device.name) as "node:device",
   amp,
   power
 FROM battstruc AS devspec
@@ -573,7 +544,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                     for (let i = 0; i < qvalue.length; i++) {
                         // console.log("qvalue[i]: ", qvalue[i]);
                         const devbatt: devicebatt = {
-                            node_name: qvalue[i].node_name,
+                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
                             didx: qvalue[i].didx,
                             utc: timerange.to,
                             volt: 0,
@@ -608,19 +579,53 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
-  device_bcreg_utc AS "time",
-  CONCAT(node_name, ':', didx) as node,
-  device_bcreg_amp AS amp,
-  device_bcreg_power AS power
-FROM device_bcreg
-INNER JOIN node ON device_bcreg.node_id = node.node_id
-WHERE device_bcreg_utc BETWEEN ? and ? ORDER BY time limit 1000`,
+  devspec.utc AS "time",
+  CONCAT(devspec.node_name, ':', device.name) as "node:device",
+  volt,
+  amp,
+  power, temp,
+  mpptin_amp, mpptin_volt,
+  mpptout_amp, mpptout_volt
+FROM bcregstruc AS devspec
+INNER JOIN device ON devspec.didx = device.didx
+WHERE
+  device.type = 30 AND
+devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = { "bcregs": rows };
-            //const ret = attitude(rows);
-            return ret;
+            //
+            if (rows.length == 0) {
+                // console.log("empty rows");
+                const key_array = await this.get_device_keys({ dtype: 30, dname: "bcreg" })
+                // console.log("key_array: ", key_array);
+                const bcregrows: Array<devicebcreg> = [];
+                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devbcreg: devicebcreg = {
+                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            didx: qvalue[i].didx,
+                            time: timerange.to,
+                            volt: 0,
+                            amp: 0,
+                            power: 0,
+                            temp: 0,
+                            mpptin_amp: 0,
+                            mpptin_volt: 0,
+                            mpptout_amp: 0,
+                            mpptout_volt: 0,
+                        }
+                        bcregrows.push({ ...devbcreg });
+                    }
+                }
+                const ret = { "bcregs": bcregrows };
+                return ret;
+            } else {
+                const ret = { "bcregs": rows };
+                return ret;
+            }
+            // const ret = { "bcregs": rows };
+            // return ret;
         }
         catch (error) {
             console.log('Error in get_bcreg:', error);
@@ -639,16 +644,42 @@ utc AS "time",
 CONCAT(devspec.node_name, ':', device.name) as "node:device",
 devspec.temp
 FROM tsenstruc AS devspec
-INNER JOIN device ON device.didx = devspec.didx
+INNER JOIN device ON devspec.didx = device.didx
 WHERE
   device.type = 15 AND
 devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = { "tsens": rows };
-            //const ret = attitude(rows);
-            return ret;
+            // tsenstruc sql
+            // export interface devicetsen {
+            //     node_name: string;
+            //     didx: number;
+            //     time: number; // utc
+            //     temp: number;
+            // }
+            if (rows.length == 0) {
+                const key_array = await this.get_device_keys({ dtype: 15, dname: "tsen" })
+                const tsenrows: Array<devicetsen> = [];
+                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devtsen: devicetsen = {
+                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            didx: qvalue[i].didx,
+                            time: timerange.to,
+                            temp: 0,
+                        }
+                        tsenrows.push({ ...devtsen });
+                    }
+                }
+                const ret = { "tsens": tsenrows };
+                return ret;
+            } else {
+                const ret = { "tsens": rows };
+                return ret;
+            }
+            // const ret = { "tsens": rows };
+            // return ret;
         }
         catch (error) {
             console.log('Error in get_tsen:', error);
@@ -666,16 +697,41 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
   utc AS "time",
   CONCAT(node_name, ':', didx) as node,
   cpu_load as "load",
-  gib,
+  temp, uptime,
+  gib, boot_count,
   storage
 FROM cpustruc
 WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
                 [timerange.from, timerange.to],
             );
             console.log(rows[0])
-            const ret = { "cpus": rows };
-            //const ret = attitude(rows);
-            return ret;
+            if (rows.length == 0) {
+                const key_array = await this.get_device_keys({ dtype: 5, dname: "cpu" })
+                const cpurows: Array<devicecpu> = [];
+                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devcpu: devicecpu = {
+                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            didx: qvalue[i].didx,
+                            time: timerange.to,
+                            temp: 0,
+                            uptime: 0,
+                            cpu_load: 0,
+                            gib: 0,
+                            boot_count: 0,
+                            storage: 0,
+                        }
+                        cpurows.push({ ...devcpu });
+                    }
+                }
+                const ret = { "cpus": cpurows };
+                return ret;
+            } else {
+                const ret = { "cpus": rows };
+                return ret;
+            }
+            // const ret = { "cpus": rows };
+            // return ret;
         }
         catch (error) {
             console.log('Error in get_cpu:', error);
@@ -685,4 +741,56 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
             });
         }
     }
+
+
+    public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT 
+utc AS "time",
+node_name,
+didx,
+mag_x,
+mag_y,
+mag_z
+FROM magstruc
+WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            if (rows.length == 0) {
+                const key_array = await this.get_device_keys({ dtype: 32, dname: "mag" })
+                const magrows: Array<devicemag> = [];
+                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devmag: devicemag = {
+                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            didx: qvalue[i].didx,
+                            time: timerange.to,
+                            mag_x: 0,
+                            mag_y: 0,
+                            mag_z: 0,
+                        }
+                        magrows.push({ ...devmag });
+                    }
+                }
+                const ret = { "mags": magrows };
+                return ret;
+            } else {
+                const ret = { "mags": rows };
+                return ret;
+            }
+            // const ret = { "mags": rows };
+            // return ret;
+        }
+        catch (error) {
+            console.log('Error in get_mag:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
 }
+

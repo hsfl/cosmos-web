@@ -57,28 +57,73 @@ export interface NodeType {
     name: string;
 }
 
-
-// swchstruc
+// swchstruc sql
 export interface deviceswch {
-    node_name: string;
+    node_device: string;
     didx: number;
-    utc: number; // double
+    utc: number; // utc
     volt: number;
     amp: number;
     power: number;
     temp: number;
 }
 
-// battstruc
+// battstruc sql
 export interface devicebatt {
-    node_name: string;
+    node_device: string;
     didx: number;
-    utc: number; // double
+    utc: number; // utc
     volt: number;
     amp: number;
     power: number;
     temp: number;
     percentage: number;
+}
+
+// bcregstruc sql
+export interface devicebcreg {
+    node_device: string;
+    didx: number;
+    time: number; // utc
+    volt: number;
+    amp: number;
+    power: number;
+    temp: number;
+    mpptin_amp: number;
+    mpptin_volt: number;
+    mpptout_amp: number;
+    mpptout_volt: number;
+}
+
+// tsenstruc sql
+export interface devicetsen {
+    node_device: string;
+    didx: number;
+    time: number; // utc
+    temp: number;
+}
+
+// cpustruc sql
+export interface devicecpu {
+    node_device: string;
+    didx: number;
+    time: number; // utc
+    temp: number;
+    uptime: number;
+    cpu_load: number;
+    gib: number;
+    boot_count: number;
+    storage: number;
+}
+
+// magstruc sql
+export interface devicemag {
+    node_device: string;
+    didx: number;
+    time: number; // utc
+    mag_x: number;
+    mag_y: number;
+    mag_z: number;
 }
 
 export interface GFNodeType {
