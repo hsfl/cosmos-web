@@ -1,4 +1,4 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, Device, Node, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag } from "./BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, Device, Node, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw } from "./BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -131,6 +131,22 @@ export default class MysqlDatabase extends BaseDatabase {
         }
     }
 
+
+    public async reset_db(tableArray: any[]): Promise<void> {
+        // SIM delete table contents statement for array of sql table names 
+        try {
+            for (let i = 0; i < tableArray.length; i++) {
+                await this.promisePool.query('DELETE FROM ' + tableArray[i]);
+            }
+        } catch (error) {
+            console.log(error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Error clearing table'
+            });
+        }
+    }
+
     // dynamic function maps over sql tables, takes parsed array of single type specific objects, constructs insert statement
     // pools response to post each row object using constructed insert statement
     public async write_beacon(table: string, objectArray: any[]): Promise<void> {
@@ -181,18 +197,6 @@ export default class MysqlDatabase extends BaseDatabase {
             });
         }
 
-
-        // development delete table contents statement for repeat sample posts TODO remove 
-        try {
-            await this.promisePool.query('DELETE FROM ' + table);
-        } catch (error) {
-            console.log(error);
-            throw new AppError({
-                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
-                description: 'Error clearing table'
-            });
-        }
-
         // console.log("object array: ", objectArray);
 
         // // Load in new beacon mappings
@@ -234,7 +238,7 @@ export default class MysqlDatabase extends BaseDatabase {
                 await this.promisePool.execute(
                     // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0}]
                     'INSERT INTO swchstruc (node_name, didx, utc, volt, amp, power, temp) VALUES (?,?,?,?,?,?,?)',
-                    // [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
+                    [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
                 );
             } catch (error) {
                 console.log(error);
@@ -263,7 +267,7 @@ export default class MysqlDatabase extends BaseDatabase {
                 await this.promisePool.execute(
                     // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0,"percentage":0.92000002}]
                     'INSERT INTO battstruc (node_name, didx, utc, volt, amp, power, temp, percentage) VALUES (?,?,?,?,?,?,?,?)',
-                    // [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
+                    [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
                 );
             } catch (error) {
                 console.log(error);
@@ -544,7 +548,8 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                     for (let i = 0; i < qvalue.length; i++) {
                         // console.log("qvalue[i]: ", qvalue[i]);
                         const devbatt: devicebatt = {
-                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            node_name: qvalue[i].node_name + ":" + qvalue[i].name,
+                            // extract out device name
                             didx: qvalue[i].didx,
                             utc: timerange.to,
                             volt: 0,
@@ -785,6 +790,143 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
         catch (error) {
             console.log('Error in get_mag:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_gyro(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT 
+utc AS "time",
+node_name,
+didx,
+omega
+FROM gyrostruc
+WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            if (rows.length == 0) {
+                const key_array = await this.get_device_keys({ dtype: 31, dname: "gyro" })
+                const gyrorows: Array<devicegyro> = [];
+                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devgyro: devicegyro = {
+                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            didx: qvalue[i].didx,
+                            time: timerange.to,
+                            omega: 0,
+                        }
+                        gyrorows.push({ ...devgyro });
+                    }
+                }
+                const ret = { "gyros": gyrorows };
+                return ret;
+            } else {
+                const ret = { "gyros": rows };
+                return ret;
+            }
+        }
+        catch (error) {
+            console.log('Error in get_gyro:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_mtr(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT 
+    utc AS "time",
+    node_name,
+    didx,
+    mom, align_w,
+    align_x, align_y, align_z
+    FROM mtrstruc
+    WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            if (rows.length == 0) {
+                const key_array = await this.get_device_keys({ dtype: 4, dname: "mtr" })
+                const mtrrows: Array<devicemtr> = [];
+                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devmtr: devicemtr = {
+                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            didx: qvalue[i].didx,
+                            time: timerange.to,
+                            mom: 0,
+                            align_w: 0,
+                            align_x: 0,
+                            align_y: 0,
+                            align_z: 0,
+                        }
+                        mtrrows.push({ ...devmtr });
+                    }
+                }
+                const ret = { "mtrs": mtrrows };
+                return ret;
+            } else {
+                const ret = { "mtrs": rows };
+                return ret;
+            }
+        }
+        catch (error) {
+            console.log('Error in get_mtr:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_rw(timerange: TimeRange): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT 
+utc AS "time",
+node_name,
+didx,
+amp, omg,
+romg
+FROM rwstruc
+WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
+                [timerange.from, timerange.to],
+            );
+            console.log(rows[0])
+            if (rows.length == 0) {
+                const key_array = await this.get_device_keys({ dtype: 3, dname: "rw" })
+                const rwrows: Array<devicerw> = [];
+                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devrw: devicerw = {
+                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            didx: qvalue[i].didx,
+                            time: timerange.to,
+                            amp: 0,
+                            omg: 0,
+                            romg: 0,
+                        }
+                        rwrows.push({ ...devrw });
+                    }
+                }
+                const ret = { "rws": rwrows };
+                return ret;
+            } else {
+                const ret = { "rws": rows };
+                return ret;
+            }
+        }
+        catch (error) {
+            console.log('Error in get_rw:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'

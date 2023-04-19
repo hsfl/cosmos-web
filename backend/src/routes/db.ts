@@ -80,6 +80,31 @@ router.post('/beacon', async (req: Request, res: Response) => {
     }
 });
 
+/**
+ * 
+curl -X POST -H "Content-Type: application/json" --data '{ "swchstruc": true, "battstruc": true, "bcregstruc": true, "cpustruc": true, "device": true, "device_type": true, "locstruc": true, "magstruc": true, "node": true, "tsenstruc": true, "rwstruc": true, "mtrstruc": true, "attstruc_icrf": true, "cosmos_event": true, "event_type": true, "gyrostruc": true, "locstruc_eci": true }' http://localhost:10090/db/resetdanger
+ */
+// DANGER ZONE
+router.post('/resetdanger', async (req: Request, res: Response) => {
+    if ((req.body) === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'Argument format incorrect. Must be list of strings'
+        });
+    }
+    let table_array: Array<string> = [];
+    // extract array of tables
+    for (const [key, value] of Object.entries(req.body)) {
+        if (value == true) {
+            table_array.push(key);
+        }
+    }
+    // open database connection
+    const db = DBHandler.app_db();
+    await db.reset_db(table_array);
+    res.status(202).json(new_api_response('success'));
+
+});
 
 /**
  * nodes: list of {id:number, name:string} node dicts
@@ -268,6 +293,58 @@ router.get('/mag', async (req: Request<{}, {}, {}, TimeRange>, res: Response) =>
     response.payload = ret;
     res.status(200).json(response);
 });
+
+// // curl --request GET "http://localhost:10090/db/gyro?from=59874.83333333&to=59874.87333333"
+// out of range device key test: 
+// curl --request GET "http://localhost:10090/db/gyro?from=69874.83333333&to=69874.87333333"
+router.get('/gyro', async (req: Request<{}, {}, {}, TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_gyro({ from: req.query.from, to: req.query.to });
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+// // curl --request GET "http://localhost:10090/db/mtr?from=59874.83333333&to=59874.87333333"
+// out of range device key test: 
+// curl --request GET "http://localhost:10090/db/mtr?from=69874.83333333&to=69874.87333333"
+router.get('/mtr', async (req: Request<{}, {}, {}, TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_mtr({ from: req.query.from, to: req.query.to });
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+// // curl --request GET "http://localhost:10090/db/rw?from=59874.83333333&to=59874.87333333"
+// out of range device key test: 
+// curl --request GET "http://localhost:10090/db/rw?from=69874.83333333&to=69874.87333333"
+router.get('/rw', async (req: Request<{}, {}, {}, TimeRange>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_rw({ from: req.query.from, to: req.query.to });
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+// 
 
 module.exports = router;
 

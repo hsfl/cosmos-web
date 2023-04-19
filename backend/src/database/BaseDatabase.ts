@@ -59,7 +59,7 @@ export interface NodeType {
 
 // swchstruc sql
 export interface deviceswch {
-    node_device: string;
+    node_name: string;
     didx: number;
     utc: number; // utc
     volt: number;
@@ -70,7 +70,7 @@ export interface deviceswch {
 
 // battstruc sql
 export interface devicebatt {
-    node_device: string;
+    node_name: string;
     didx: number;
     utc: number; // utc
     volt: number;
@@ -126,6 +126,38 @@ export interface devicemag {
     mag_z: number;
 }
 
+// gyrostruc sql
+export interface devicegyro {
+    node_device: string;
+    didx: number;
+    time: number; // utc
+    omega: number;
+}
+
+// mtrstruc sql
+export interface devicemtr {
+    node_device: string;
+    didx: number;
+    time: number; // utc
+    mom: number;
+    align_w: number;
+    align_x: number;
+    align_y: number;
+    align_z: number;
+}
+
+// rwstruc sql
+export interface devicerw {
+    node_device: string;
+    didx: number;
+    time: number; // utc
+    amp: number;
+    omg: number;
+    romg: number;
+}
+
+// 34 device types in Cosmos jsondef.h ... sql tables for 9 device struc types ... 
+
 export interface GFNodeType {
     Node_name: string;
     Node_type: number;
@@ -153,6 +185,10 @@ export default class BaseDatabase {
 
     public async write_telem_bulk(): Promise<void> {
         console.log('Writing telem in bulk',)
+    }
+
+    public async reset_db(tableArray: any[]): Promise<void> {
+        console.log('Reset database, clearing data')
     }
 
     public async write_node(nodes: Node[]): Promise<void> {
@@ -200,6 +236,21 @@ export default class BaseDatabase {
 
     public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
         console.log('Getting mags');
+        return {};
+    }
+
+    public async get_gyro(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting gyros');
+        return {};
+    }
+
+    public async get_mtr(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting gyros');
+        return {};
+    }
+
+    public async get_rw(timerange: TimeRange): Promise<cosmosresponse> {
+        console.log('Getting gyros');
         return {};
     }
 
