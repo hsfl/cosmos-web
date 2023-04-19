@@ -6,7 +6,7 @@ services:
     cap_add:
       - SYS_NICE # Fix mbind issue
     env_file:
-      - ${COSMOSWEBDIR:-.}/.env
+      - ${COSMOSWEBDIR:?Please run `docker compose up -d` from the root cosmos folder.}/.env
     logging:
       driver: "local"
       options:
@@ -18,7 +18,7 @@ services:
     volumes:
       # Mount for data directory and configuration
       - database:/var/lib/mysql
-      - ${COSMOSWEBDIR:-.}/database:/docker-entrypoint-initdb.d
+      - ${COSMOSWEBDIR:?Please run `docker compose up -d` from the root cosmos folder.}/database:/docker-entrypoint-initdb.d
 
   grafana:
     image: grafana/grafana-oss:9.3.2
@@ -27,7 +27,7 @@ services:
       - database
       - grafana-plugins
     env_file:
-      - ${COSMOSWEBDIR:-.}/.env
+      - ${COSMOSWEBDIR:?Please run `docker compose up -d` from the root cosmos folder.}/.env
     logging:
       driver: "local"
       options:
@@ -73,7 +73,7 @@ services:
     restart: always
     volumes:
       # For accessing database stuff
-      - ${COSMOSWEBDIR:-.}/.env:/home/node/app/.env
+      - ${COSMOSWEBDIR:?Please run `docker compose up -d` from the root cosmos folder.}/.env:/home/node/app/.env
       # Access to COSMOS binaries
       - bin:/home/web_user/cosmos/bin
       - resources:/home/web_user/cosmos/resources
@@ -85,7 +85,7 @@ services:
     image: influxdb:2.6.1
     container_name: cosmos_influxdb
     env_file:
-      - ${COSMOSWEBDIR:-.}/.env
+      - ${COSMOSWEBDIR:?Please run `docker compose up -d` from the root cosmos folder.}/.env
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_BUCKET=COSMOS_Dev_Bucket
@@ -107,7 +107,7 @@ services:
     image: telegraf:1.25.0
     container_name: cosmos_telegraf
     env_file:
-      - ${COSMOSWEBDIR:-.}/.env
+      - ${COSMOSWEBDIR:?Please run `docker compose up -d` from the root cosmos folder.}/.env
     environment:
       # InfluxDB output setup
       - DOCKER_INFLUXDB_INIT_BUCKET=COSMOS_Dev_Bucket
@@ -129,8 +129,8 @@ services:
       - "10098:10098/udp"
     restart: always
     volumes:
-      - ${COSMOSWEBDIR:-.}/telegraf_scripts/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-      - ${COSMOSWEBDIR:-.}/telegraf_scripts:/telegraf_scripts:ro
+      - ${COSMOSWEBDIR:?Please run `docker compose up -d` from the root cosmos folder.}/telegraf_scripts/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ${COSMOSWEBDIR:?Please run `docker compose up -d` from the root cosmos folder.}/telegraf_scripts:/telegraf_scripts:ro
     depends_on:
       - influxdb
 
