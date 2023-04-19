@@ -79,7 +79,7 @@ services:
       - resources:/home/web_user/cosmos/resources
       # Webasm binary
       - web_core_dist:/root/web_core_dist
-      - web_core_dist/CosmosWebCore.data:/home/node/app
+      # - web_core_dist/CosmosWebCore.data:/home/node/app
 
   influxdb:
     image: influxdb:2.6.1
