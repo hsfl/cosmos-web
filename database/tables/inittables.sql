@@ -145,6 +145,27 @@ temp DECIMAL(5,2),
 PRIMARY KEY (node_name, didx, utc)
 );
 
+
+CREATE TABLE IF NOT EXISTS locstruc (
+    node_name VARCHAR(40) NOT NULL,
+    utc DOUBLE NOT NULL,
+    eci_s_x DOUBLE,
+    eci_s_y DOUBLE,
+    eci_s_z DOUBLE,
+    eci_v_x DOUBLE,
+    eci_v_y DOUBLE,
+    eci_v_z DOUBLE,
+    icrf_s_x DOUBLE,
+    icrf_s_y DOUBLE,
+    icrf_s_z DOUBLE,
+    icrf_s_w DOUBLE,
+    icrf_v_x DOUBLE,
+    icrf_v_y DOUBLE,
+    icrf_v_z DOUBLE,
+
+    PRIMARY KEY (node_name, utc)
+);
+
 CREATE TABLE IF NOT EXISTS locstruc_eci (
 node_name VARCHAR(40) NOT NULL,
 utc DOUBLE NOT NULL,
