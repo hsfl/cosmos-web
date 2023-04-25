@@ -57,6 +57,8 @@ export interface NodeType {
     name: string;
 }
 
+export type beacontype = deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table;
+
 // swchstruc sql
 export interface deviceswch {
     node_name: string;
@@ -154,6 +156,25 @@ export interface devicerw {
     amp: number;
     omg: number;
     romg: number;
+}
+
+// rwstruc sql
+export interface locstruc_table {
+    node_name: string;
+    utc: number;
+    eci_s_x: number;
+    eci_s_y: number;
+    eci_s_z: number;
+    eci_v_x: number;
+    eci_v_y: number;
+    eci_v_z: number;
+    icrf_s_x: number;
+    icrf_s_y: number;
+    icrf_s_z: number;
+    icrf_s_w: number;
+    icrf_v_x: number;
+    icrf_v_y: number;
+    icrf_v_z: number;
 }
 
 // 34 device types in Cosmos jsondef.h ... sql tables for 9 device struc types ... 

@@ -25,7 +25,7 @@ const router = express.Router();
       http://localhost:10090/sim/propagator
 */
 router.post('/telem', async (req: Request<{}, {}, TelegrafBody>, res: Response) => {
-    console.log('in telem', req.body.metrics);
+    // console.log('in telem', req.body.metrics);
     if (req.body === undefined || req.body.metrics === undefined) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
@@ -58,9 +58,9 @@ curl -X POST -H "Content-Type: application/json" --data '{
 ' http://localhost:10090/db/beacon
  */
 
-router.post('/beacon', async (req: Request, res: Response) => {
+router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response) => {
     // console.log(req.body);
-    if ((req.body) === undefined) {
+    if ((req.body) === undefined || req.body.metrics === undefined) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
             description: 'Argument format incorrect. Must be list of objects'
@@ -68,16 +68,19 @@ router.post('/beacon', async (req: Request, res: Response) => {
     }
     // extract body, format of object as string
     const body_ob: string = JSON.stringify(req.body);
-    // parse string object into appropriate array of ["sql_table_name", [{database type row object}, ...] ]
-    const parsedbeacon = beacon2obj(body_ob);
-    // check to make sure beacon is parsed with successful response, then sort on key
-    if (parsedbeacon !== undefined) {
-        // open database connection
-        const db = DBHandler.app_db();
-        // dynamic sql insert statement; takes (table: string, objectArray: any[])
-        await db.write_beacon(parsedbeacon[0], parsedbeacon[1]);
-        res.status(202).json(new_api_response('success'));
+    for (let i = 0; i < req.body.metrics.length; i++)
+    {
+        // parse string object into appropriate array of ["sql_table_name", [{database type row object}, ...] ]
+        const parsedbeacon = beacon2obj(req.body.metrics[i].fields.value);
+        // check to make sure beacon is parsed with successful response, then sort on key
+        if (parsedbeacon[0] !== "error") {
+            // open database connection
+            const db = DBHandler.app_db();
+            // dynamic sql insert statement; takes (table: string, objectArray: any[])
+            await db.write_beacon(parsedbeacon[0], parsedbeacon[1]);
+        }
     }
+    res.status(202).json(new_api_response('success'));
 });
 
 /**
@@ -85,8 +88,9 @@ router.post('/beacon', async (req: Request, res: Response) => {
 curl -X POST -H "Content-Type: application/json" --data '{ "swchstruc": true, "battstruc": true, "bcregstruc": true, "cpustruc": true, "device": true, "device_type": true, "locstruc": true, "magstruc": true, "node": true, "tsenstruc": true, "rwstruc": true, "mtrstruc": true, "attstruc_icrf": true, "cosmos_event": true, "event_type": true, "gyrostruc": true, "locstruc_eci": true }' http://localhost:10090/db/resetdanger
  */
 // DANGER ZONE
-router.post('/resetdanger', async (req: Request, res: Response) => {
-    if ((req.body) === undefined) {
+router.post('/resetdanger', async (req: Request<{}, {}, TelegrafBody>, res: Response) => {
+    console.log('reset called');
+    if (req.body === undefined || req.body.metrics === undefined) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
             description: 'Argument format incorrect. Must be list of strings'
@@ -94,9 +98,13 @@ router.post('/resetdanger', async (req: Request, res: Response) => {
     }
     let table_array: Array<string> = [];
     // extract array of tables
-    for (const [key, value] of Object.entries(req.body)) {
-        if (value == true) {
-            table_array.push(key);
+    for (let i = 0; i < req.body.metrics.length; i++)
+    {
+        const jobj = JSON.parse(req.body.metrics[i].fields.value);
+        for (const [key, value] of Object.entries(jobj)) {
+            if (value == true) {
+                table_array.push(key);
+            }
         }
     }
     // open database connection

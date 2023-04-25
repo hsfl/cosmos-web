@@ -132,7 +132,7 @@ export default class MysqlDatabase extends BaseDatabase {
     }
 
 
-    public async reset_db(tableArray: any[]): Promise<void> {
+    public async reset_db(tableArray: string[]): Promise<void> {
         // SIM delete table contents statement for array of sql table names 
         try {
             for (let i = 0; i < tableArray.length; i++) {
