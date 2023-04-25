@@ -46,18 +46,30 @@ export interface TelegrafBody {
     metrics: TelegrafMetric[]
 }
 
-export interface Node {
-    id: number;
-    name: string;
-    type: number;
+export interface node {
+    node_id: number;
+    node_name: string;
+    node_type: number;
+    agent_name: string;
+    utc: number;
+    utcstart: number;
 }
 
-export interface NodeType {
-    id: number;
-    name: string;
+export function is_node(obj:any): obj is node {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.node_id === 'number'
+        && typeof obj.node_name === 'string'
+        && typeof obj.node_type === 'number'
+        && typeof obj.agent_name === 'string'
+        && typeof obj.utc === 'number'
+        && typeof obj.utcstart === 'number'
+    );
 }
 
-export type beacontype = deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table;
+export type beacontype = deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table | node;
 
 // swchstruc sql
 export interface deviceswch {
@@ -210,10 +222,6 @@ export default class BaseDatabase {
 
     public async reset_db(tableArray: any[]): Promise<void> {
         console.log('Reset database, clearing data')
-    }
-
-    public async write_node(nodes: Node[]): Promise<void> {
-        console.log('Writing nodes', nodes);
     }
 
     public async write_device(devices: Device[]): Promise<void> {

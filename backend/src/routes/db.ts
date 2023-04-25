@@ -71,6 +71,7 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
     for (let i = 0; i < req.body.metrics.length; i++)
     {
         // parse string object into appropriate array of ["sql_table_name", [{database type row object}, ...] ]
+        console.log(req.body.metrics[i].fields.value);
         const parsedbeacon = beacon2obj(req.body.metrics[i].fields.value);
         // check to make sure beacon is parsed with successful response, then sort on key
         if (parsedbeacon[0] !== "error") {
@@ -112,22 +113,6 @@ router.post('/resetdanger', async (req: Request<{}, {}, TelegrafBody>, res: Resp
     await db.reset_db(table_array);
     res.status(202).json(new_api_response('success'));
 
-});
-
-/**
- * nodes: list of {id:number, name:string} node dicts
- */
-router.post('/node', async (req: Request, res: Response) => {
-    if (req.body === undefined || !Array.isArray(req.body)) {
-        throw new AppError({
-            httpCode: StatusCodes.BAD_REQUEST,
-            description: 'Argument format incorrect. Must be list of {id:number, name:string} dicts.'
-        });
-    }
-    const db = DBHandler.app_db();
-    await db.write_node(req.body);
-
-    res.status(202).json(new_api_response('success'));
 });
 
 /**

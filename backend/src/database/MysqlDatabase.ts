@@ -1,4 +1,4 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, Device, Node, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw } from "./BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw } from "./BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -77,27 +77,6 @@ export default class MysqlDatabase extends BaseDatabase {
     //         );
     //     } 
     // }
-
-    public async write_node(nodes: Node[]): Promise<void> {
-        // Clear out current node table
-        this.pool.query('DELETE FROM node', (err) => {
-            if (err) {
-                console.log(err);
-            }
-        });
-        // Load in new nodes
-        for (let i = 0; i < nodes.length; i++) {
-            this.pool.execute(
-                'INSERT INTO node (id, name) VALUES (?,?)',
-                [nodes[i].id, nodes[i].name],
-                (err) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                }
-            );
-        }
-    }
 
     public async write_device(devices: Device[]): Promise<void> {
         // Clear out current device table TODO remove after development 

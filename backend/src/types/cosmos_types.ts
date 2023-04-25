@@ -43,6 +43,9 @@ export interface quaternion {
 }
 
 export function is_quaternion(obj:any): obj is quaternion {
+    if (obj === undefined) {
+        return false;
+    }
     return (is_cvector(obj.d) && typeof obj.w === 'number');
 }
 
@@ -106,7 +109,7 @@ export interface locstruc {
 }
 
 export function is_locstruc_pos_eci_att_icrf(obj:any): obj is locstruc {
-    if (obj.pos === undefined || obj.att === undefined) {
+    if (obj === undefined) {
         return false;
     }
     return is_posstruc_eci(obj.pos) && is_attstruc_icrf(obj.att);
@@ -134,7 +137,7 @@ export interface posstruc {
 }
 
 export function is_posstruc_eci(obj:any): obj is posstruc {
-    if (obj.eci === undefined) {
+    if (obj === undefined) {
         return false;
     }
     return is_cartpos_s_v(obj.eci);
@@ -149,7 +152,7 @@ export interface cartpos {
 }
 
 export function is_cartpos_s_v(obj:any): obj is cartpos {
-    if (obj.s === undefined || obj.v === undefined) {
+    if (obj === undefined) {
         return false;
     }
     return (typeof obj.utc === 'number' && is_rvector(obj.s) && is_rvector(obj.v));
@@ -196,7 +199,7 @@ export interface attstruc {
 }
 
 export function is_attstruc_icrf(obj:any): obj is attstruc {
-    if (obj.icrf === undefined) {
+    if (obj === undefined) {
         return false;
     }
     return is_qatt_s_v(obj.icrf);
@@ -270,7 +273,7 @@ export interface qatt {
 }
 
 export function is_qatt_s_v(obj:any): obj is qatt {
-    if (obj.s === undefined || obj.v === undefined) {
+    if (obj === undefined) {
         return false;
     }
     return (typeof obj.utc === 'number' && is_quaternion(obj.s) && is_rvector(obj.v));

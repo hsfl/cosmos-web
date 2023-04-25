@@ -1,6 +1,6 @@
 import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, cartpos, qatt, geoidpos, gfcartpos, rvector, is_rvector, is_quaternion, is_locstruc_pos_eci_att_icrf } from '../types/cosmos_types';
 import mysql from 'mysql2';
-import { GFNodeType, deviceswch, devicebatt, beacontype, locstruc_table } from '../database/BaseDatabase';
+import { GFNodeType, deviceswch, devicebatt, beacontype, locstruc_table, node, is_node } from '../database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
 // TODO: probably a better way of doing this
@@ -641,6 +641,37 @@ export const parse_locstruc = (loc: Object) => {
     return [obj];
 }
 
+export const parse_node = (obj: Object) => {
+    let node: node = {
+        node_id: 0,
+        node_name: '',
+        node_type: 0,
+        agent_name: '',
+        utc: 0,
+        utcstart: 0
+    };
+    for (const [k,v] of Object.entries(obj)) {
+        switch(k) {
+        case "node":
+            if (!is_node(v)) {
+                return [];
+            }
+            const v_as_node = v as node;
+            node.node_id = v_as_node.node_id;
+            node.node_name = v_as_node.node_name;
+            node.node_type = v_as_node.node_type;
+            node.agent_name = v_as_node.agent_name;
+            node.utc = v_as_node.utc;
+            node.utcstart = v_as_node.utcstart;
+        break;
+        default:
+            return [];
+        }
+    }
+
+    return [node];
+}
+
 // SQL POST request format must be an array of dictionaries; SQL sub function requires a type specific array of object
 // return list of objects for single type
 export const beacon2obj = (beacon: string): [string, beacontype[] | []] => {
@@ -649,13 +680,21 @@ export const beacon2obj = (beacon: string): [string, beacontype[] | []] => {
     // console.log("object 1 key ", Object.entries(object)[1][0]);
 
     // locstruc
-    if ("node_loc" in object)
-    {
+    if ('node_loc' in object) {
         const locstruc_array = parse_locstruc(object);
         if (locstruc_array.length === 0) {
             return ['error', locstruc_array];
         }
-        return ["locstruc", locstruc_array];
+        return ['locstruc', locstruc_array];
+    }
+
+    // node
+    if ("node" in object) {
+        const node_array = parse_node(object);
+        if (node_array.length === 0) {
+            return ['error', node_array];
+        }
+        return ['node', node_array];
     }
 
     const keycomp: Array<string> = Object.entries(object)[1][0].split('_');
