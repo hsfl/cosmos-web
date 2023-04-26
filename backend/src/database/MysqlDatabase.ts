@@ -466,7 +466,7 @@ icrf_s_w, icrf_v_x, icrf_v_y,
 icrf_v_z
 FROM locstruc 
 INNER JOIN node ON locstruc.node_name = node.node_name
-WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 1000`,
+WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
                 [loctype.from, loctype.to],
             );
             console.log(rows[0])
