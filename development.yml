@@ -2,7 +2,7 @@ version: '3.6'
 services:
   grafana:
     container_name: cosmos_grafana
-    image: grafana/grafana-oss:9.3.2
+    image: grafana/grafana-oss:9.5.1
     volumes:
       - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins/src:/var/lib/grafana/plugins/cosmos-plugins
 
