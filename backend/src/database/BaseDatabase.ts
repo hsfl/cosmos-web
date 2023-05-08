@@ -46,16 +46,30 @@ export interface TelegrafBody {
     metrics: TelegrafMetric[]
 }
 
-export interface Node {
-    id: number;
-    name: string;
-    type: number;
+export interface node {
+    node_id: number;
+    node_name: string;
+    node_type: number;
+    agent_name: string;
+    utc: number;
+    utcstart: number;
 }
 
-export interface NodeType {
-    id: number;
-    name: string;
+export function is_node(obj:any): obj is node {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.node_id === 'number'
+        && typeof obj.node_name === 'string'
+        && typeof obj.node_type === 'number'
+        && typeof obj.agent_name === 'string'
+        && typeof obj.utc === 'number'
+        && typeof obj.utcstart === 'number'
+    );
 }
+
+export type beacontype = deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table | node;
 
 // swchstruc sql
 export interface deviceswch {
@@ -156,6 +170,25 @@ export interface devicerw {
     romg: number;
 }
 
+// rwstruc sql
+export interface locstruc_table {
+    node_name: string;
+    utc: number;
+    eci_s_x: number;
+    eci_s_y: number;
+    eci_s_z: number;
+    eci_v_x: number;
+    eci_v_y: number;
+    eci_v_z: number;
+    icrf_s_x: number;
+    icrf_s_y: number;
+    icrf_s_z: number;
+    icrf_s_w: number;
+    icrf_v_x: number;
+    icrf_v_y: number;
+    icrf_v_z: number;
+}
+
 // 34 device types in Cosmos jsondef.h ... sql tables for 9 device struc types ... 
 
 export interface GFNodeType {
@@ -189,10 +222,6 @@ export default class BaseDatabase {
 
     public async reset_db(tableArray: any[]): Promise<void> {
         console.log('Reset database, clearing data')
-    }
-
-    public async write_node(nodes: Node[]): Promise<void> {
-        console.log('Writing nodes', nodes);
     }
 
     public async write_device(devices: Device[]): Promise<void> {

@@ -33,9 +33,20 @@ export interface cvector {
     z: number;
 }
 
+export function is_cvector(obj:any): obj is rvector {
+    return (typeof obj.x === 'number' && typeof obj.y === 'number' && typeof obj.z === 'number')
+}
+
 export interface quaternion {
     d: cvector;
     w: number;
+}
+
+export function is_quaternion(obj:any): obj is quaternion {
+    if (obj === undefined) {
+        return false;
+    }
+    return (is_cvector(obj.d) && typeof obj.w === 'number');
 }
 
 // Merge with any other interface to associate it with a timestamp
@@ -97,6 +108,13 @@ export interface locstruc {
     att: attstruc;
 }
 
+export function is_locstruc_pos_eci_att_icrf(obj:any): obj is locstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return is_posstruc_eci(obj.pos) && is_attstruc_icrf(obj.att);
+}
+
 export interface posstruc {
     utc: number; // double
     icrf: cartpos;
@@ -118,6 +136,13 @@ export interface posstruc {
     orbit: number; // double
 }
 
+export function is_posstruc_eci(obj:any): obj is posstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return is_cartpos_s_v(obj.eci);
+}
+
 export interface cartpos {
     utc: number; // double
     s: rvector; // rvector
@@ -125,6 +150,14 @@ export interface cartpos {
     a: rvector; // rvector
     pass: number; // uint32_t
 }
+
+export function is_cartpos_s_v(obj:any): obj is cartpos {
+    if (obj === undefined) {
+        return false;
+    }
+    return (typeof obj.utc === 'number' && is_rvector(obj.s) && is_rvector(obj.v));
+}
+
 
 // grafana parsed solution
 export interface gfcartpos {
@@ -144,6 +177,17 @@ export interface rvector {
     col: [number, number, number];
 }
 
+export function is_rvector(obj:any): obj is rvector {
+    if (!Array.isArray(obj.col)) {
+        return false;
+    }
+    const arr = obj.col as Array<any>;
+    if (arr.length !== 3) {
+        return false;
+    }
+    return arr.every(item => typeof item === "number");
+}
+
 export interface attstruc {
     utc: number; // double
     topo: qatt; // qatt
@@ -152,6 +196,13 @@ export interface attstruc {
     selc: qatt; // qatt
     icrf: qatt; // qatt
     extra: extraatt; // extraatt
+}
+
+export function is_attstruc_icrf(obj:any): obj is attstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return is_qatt_s_v(obj.icrf);
 }
 
 // reference class for geoidpos
@@ -219,6 +270,13 @@ export interface qatt {
     v: rvector;
     a: rvector;
     pass: number; // uint32_t
+}
+
+export function is_qatt_s_v(obj:any): obj is qatt {
+    if (obj === undefined) {
+        return false;
+    }
+    return (typeof obj.utc === 'number' && is_quaternion(obj.s) && is_rvector(obj.v));
 }
 
 // grafana parsed solution

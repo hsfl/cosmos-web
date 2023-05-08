@@ -21,7 +21,7 @@ services:
       - ${COSMOSWEBDIR:?Please run `docker compose up -d` from the root cosmos folder.}/database:/docker-entrypoint-initdb.d
 
   grafana:
-    image: grafana/grafana-oss:9.3.2
+    image: grafana/grafana-oss:9.5.1
     container_name: cosmos_grafana
     depends_on:
       - database
@@ -114,6 +114,7 @@ services:
       # Reserve ports for data ingestion
       - COSMOS_DEV_PORT=10095
       - AGENT_BEACON_PORT=10096
+      - BACKEND_API_PORT=10097
       - LOG_PORT=10098
     logging:
       driver: "local"
@@ -126,6 +127,7 @@ services:
       # accessible to agent_ground and other external programs
       - "10095:10095/udp"
       - "10096:10096/udp"
+      - "10097:10097/udp"
       - "10098:10098/udp"
     restart: always
     volumes:

@@ -1,4 +1,4 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, Device, Node, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw } from "./BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw } from "./BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -79,27 +79,6 @@ export default class MysqlDatabase extends BaseDatabase {
     //     } 
     // }
 
-    public async write_node(nodes: Node[]): Promise<void> {
-        // Clear out current node table
-        this.pool.query('DELETE FROM node', (err) => {
-            if (err) {
-                console.log(err);
-            }
-        });
-        // Load in new nodes
-        for (let i = 0; i < nodes.length; i++) {
-            this.pool.execute(
-                'INSERT INTO node (id, name) VALUES (?,?)',
-                [nodes[i].id, nodes[i].name],
-                (err) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                }
-            );
-        }
-    }
-
     public async write_device(devices: Device[]): Promise<void> {
         // Clear out current device table TODO remove after development 
         try {
@@ -133,7 +112,7 @@ export default class MysqlDatabase extends BaseDatabase {
     }
 
 
-    public async reset_db(tableArray: any[]): Promise<void> {
+    public async reset_db(tableArray: string[]): Promise<void> {
         // SIM delete table contents statement for array of sql table names 
         try {
             for (let i = 0; i < tableArray.length; i++) {
@@ -474,7 +453,7 @@ icrf_s_w, icrf_v_x, icrf_v_y,
 icrf_v_z
 FROM locstruc 
 INNER JOIN node ON locstruc.node_name = node.node_name
-WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 1000`,
+WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
                 [loctype.from, loctype.to],
             );
             console.log(rows[0])
