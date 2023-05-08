@@ -15,15 +15,15 @@ REPLACE INTO locstruc VALUES ('c', 59872.83333333, 2230000, 3730750, 5210750, -5
 REPLACE INTO node VALUES (0, 'mothership', 0, 'agent name', 59874.83333333, 59874.83333333);
 REPLACE INTO node VALUES (1, 'c', 0, 'agent name', 59874.83333333, 59874.83333333);
 
-REPLACE INTO device VALUES ('mothership', 12, 0, 0, 'test');
-REPLACE INTO device VALUES ('mothership', 30, 0, 0, 'test');
-REPLACE INTO device VALUES ('mothership', 15, 0, 0, 'test');
-REPLACE INTO device VALUES ('mothership', 15, 0, 15, 'test');
-REPLACE INTO device VALUES ('mothership', 5, 0, 5, 'test');
-REPLACE INTO device VALUES ('mothership', 32, 0, 32, 'test');
-REPLACE INTO device VALUES ('mothership', 31, 0, 31, 'test');
-REPLACE INTO device VALUES ('mothership', 4, 0, 4, 'test');
-REPLACE INTO device VALUES ('mothership', 3, 0, 3, 'test');
+REPLACE INTO device VALUES ('mothership', 12, 0, 0, 'battery');
+REPLACE INTO device VALUES ('mothership', 30, 0, 0, 'bcreg');
+REPLACE INTO device VALUES ('mothership', 15, 0, 0, 'temp sensor');
+REPLACE INTO device VALUES ('mothership', 15, 0, 15, 'temp sensor');
+REPLACE INTO device VALUES ('mothership', 5, 0, 5, 'cpu');
+REPLACE INTO device VALUES ('mothership', 32, 0, 32, 'magnetometer');
+REPLACE INTO device VALUES ('mothership', 31, 0, 31, 'gyroscope');
+REPLACE INTO device VALUES ('mothership', 4, 0, 4, 'magnetic torque rod');
+REPLACE INTO device VALUES ('mothership', 3, 0, 3, 'reaction wheel');
 
 
 REPLACE INTO event_type VALUES (0, 'Umbra');

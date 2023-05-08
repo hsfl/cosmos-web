@@ -2,8 +2,9 @@ import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, cartp
 import mysql from 'mysql2';
 import { GFNodeType, deviceswch, devicebatt } from '../database/BaseDatabase';
 
+
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
-// TODO: probably a better way of doing this
+// TODO: probably a better way of loading binary compilation of COSMOS C++ functions 
 let cosmos: CosmosModule;
 COSMOSJS().then((cosmos_module: CosmosModule) => {
     cosmos = cosmos_module;

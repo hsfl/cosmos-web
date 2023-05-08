@@ -245,12 +245,12 @@ export default class BaseDatabase {
     }
 
     public async get_mtr(timerange: TimeRange): Promise<cosmosresponse> {
-        console.log('Getting gyros');
+        console.log('Getting mtrs');
         return {};
     }
 
     public async get_rw(timerange: TimeRange): Promise<cosmosresponse> {
-        console.log('Getting gyros');
+        console.log('Getting rws');
         return {};
     }
 

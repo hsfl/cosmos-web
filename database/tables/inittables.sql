@@ -50,11 +50,11 @@ CREATE TABLE IF NOT EXISTS battstruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
-volt DECIMAL(5,2),
-amp DECIMAL(5,2),
-power DECIMAL(5,2),
-temp DECIMAL(5,2),
-percentage DECIMAL(5,2),
+volt DOUBLE,
+amp DOUBLE,
+power DOUBLE,
+temp DOUBLE,
+percentage DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -62,14 +62,14 @@ CREATE TABLE IF NOT EXISTS bcregstruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
-volt DECIMAL(5,2),
-amp DECIMAL(5,2),
-power DECIMAL(5,2),
-temp DECIMAL(5,2),
-mpptin_amp DECIMAL(5,2),   
-mpptin_volt DECIMAL(5,2),  
-mpptout_amp DECIMAL(5,2),  
-mpptout_volt DECIMAL(5,2), 
+volt DOUBLE,
+amp DOUBLE,
+power DOUBLE,
+temp DOUBLE,
+mpptin_amp DOUBLE,   
+mpptin_volt DOUBLE,  
+mpptout_amp DOUBLE,  
+mpptout_volt DOUBLE, 
 PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -77,12 +77,12 @@ CREATE TABLE IF NOT EXISTS cpustruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
-temp DECIMAL(5,2),
+temp DOUBLE,
 uptime INT UNSIGNED,   
-cpu_load DECIMAL(5,2), 
-gib DECIMAL(5,2),  
+cpu_load DOUBLE, 
+gib DOUBLE,  
 boot_count INT UNSIGNED,   
-storage DECIMAL(5,2),  
+storage DOUBLE,  
 PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS gyrostruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
-omega DECIMAL(5,2),
+omega DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -98,9 +98,9 @@ CREATE TABLE IF NOT EXISTS magstruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
-mag_x DECIMAL(5,2),
-mag_y DECIMAL(5,2),
-mag_z DECIMAL(5,2),
+mag_x DOUBLE,
+mag_y DOUBLE,
+mag_z DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -108,11 +108,11 @@ CREATE TABLE IF NOT EXISTS mtrstruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
-mom DECIMAL(5,2),
-align_w DECIMAL(5,2),
-align_x DECIMAL(5,2),
-align_y DECIMAL(5,2),
-align_z DECIMAL(5,2),
+mom DOUBLE,
+align_w DOUBLE,
+align_x DOUBLE,
+align_y DOUBLE,
+align_z DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -120,9 +120,9 @@ CREATE TABLE IF NOT EXISTS rwstruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
-amp DECIMAL(5,2),
-omg DECIMAL(5,2),
-romg DECIMAL(5,2),
+amp DOUBLE,
+omg DOUBLE,
+romg DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -130,10 +130,10 @@ CREATE TABLE IF NOT EXISTS swchstruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
-volt DECIMAL(5,2),
-amp DECIMAL(5,2),
-power DECIMAL(5,2),
-temp DECIMAL(5,2),
+volt DOUBLE,
+amp DOUBLE,
+power DOUBLE,
+temp DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS tsenstruc (
 node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
-temp DECIMAL(5,2),
+temp DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 

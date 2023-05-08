@@ -1,12 +1,69 @@
 import express, { Request, Response } from 'express';
 import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
-import DBHandler from '../database/DBHandler';
+import { DBHandler, SIMDBHandler, DynaDBHandler, CEOHandler } from '../database/DBHandler';
 import { new_api_response } from '../utils/response';
 import { TimeRange, LocType, NowType } from '../types/cosmos_types';
 import { beacon2obj } from '../transforms/cosmos';
 import { TelegrafBody } from '../database/BaseDatabase';
+import { dbmission } from '../database/CEOdb';
+
+
 const router = express.Router();
+
+// call CEO handler database array and populate the db_array as loop iterator over return. 
+export async function initiate_ceo_handler() {
+    const ceodb = CEOHandler.app_db()
+    // query CEO db to init CEOdb db_array multi mission manager on server start up
+    const ret_array = await ceodb.init_mission_list();
+}
+
+
+// curl -X POST -H "Content-Type: application/json" --data '{"mission_name": "mission1","host": "cosmos_db", "user": "backend_user", "db_access": "password", "db_name": "cosmos1"}' http://localhost:10090/db/dbmission
+router.post('/dbmission', async (req: Request, res: Response) => {
+    // console.log(req.body);
+    if ((req.body) === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'Argument format incorrect. Must be list of objects'
+        });
+    }
+    // parse request, pass in variables: req.body...
+    let dbmission: dbmission = req.body;
+
+    // call ceo database connection, then insert dbmission to create new mission database;
+    // check for unique name
+    // check for error, if error: break
+
+    const ceodb = CEOHandler.app_db()
+    // create new mission database; write to mission handler array; init table schema; post dbmission packet to CEOdb
+    await ceodb.write_db([dbmission]);
+    res.status(202).json(new_api_response('success'));
+});
+
+// curl --request GET "http://localhost:10090/db/dbmissionall?from=59874.83333333&to=59874.87333333&type=node"
+router.get('/dbmissionall', async (req: Request<{}, {}, {}, LocType>, res: Response) => {
+    if (req.query.from === undefined || req.query.to === undefined || req.query.type === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to; type = table name string'
+        });
+    }
+    const ceodb = CEOHandler.app_db()
+    // successful return of ceo db handler instance of db_array dyna db handler ... returns the this.db_array.database_set from within ceo db handler
+    const ret_array = await ceodb.get_mission_array();
+    // console.log("db mission array get: ", ret_array);
+    // the array will be regenerated on every server restart, and pulls from CEO db of database details
+    for (const instance of ret_array) {
+        console.log("db return_array [i].mission : ", instance.mission);
+    }
+    // example database call for random 3 object in array, to the device list enpoint query, specified for type batts 
+    const ret = await ret_array[2].dbin.get_device_keys({ dtype: 12, dname: "batts" })
+    console.log("db return_array [2].dbin.get_device_keys : ", ret);
+    const response = new_api_response('success');
+    // response.payload = ret_array[0].dbin.get_event; .... ret
+    res.status(200).json(response);
+});
 
 
 
@@ -220,6 +277,11 @@ router.get('/battery', async (req: Request<{}, {}, {}, TimeRange>, res: Response
             description: 'URL Query incorrect, must provide time range from and to'
         });
     }
+    // const simdb = SIMDBHandler.app_db()
+    // const simret = await simdb.get_battery({ from: req.query.from, to: req.query.to });
+    // const response = new_api_response('success');
+    // response.payload = simret;
+    // res.status(200).json(response);
     const ret = await db.get_battery({ from: req.query.from, to: req.query.to });
     const response = new_api_response('success');
     response.payload = ret;
@@ -346,6 +408,7 @@ router.get('/rw', async (req: Request<{}, {}, {}, TimeRange>, res: Response) => 
 });
 // 
 
+
 module.exports = router;
 
 // TODOs:
@@ -354,3 +417,5 @@ module.exports = router;
 // to end and back)
 // Figure out mysql user host
 // Handle errors caused by bad connection due to incorrect credentials and what not
+
+setTimeout(() => { initiate_ceo_handler() }, 2000);

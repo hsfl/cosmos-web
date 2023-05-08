@@ -6,6 +6,7 @@ import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
 import { attitude, eci_position, geod_position, geos_position, lvlh_attitude } from '../transforms/cosmos';
 import { TimeRange, cosmosresponse, LocType, KeyType } from '../types/cosmos_types';
+import { table_schema } from './inittables';
 
 
 // MySQL Implementation of Database class
@@ -150,20 +151,6 @@ export default class MysqlDatabase extends BaseDatabase {
     // dynamic function maps over sql tables, takes parsed array of single type specific objects, constructs insert statement
     // pools response to post each row object using constructed insert statement
     public async write_beacon(table: string, objectArray: any[]): Promise<void> {
-        // map of cosmos sql tables; 
-        // note the column order must match sql order; key names must match sql table names; naming must be exact
-        // const sqlmap: Object = {
-        //     "swchstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp"],
-        //     "battstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "percentage"],
-        //     "bcregstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "mpptin_amp", "mpptin_volt", "mpptout_amp", "mpptout_volt"],
-        //     "cpustruc": ["node_name", "didx", "utc", "temp", "uptime", "cpu_load", "gib", "boot_count", "storage"],
-        //     "device": ["node_name", "type", "cidx", "didx", "name"],
-        //     "device_type": ["name", "id"],
-        //     "locstruc": ["node_name", "utc", "eci_s_x", "eci_s_y", "eci_s_z", "eci_v_x", "eci_v_y", "eci_v_z", "icrf_s_x", "icrf_s_y", "icrf_s_z", "icrf_s_w", "icrf_v_x", "icrf_v_y", "icrf_v_z"],
-        //     "magstruc": ["node_name", "didx", "utc", "mag_x", "mag_y", "mag_z"],
-        //     "node": ["node_id", "node_name", "node_type", "agent_name", "utc", "utcstart"],
-        //     "tsenstruc": ["node_name", "didx", "utc", "temp"]
-        // }
         // build the insert statement and extract the column list for the applicable table type
         let insert_statement: string = "";
         let dynamic_col_array: Array<any> = [];
@@ -934,5 +921,20 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
     }
 
-}
+    public async init_tables(): Promise<void> {
+        // init table schema for new db
+        try {
+            for (let i = 0; i < table_schema.length; i++) {
+                await this.promisePool.query(table_schema[i].statement);
+                console.log("table init for: ", table_schema[i].table);
+            }
+        } catch (error) {
+            console.log(error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Error initiating table'
+            });
+        }
+    }
 
+}
