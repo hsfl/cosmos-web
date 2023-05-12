@@ -1,4 +1,4 @@
-import { cosmosresponse, TimeRange, LocType } from '../types/cosmos_types';
+import { cosmosresponse, TimeRange, LocType, KeyType } from '../types/cosmos_types';
 
 // map of cosmos sql tables; 
 // note the column order must match sql order; key names must match sql table names; naming must be exact
@@ -268,6 +268,10 @@ export default class BaseDatabase {
         return {};
     }
 
+    public async get_event_resource_impact(keytype: KeyType): Promise<cosmosresponse> {
+        console.log('Getting event resource impact list');
+        return {};
+    }
 
     public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
         console.log('Getting mags');

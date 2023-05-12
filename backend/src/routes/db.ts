@@ -3,7 +3,7 @@ import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
 import { DBHandler, SIMDBHandler, DynaDBHandler, CEOHandler } from '../database/DBHandler';
 import { new_api_response } from '../utils/response';
-import { TimeRange, LocType, NowType } from '../types/cosmos_types';
+import { TimeRange, LocType, NowType, KeyType } from '../types/cosmos_types';
 import { beacon2obj } from '../transforms/cosmos';
 import { TelegrafBody } from '../database/BaseDatabase';
 import { dbmission } from '../database/CEOdb';
@@ -235,6 +235,22 @@ router.get('/missionevent', async (req: Request<{}, {}, {}>, res: Response) => {
     //     });
     // }
     const ret = await db.get_event_list();
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+
+// curl --request GET "http://localhost:10090/db/missioneventresourceimpact"
+router.get('/missioneventresourceimpact', async (req: Request<{}, {}, {}, KeyType>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.dtype === undefined || req.query.dname === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide key type id and name'
+        });
+    }
+    const ret = await db.get_event_resource_impact({ dtype: req.query.dtype, dname: req.query.dname });
     const response = new_api_response('success');
     response.payload = ret;
     res.status(200).json(response);

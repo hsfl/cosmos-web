@@ -282,7 +282,7 @@ WHERE
     // get list of unique device keys given empty query return for given struc type
     // "device": ["node_name", "type", "cidx", "didx", "name"],
     // "device_type": ["name", "id"],
-    public async get_event_resource(keytype: KeyType): Promise<cosmosresponse> {
+    public async get_event_resource_impact(keytype: KeyType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
