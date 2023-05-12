@@ -125,8 +125,7 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
     }
     // extract body, format of object as string
     const body_ob: string = JSON.stringify(req.body);
-    for (let i = 0; i < req.body.metrics.length; i++)
-    {
+    for (let i = 0; i < req.body.metrics.length; i++) {
         // parse string object into appropriate array of ["sql_table_name", [{database type row object}, ...] ]
         console.log(req.body.metrics[i].fields.value);
         const parsedbeacon = beacon2obj(req.body.metrics[i].fields.value);
@@ -156,8 +155,7 @@ router.post('/resetdanger', async (req: Request<{}, {}, TelegrafBody>, res: Resp
     }
     let table_array: Array<string> = [];
     // extract array of tables
-    for (let i = 0; i < req.body.metrics.length; i++)
-    {
+    for (let i = 0; i < req.body.metrics.length; i++) {
         const jobj = JSON.parse(req.body.metrics[i].fields.value);
         for (const [key, value] of Object.entries(jobj)) {
             if (value == true) {
@@ -222,6 +220,21 @@ router.get('/event', async (req: Request<{}, {}, {}, TimeRange>, res: Response) 
         });
     }
     const ret = await db.get_event({ from: req.query.from, to: req.query.to });
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+// curl --request GET "http://localhost:10090/db/missionevent"
+router.get('/missionevent', async (req: Request<{}, {}, {}>, res: Response) => {
+    const db = DBHandler.app_db();
+    // if (req.query.from === undefined || req.query.to === undefined) {
+    //     throw new AppError({
+    //         httpCode: StatusCodes.BAD_REQUEST,
+    //         description: 'URL Query incorrect, must provide time range from and to'
+    //     });
+    // }
+    const ret = await db.get_event_list();
     const response = new_api_response('success');
     response.payload = ret;
     res.status(200).json(response);

@@ -278,6 +278,38 @@ WHERE
     }
     // // // /// 
 
+    // // // /// 
+    // get list of unique device keys given empty query return for given struc type
+    // "device": ["node_name", "type", "cidx", "didx", "name"],
+    // "device_type": ["name", "id"],
+    public async get_event_resource(keytype: KeyType): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT
+                event_id,
+                resource_id,
+                second_index,
+                resource_change
+FROM event_resource_impact
+WHERE
+event_id = ? limit 1000`,
+                [keytype.dtype],
+            );
+            // console.log(rows[0])
+            const dname: string = keytype.dname;
+            const ret = { dname: rows };
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_event_resource:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+    // // // /// 
+
     // TODO: fix return type
     public async get_attitude(timerange: TimeRange): Promise<cosmosresponse> {
         try {
@@ -343,6 +375,31 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
         catch (error) {
             console.log('Error in get_event:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    // no time range applicable ? timerange: TimeRange
+    public async get_event_list(): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT 
+id,
+name as "event_name",
+type as "event_type",
+duration_seconds
+FROM event
+ORDER BY id limit 1000;`
+            );
+            console.log(rows[0])
+            const ret = { "events": rows };
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_event_list:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'

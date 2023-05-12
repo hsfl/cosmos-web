@@ -55,7 +55,7 @@ export interface node {
     utcstart: number;
 }
 
-export function is_node(obj:any): obj is node {
+export function is_node(obj: any): obj is node {
     if (obj === undefined) {
         return false;
     }
@@ -262,6 +262,12 @@ export default class BaseDatabase {
         console.log('Getting events');
         return {};
     }
+
+    public async get_event_list(): Promise<cosmosresponse> {
+        console.log('Getting events list');
+        return {};
+    }
+
 
     public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
         console.log('Getting mags');
