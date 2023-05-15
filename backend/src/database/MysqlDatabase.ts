@@ -249,9 +249,9 @@ export default class MysqlDatabase extends BaseDatabase {
     // POST write event resource impact function, dynamic pool call for update and delete values, dynamic event+resource id 
     public async update_eventresourceimpact(event_id: number, resourceimpact: EventResourceUpdateBody[]): Promise<void> {
         let dynamic_update: string = `UPDATE event_resource_impact
-                                      SET second_index = ?, resource_change = ?
-                                      WHERE event_id = ? AND resource_id = ?;`;
-        // [resourceimpact[i].second_index, resourceimpact[i].resource_change, resourceimpact[i].event_id, resourceimpact[i].resource_id]
+                                      SET resource_change = ?
+                                      WHERE second_index = ? AND event_id = ? AND resource_id = ?;`;
+        // [resourceimpact[i].resource_change, resourceimpact[i].second_index, resourceimpact[i].event_id, resourceimpact[i].resource_id]
 
         // IF resource_change = 0
         let dynamic_delete: string = `DELETE FROM event_resource_impact
@@ -279,7 +279,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     try {
                         await this.promisePool.execute(
                             dynamic_update,
-                            [row.second_index, row.resource_change, event_id_value, resource_id]
+                            [row.resource_change, row.second_index, event_id_value, resource_id]
                         );
                     } catch (error) {
                         console.log(error);
