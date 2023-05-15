@@ -5,7 +5,7 @@ import { DBHandler, SIMDBHandler, DynaDBHandler, CEOHandler } from '../database/
 import { new_api_response } from '../utils/response';
 import { TimeRange, LocType, NowType, KeyType } from '../types/cosmos_types';
 import { beacon2obj } from '../transforms/cosmos';
-import { TelegrafBody } from '../database/BaseDatabase';
+import { TelegrafBody, EventResourceUpdate } from '../database/BaseDatabase';
 import { dbmission } from '../database/CEOdb';
 
 
@@ -189,6 +189,25 @@ router.post('/device', async (req: Request, res: Response) => {
 
     res.status(200).json();
 });
+
+
+// POST event resource impact change / delete rows endpoint 
+router.post('/eventresourceimpact', async (req: Request<{}, {}, EventResourceUpdate>, res: Response) => {
+    // console.log(req.body);
+    if (!Array.isArray(req.body)) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'Argument format incorrect. Must be object of {event_id:number, update:{resource_name:{second_index:number, resource_change:number}}} dicts'
+        });
+    }
+    const db = DBHandler.app_db();
+    // parse out event_id and pass a first argument, then the event resource update body as second argument
+    const event_id: number = req.body.event_id;
+    await db.update_eventresourceimpact(event_id, req.body.update);
+
+    res.status(200).json();
+});
+
 
 /**
  * devices: list of {node_id:number, name:string, dname:string} node dicts

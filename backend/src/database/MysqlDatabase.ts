@@ -1,4 +1,4 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw } from "./BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, EventResourceImpact } from "./BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -243,6 +243,53 @@ export default class MysqlDatabase extends BaseDatabase {
                 });
             }
 
+        }
+    }
+
+    // POST write event resource impact function, dynamic pool call for update and delete values, dynamic event+resource id 
+    public async update_eventresourceimpact(event_id: number, resourceimpact: EventResourceUpdateBody[]): Promise<void> {
+        let dynamic_update: string = `UPDATE event_resource_impact
+                                      SET second_index = ?, resource_change = ?
+                                      WHERE event_id = ? AND resource_id = ?;`;
+        // [resourceimpact[i].second_index, resourceimpact[i].resource_change, resourceimpact[i].event_id, resourceimpact[i].resource_id]
+
+        // IF resource_change = 0
+        let dynamic_delete: string = `DELETE FROM event_resource_impact
+                                      WHERE event_id = ? AND resource_id = ? AND second_index = ?;`;
+        // [resourceimpact[i].event_id, resourceimpact[i].resource_id, resourceimpact[i].second_index]
+
+        let event_id_value: number = event_id;
+        for (const resource of resourceimpact) {
+            const resource_id: number = resource.resource_id;
+            for (const row of resource.row_packet) {
+                if (row.resource_change == 0) {
+                    try {
+                        await this.promisePool.execute(
+                            dynamic_delete,
+                            [event_id_value, resource_id, row.second_index]
+                        );
+                    } catch (error) {
+                        console.log(error);
+                        throw new AppError({
+                            httpCode: StatusCodes.BAD_REQUEST,
+                            description: 'Failure deleting event resource impact'
+                        });
+                    }
+                } else {
+                    try {
+                        await this.promisePool.execute(
+                            dynamic_update,
+                            [row.second_index, row.resource_change, event_id_value, resource_id]
+                        );
+                    } catch (error) {
+                        console.log(error);
+                        throw new AppError({
+                            httpCode: StatusCodes.BAD_REQUEST,
+                            description: 'Failure updating event resource impact'
+                        });
+                    }
+                }
+            }
         }
     }
 

@@ -46,6 +46,23 @@ export interface TelegrafBody {
     metrics: TelegrafMetric[]
 }
 
+export interface EventResourceImpact {
+    second_index: number;
+    resource_change: number;
+}
+
+export interface EventResourceUpdateBody {
+    resource_id: number;
+    resource_name: string;
+    row_packet: EventResourceImpact[];
+}
+
+export interface EventResourceUpdate {
+    event_id: number;
+    event_name: string;
+    update: EventResourceUpdateBody[];
+}
+
 export interface node {
     node_id: number;
     node_name: string;
@@ -226,6 +243,10 @@ export default class BaseDatabase {
 
     public async write_device(devices: Device[]): Promise<void> {
         console.log('Writing devices', devices);
+    }
+
+    public async update_eventresourceimpact(event_id: number, resourceimpact: EventResourceUpdateBody[]): Promise<void> {
+        console.log('Writing event resource impact updates');
     }
 
     public async get_attitude(timerange: TimeRange): Promise<cosmosresponse> {
