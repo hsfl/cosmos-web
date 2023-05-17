@@ -289,6 +289,11 @@ export default class BaseDatabase {
         return {};
     }
 
+    public async get_resource_list(): Promise<cosmosresponse> {
+        console.log('Getting resource list');
+        return {};
+    }
+
     public async get_event_resource_impact(keytype: KeyType): Promise<cosmosresponse> {
         console.log('Getting event resource impact list');
         return {};

@@ -259,6 +259,20 @@ router.get('/missionevent', async (req: Request<{}, {}, {}>, res: Response) => {
     res.status(200).json(response);
 });
 
+// curl --request GET "http://localhost:10090/db/missionresource"
+router.get('/missionresource', async (req: Request<{}, {}, {}>, res: Response) => {
+    const db = DBHandler.app_db();
+    // if (req.query.from === undefined || req.query.to === undefined) {
+    //     throw new AppError({
+    //         httpCode: StatusCodes.BAD_REQUEST,
+    //         description: 'URL Query incorrect, must provide time range from and to'
+    //     });
+    // }
+    const ret = await db.get_resource_list();
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
 
 // curl --request GET "http://localhost:10090/db/missioneventresourceimpact"
 router.get('/missioneventresourceimpact', async (req: Request<{}, {}, {}, KeyType>, res: Response) => {
