@@ -15,7 +15,7 @@ COSMOSJS().then((cosmos_module: CosmosModule) => {
 // TODO: use interfaces
 export const attitude = (rows: mysql.RowDataPacket[]) => {
 
-    const ret: Array<avector & timepoint> = [];
+    const ret: Array<avector & timepoint & GFNodeType> = [];
     rows.forEach((row) => {
         const q: quaternion = {
             d: {
@@ -27,7 +27,7 @@ export const attitude = (rows: mysql.RowDataPacket[]) => {
         };
         const av: avector = (cosmos.a_quaternion2euler(q));
         //const time  
-        ret.push({ Time: row.time, ...av });
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...av });
     });
     console.log('attitude iret:', rows[0], ret[0]);
     return ret;
@@ -462,9 +462,10 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
 }
 
 // Convert a RowDataPacket row from a locstruc query into a locstruc object
-const locstrucRowToLocstruc = (row: mysql.RowDataPacket) => {
+// loc: existing locstruc
+// row: a locstruc query result
+const locstrucRowToLocstruc = (loc: locstruc, row: mysql.RowDataPacket) => {
     // TODO: add interface definitions
-    const loc = getNewLocstruc();
     loc.utc = row.time;
     loc.pos.utc = row.time;
     loc.pos.eci.utc = row.time;
@@ -538,7 +539,10 @@ export const relative_angle_range = (rows: mysql.RowDataPacket[], originNode: st
         // or we have just finished wrapping up the previous collection and have just entered
         // a new timestamp collection (in which case the code block above would have run).
         currentTime = row.time;
-        locs.set(row.node_name, locstrucRowToLocstruc(row));
+        if (locs.get(row.node_name) === undefined) {
+            locs.set(row.node_name, getNewLocstruc());
+        }
+        locstrucRowToLocstruc(locs.get(row.node_name)!, row)
         locsUpdated.set(row.node_name, true);
     }
     console.log('relative_angle_range iret:', rows[0], ret[0]);
