@@ -477,6 +477,33 @@ ORDER BY resource_name limit 1000;`
         }
     }
 
+    public async get_event_resource_list(eventid: number): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT DISTINCT
+id,
+name as "resource_name",
+type as "resource_type"
+FROM resource
+INNER JOIN event_resource_impact ON resource.id = event_resource_impact.resource_id
+WHERE
+event_resource_impact.event_id = ? 
+ORDER BY resource_name limit 1000;`,
+                [eventid],
+            );
+            console.log(rows[0])
+            const ret = { "event_resources": rows };
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_resource_list:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
     // get latest position
     // dynamic query of most recent row value for type table, for all unique node / node+device keys 
 

@@ -33,7 +33,7 @@ export interface cvector {
     z: number;
 }
 
-export function is_cvector(obj:any): obj is rvector {
+export function is_cvector(obj: any): obj is rvector {
     return (typeof obj.x === 'number' && typeof obj.y === 'number' && typeof obj.z === 'number')
 }
 
@@ -42,7 +42,7 @@ export interface quaternion {
     w: number;
 }
 
-export function is_quaternion(obj:any): obj is quaternion {
+export function is_quaternion(obj: any): obj is quaternion {
     if (obj === undefined) {
         return false;
     }
@@ -63,6 +63,10 @@ export interface LocType {
     from: number;
     to: number;
     type: string;
+}
+
+export interface EventType {
+    eventid: number;
 }
 
 export interface NowType {
@@ -108,7 +112,7 @@ export interface locstruc {
     att: attstruc;
 }
 
-export function is_locstruc_pos_eci_att_icrf(obj:any): obj is locstruc {
+export function is_locstruc_pos_eci_att_icrf(obj: any): obj is locstruc {
     if (obj === undefined) {
         return false;
     }
@@ -136,7 +140,7 @@ export interface posstruc {
     orbit: number; // double
 }
 
-export function is_posstruc_eci(obj:any): obj is posstruc {
+export function is_posstruc_eci(obj: any): obj is posstruc {
     if (obj === undefined) {
         return false;
     }
@@ -151,7 +155,7 @@ export interface cartpos {
     pass: number; // uint32_t
 }
 
-export function is_cartpos_s_v(obj:any): obj is cartpos {
+export function is_cartpos_s_v(obj: any): obj is cartpos {
     if (obj === undefined) {
         return false;
     }
@@ -177,7 +181,7 @@ export interface rvector {
     col: [number, number, number];
 }
 
-export function is_rvector(obj:any): obj is rvector {
+export function is_rvector(obj: any): obj is rvector {
     if (!Array.isArray(obj.col)) {
         return false;
     }
@@ -198,7 +202,7 @@ export interface attstruc {
     extra: extraatt; // extraatt
 }
 
-export function is_attstruc_icrf(obj:any): obj is attstruc {
+export function is_attstruc_icrf(obj: any): obj is attstruc {
     if (obj === undefined) {
         return false;
     }
@@ -272,7 +276,7 @@ export interface qatt {
     pass: number; // uint32_t
 }
 
-export function is_qatt_s_v(obj:any): obj is qatt {
+export function is_qatt_s_v(obj: any): obj is qatt {
     if (obj === undefined) {
         return false;
     }

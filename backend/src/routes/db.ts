@@ -3,7 +3,7 @@ import { AppError } from '../exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
 import { DBHandler, SIMDBHandler, DynaDBHandler, CEOHandler } from '../database/DBHandler';
 import { new_api_response } from '../utils/response';
-import { TimeRange, LocType, NowType, KeyType } from '../types/cosmos_types';
+import { TimeRange, LocType, NowType, KeyType, EventType } from '../types/cosmos_types';
 import { beacon2obj } from '../transforms/cosmos';
 import { TelegrafBody, EventResourceUpdate } from '../database/BaseDatabase';
 import { dbmission } from '../database/CEOdb';
@@ -269,6 +269,21 @@ router.get('/missionresource', async (req: Request<{}, {}, {}>, res: Response) =
     //     });
     // }
     const ret = await db.get_resource_list();
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+// curl --request GET "http://localhost:10090/db/evnetmissionresource?eventid=1"
+router.get('/evnetmissionresource', async (req: Request<{}, {}, {}, EventType>, res: Response) => {
+    const db = DBHandler.app_db();
+    // if (req.query.from === undefined || req.query.to === undefined) {
+    //     throw new AppError({
+    //         httpCode: StatusCodes.BAD_REQUEST,
+    //         description: 'URL Query incorrect, must provide time range from and to'
+    //     });
+    // }
+    const ret = await db.get_event_resource_list(req.query.eventid);
     const response = new_api_response('success');
     response.payload = ret;
     res.status(200).json(response);
