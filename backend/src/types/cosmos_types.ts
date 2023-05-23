@@ -19,6 +19,7 @@ export interface CosmosModule {
     loc2eci: (arg: any) => cartpos;
     loc2geos: (arg: any) => spherpos;
     eci2geod: (arg: any) => geoidpos;
+    groundstation: (satellite: locstruc, groundstation: locstruc) => svector;
 }
 
 export interface avector {
@@ -59,11 +60,11 @@ export interface TimeRange {
     to: number;
 }
 
-export interface LocType {
-    from: number;
-    to: number;
-    type: string;
-}
+// export interface LocType {
+//     from: number;
+//     to: number;
+//     type: string;
+// }
 
 export interface EventType {
     eventid: number;
@@ -73,7 +74,7 @@ export interface NowType {
     from: number;
     to: number;
     type: string;
-    getnow: boolean;
+    latestOnly: boolean;
 }
 
 export interface KeyType {

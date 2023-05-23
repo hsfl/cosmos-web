@@ -1,4 +1,4 @@
-import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, cartpos, qatt, geoidpos, gfcartpos, rvector, is_rvector, is_quaternion, is_locstruc_pos_eci_att_icrf } from '../types/cosmos_types';
+import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf } from '../types/cosmos_types';
 import mysql from 'mysql2';
 import { GFNodeType, deviceswch, devicebatt, beacontype, locstruc_table, node, is_node } from '../database/BaseDatabase';
 
@@ -12,27 +12,28 @@ COSMOSJS().then((cosmos_module: CosmosModule) => {
     return;
 });
 
+// TODO: use interfaces
 export const attitude = (rows: mysql.RowDataPacket[]) => {
 
     const ret: Array<avector & timepoint> = [];
     rows.forEach((row) => {
         const q: quaternion = {
             d: {
-                x: row.qsx,
-                y: row.qsy,
-                z: row.qsz,
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z,
             },
-            w: row.qsw,
+            w: row.icrf_s_w,
         };
         const av: avector = (cosmos.a_quaternion2euler(q));
         //const time  
-        ret.push({ Time: row.Time, ...av });
+        ret.push({ Time: row.time, ...av });
     });
-    console.log('iret:', rows[0], ret[0]);
+    console.log('attitude iret:', rows[0], ret[0]);
     return ret;
 };
 
-const loc: locstruc = {
+const getNewLocstruc = ():  locstruc => ({
     utc: 0, // 59874.83333533
     pos: {
         utc: 0, // 59976.086354162231
@@ -299,7 +300,7 @@ const loc: locstruc = {
                 { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
         }
     }
-};
+});
 
 
 export const eci_position = (rows: mysql.RowDataPacket[]) => {
@@ -328,6 +329,7 @@ export const eci_position = (rows: mysql.RowDataPacket[]) => {
 
 export const geod_position = (rows: mysql.RowDataPacket[]) => {
     const ret: Array<geoidpos & timepoint & GFNodeType> = [];
+    const loc = getNewLocstruc();
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
@@ -366,6 +368,7 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
 
 export const geos_position = (rows: mysql.RowDataPacket[]) => {
     const ret: Array<spherpos & timepoint & GFNodeType> = [];
+    const loc = getNewLocstruc();
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
@@ -400,6 +403,7 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
 
 export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
     const ret: Array<qatt & timepoint & GFNodeType> = [];
+    const loc = getNewLocstruc();
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
@@ -454,6 +458,90 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
     loc.att.icrf.v = { col: [0, 0, 0] };
     loc.att.icrf.a = { col: [0, 0, 0] };
     console.log('iret:', rows[0], ret[0]);
+    return ret;
+}
+
+// Convert a RowDataPacket row from a locstruc query into a locstruc object
+const locstrucRowToLocstruc = (row: mysql.RowDataPacket) => {
+    // TODO: add interface definitions
+    const loc = getNewLocstruc();
+    loc.utc = row.time;
+    loc.pos.utc = row.time;
+    loc.pos.eci.utc = row.time;
+    loc.pos.eci.s.col[0] = row.eci_s_x;
+    loc.pos.eci.s.col[1] = row.eci_s_y;
+    loc.pos.eci.s.col[2] = row.eci_s_z;
+    loc.pos.eci.v.col[0] = row.eci_v_x;
+    loc.pos.eci.v.col[1] = row.eci_v_y;
+    loc.pos.eci.v.col[2] = row.eci_v_z;
+    loc.att.utc = row.time;
+    loc.att.icrf.utc = row.time;
+    loc.att.icrf.s.w = row.icrf_s_w;
+    loc.att.icrf.s.d.x = row.icrf_s_x;
+    loc.att.icrf.s.d.y = row.icrf_s_y;
+    loc.att.icrf.s.d.z = row.icrf_s_z;
+    loc.att.icrf.v.col[0] = row.icrf_v_x;
+    loc.att.icrf.v.col[1] = row.icrf_v_y;
+    loc.att.icrf.v.col[2] = row.icrf_v_z;
+    return loc;
+}
+
+export const relative_angle_range = (rows: mysql.RowDataPacket[], originNode: string) => {
+    // Assumes the desired node to be the first within each timestamp collection
+    const ret: Array<svector & timepoint & GFNodeType> = [];
+    if (originNode === undefined || originNode === '') {
+        return ret;
+    }
+    // The current timestamp being handled. Used to determine the collection of new entries for the
+    // current timestamp, since it is possible not all nodes will have the same
+    let currentTime = 0;
+    const locs = new Map<string, locstruc>();
+    // Keep track of which locs are newly found. Only compute groundstation() for new/updated entries.
+    // If originNode is updated, then recompute for every node.
+    const locsUpdated = new Map<string, boolean>();
+    for (let i=0; i<rows.length; i++) {
+        const row = rows[i];
+        // Perform groundstation() for all new entries found on the previous runs of the same timestamps
+        if (row.time > currentTime || i === rows.length) {
+            const originNodeUpdated = locsUpdated.get(originNode);
+            // Skip computations until originNode has been found
+            if (originNodeUpdated !== undefined) {
+                // Compute groundstation() for every node if originNode has been updated
+                if (originNodeUpdated) {
+                    locsUpdated.forEach((_,key) => locsUpdated.set(key, true));
+                    locsUpdated.set(originNode, false);
+                }
+                // Now compute for each updated node
+                const originNodeLoc = locs.get(originNode);
+                if (originNodeLoc === undefined) {
+                    continue;
+                }
+                locs.forEach((loc, key) => {
+                    if (key === originNode) {
+                        return;
+                    }
+                    const locUpdated = locsUpdated.get(key) ?? false;
+                    if (!locUpdated) {
+                        return;
+                    }
+                    const relativeAngleRange = cosmos.groundstation(originNodeLoc, loc);
+                    ret.push({ Time: currentTime, Node_name: key, Node_type: 0, ...relativeAngleRange });
+                    locsUpdated.set(key, false);
+                });
+            }
+            // This logic uses one-past-the-end handling, so break if we really are past the end
+            if (i === rows.length) {
+                break;
+            }
+        }
+        // This is still within the current collection of the same timestamp,
+        // or we have just finished wrapping up the previous collection and have just entered
+        // a new timestamp collection (in which case the code block above would have run).
+        currentTime = row.time;
+        locs.set(row.node_name, locstrucRowToLocstruc(row));
+        locsUpdated.set(row.node_name, true);
+    }
+    console.log('relative_angle_range iret:', rows[0], ret[0]);
     return ret;
 }
 

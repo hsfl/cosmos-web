@@ -1,4 +1,5 @@
-import { cosmosresponse, TimeRange, LocType, KeyType } from '../types/cosmos_types';
+import { cosmosresponse, TimeRange, KeyType } from '../types/cosmos_types';
+import { QueryType } from 'types/query_types';
 
 // map of cosmos sql tables; 
 // note the column order must match sql order; key names must match sql table names; naming must be exact
@@ -249,37 +250,42 @@ export default class BaseDatabase {
         console.log('Writing event resource impact updates');
     }
 
-    public async get_attitude(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_attitude(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting attitude');
         return {};
     }
 
-    public async get_position(loctype: LocType): Promise<cosmosresponse> {
+    public async get_position(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting position');
         return {};
     }
 
-    public async get_battery(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_relative_angle_range(query: QueryType): Promise<cosmosresponse> {
+        console.log('Getting relative angle and ranges');
+        return {};
+    }
+
+    public async get_battery(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting batteries');
         return {};
     }
 
-    public async get_bcreg(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_bcreg(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting bcregs');
         return {};
     }
 
-    public async get_tsen(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_tsen(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting tsens');
         return {};
     }
 
-    public async get_cpu(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_cpu(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting cpus');
         return {};
     }
 
-    public async get_event(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_event(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting events');
         return {};
     }
@@ -305,22 +311,22 @@ export default class BaseDatabase {
         return {};
     }
 
-    public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_mag(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting mags');
         return {};
     }
 
-    public async get_gyro(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_gyro(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting gyros');
         return {};
     }
 
-    public async get_mtr(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_mtr(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting mtrs');
         return {};
     }
 
-    public async get_rw(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_rw(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting rws');
         return {};
     }
@@ -337,7 +343,7 @@ export default class BaseDatabase {
         console.log('Writing battstruc');
     }
 
-    public async get_now(table: string, timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_now(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting now for table type');
         return {};
     }

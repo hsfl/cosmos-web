@@ -1,11 +1,12 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, EventResourceImpact } from "./BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, EventResourceImpact } from "database/BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
-import { AppError } from '../exceptions/AppError';
+import { AppError } from 'exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
-import { attitude, eci_position, geod_position, geos_position, lvlh_attitude } from '../transforms/cosmos';
-import { TimeRange, cosmosresponse, LocType, KeyType } from '../types/cosmos_types';
+import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, relative_angle_range } from '../transforms/cosmos';
+import { TimeRange, cosmosresponse, KeyType } from 'types/cosmos_types';
+import { QueryObject, QueryType } from 'types/query_types';
 import { table_schema } from './inittables';
 
 
@@ -357,39 +358,39 @@ event_id = ? limit 1000`,
     }
     // // // /// 
 
-    // TODO: fix return type
-    public async get_attitude(timerange: TimeRange): Promise<cosmosresponse> {
+    // TODO: fix return type and table
+    public async get_attitude(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
-utc AS "Time",
+utc AS "time",
 s_x AS qsx,
 s_y AS qsy,
 s_z AS qsz,
 s_w AS qsw
 FROM attstruc_icrf
 WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             const [vrows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
-utc AS "Time",
+utc AS "time",
 omega_x AS qvx,
 omega_y AS qvy,
 omega_z AS qvz
 FROM attstruc_icrf
 WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             const [arows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
-utc AS "Time",
+utc AS "time",
 alpha_x AS qax,
 alpha_y AS qay,
 alpha_z AS qaz
 FROM attstruc_icrf
 WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
             return ret;
@@ -403,7 +404,7 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
         }
     }
 
-    public async get_event(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_event(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT 
@@ -414,7 +415,7 @@ event_id,
 event_name
 FROM cosmos_event
 WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             const ret = { "events": rows };
@@ -521,12 +522,13 @@ ORDER BY resource_name limit 1000;`,
 
     // this needs a fix... sql seems to update and revert back to only full group by on restart... TODO
 
-    public async get_now(table: string, timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_now(query: QueryType): Promise<cosmosresponse> {
         let query_statement: string = "";
         try {
+            const queryObj: QueryObject = JSON.parse(query.query);
             for (const [key, value] of Object.entries(sqlmap)) {
                 // console.log(`${key}: ${value}`);
-                if (key === table) {
+                if (key === queryObj.type) {
                     let dynamic_query: string = 'SELECT ';
                     let table: string = ' FROM ' + key;
                     let mtime: string = '';
@@ -593,8 +595,9 @@ ORDER BY resource_name limit 1000;`,
     }
 
     // LocType adds output type option variable to the function inputs // , type: string
-    public async get_position(loctype: LocType): Promise<cosmosresponse> {
+    public async get_position(query: QueryType): Promise<cosmosresponse> {
         try {
+            const queryObj: QueryObject = JSON.parse(query.query);
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
 locstruc.utc AS "time", 
@@ -608,14 +611,13 @@ icrf_v_z
 FROM locstruc 
 INNER JOIN node ON locstruc.node_name = node.node_name
 WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
-                [loctype.from, loctype.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             if (rows.length == 0) {
                 console.log("empty rows");
             }
-            // let type = "eci";
-            let type = loctype.type;
+            let type = queryObj.arg;
             if (type == "eci") {
                 const ret = { "ecis": eci_position(rows) };
                 return ret;
@@ -643,7 +645,52 @@ WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
         }
     }
 
-    public async get_battery(timerange: TimeRange): Promise<cosmosresponse> {
+    // Returns relative angle ranges from an origin node to other nodes
+    public async get_relative_angle_range(query: QueryType): Promise<cosmosresponse> {
+        try {
+            const queryObj: QueryObject = JSON.parse(query.query);
+            // queryObj.arg to contain name of the origin node
+            const originNodeName = queryObj.arg;
+            // Sorts by time, and within time, sorts the desired node_name to be first
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT
+locstruc.utc AS "time", 
+locstruc.node_name as "node_name",
+node.node_type as "node_type",
+eci_s_x, eci_s_y, eci_s_z,
+eci_v_x, eci_v_y, eci_v_z,
+icrf_s_x, icrf_s_y, icrf_s_z, 
+icrf_s_w, icrf_v_x, icrf_v_y, 
+icrf_v_z
+FROM locstruc 
+INNER JOIN node ON locstruc.node_name = node.node_name
+WHERE locstruc.utc BETWEEN ? and ?
+AND (node.node_type = 0 OR node.node_type = 1)
+ORDER BY time, FIELD(locstruc.node_name, ?) DESC
+LIMIT 10000`,
+                [query.from, query.to, queryObj.arg],
+            );
+            console.log(rows[0])
+            if (rows.length == 0) {
+                console.log("empty rows");
+            }
+            const originNodeRows = rows.filter((row) => row.node_name === queryObj.arg);
+            const ret = {
+                "svectors": relative_angle_range(rows, queryObj.arg),
+                "avectors": attitude(originNodeRows)
+            };
+            return ret;
+        }
+        catch (error) {
+            console.log('Error in get_relative_angle_range:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_battery(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
@@ -656,7 +703,7 @@ INNER JOIN device ON device.didx = devspec.didx
 WHERE
   device.type = 12 AND
 devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             if (rows.length == 0) {
@@ -671,7 +718,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                             node_name: qvalue[i].node_name + ":" + qvalue[i].name,
                             // extract out device name
                             didx: qvalue[i].didx,
-                            utc: timerange.to,
+                            utc: query.to,
                             volt: 0,
                             amp: 0,
                             power: 0,
@@ -700,7 +747,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
         }
     }
 
-    public async get_bcreg(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_bcreg(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
@@ -716,7 +763,7 @@ INNER JOIN device ON devspec.didx = device.didx
 WHERE
   device.type = 30 AND
 devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             //
@@ -730,7 +777,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                         const devbcreg: devicebcreg = {
                             node_device: qvalue[i].node_name + ":" + qvalue[i].name,
                             didx: qvalue[i].didx,
-                            time: timerange.to,
+                            time: query.to,
                             volt: 0,
                             amp: 0,
                             power: 0,
@@ -761,7 +808,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
         }
     }
 
-    public async get_tsen(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_tsen(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
@@ -773,7 +820,7 @@ INNER JOIN device ON devspec.didx = device.didx
 WHERE
   device.type = 15 AND
 devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             // tsenstruc sql
@@ -791,7 +838,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
                         const devtsen: devicetsen = {
                             node_device: qvalue[i].node_name + ":" + qvalue[i].name,
                             didx: qvalue[i].didx,
-                            time: timerange.to,
+                            time: query.to,
                             temp: 0,
                         }
                         tsenrows.push({ ...devtsen });
@@ -815,7 +862,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
         }
     }
 
-    public async get_cpu(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_cpu(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT
@@ -827,7 +874,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
   storage
 FROM cpustruc
 WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             if (rows.length == 0) {
@@ -838,7 +885,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
                         const devcpu: devicecpu = {
                             node_device: qvalue[i].node_name + ":" + qvalue[i].name,
                             didx: qvalue[i].didx,
-                            time: timerange.to,
+                            time: query.to,
                             temp: 0,
                             uptime: 0,
                             cpu_load: 0,
@@ -868,7 +915,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
     }
 
 
-    public async get_mag(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_mag(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT 
@@ -880,7 +927,7 @@ mag_y,
 mag_z
 FROM magstruc
 WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             if (rows.length == 0) {
@@ -891,7 +938,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                         const devmag: devicemag = {
                             node_device: qvalue[i].node_name + ":" + qvalue[i].name,
                             didx: qvalue[i].didx,
-                            time: timerange.to,
+                            time: query.to,
                             mag_x: 0,
                             mag_y: 0,
                             mag_z: 0,
@@ -917,7 +964,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
     }
 
-    public async get_gyro(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_gyro(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT 
@@ -927,7 +974,7 @@ didx,
 omega
 FROM gyrostruc
 WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             if (rows.length == 0) {
@@ -938,7 +985,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                         const devgyro: devicegyro = {
                             node_device: qvalue[i].node_name + ":" + qvalue[i].name,
                             didx: qvalue[i].didx,
-                            time: timerange.to,
+                            time: query.to,
                             omega: 0,
                         }
                         gyrorows.push({ ...devgyro });
@@ -960,7 +1007,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
     }
 
-    public async get_mtr(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_mtr(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT 
@@ -971,7 +1018,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
     align_x, align_y, align_z
     FROM mtrstruc
     WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             if (rows.length == 0) {
@@ -982,7 +1029,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                         const devmtr: devicemtr = {
                             node_device: qvalue[i].node_name + ":" + qvalue[i].name,
                             didx: qvalue[i].didx,
-                            time: timerange.to,
+                            time: query.to,
                             mom: 0,
                             align_w: 0,
                             align_x: 0,
@@ -1008,7 +1055,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
     }
 
-    public async get_rw(timerange: TimeRange): Promise<cosmosresponse> {
+    public async get_rw(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT 
@@ -1019,7 +1066,7 @@ amp, omg,
 romg
 FROM rwstruc
 WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
-                [timerange.from, timerange.to],
+                [query.from, query.to],
             );
             console.log(rows[0])
             if (rows.length == 0) {
@@ -1030,7 +1077,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                         const devrw: devicerw = {
                             node_device: qvalue[i].node_name + ":" + qvalue[i].name,
                             didx: qvalue[i].didx,
-                            time: timerange.to,
+                            time: query.to,
                             amp: 0,
                             omg: 0,
                             romg: 0,
