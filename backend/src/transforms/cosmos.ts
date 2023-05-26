@@ -525,6 +525,9 @@ export const relative_angle_range = (rows: mysql.RowDataPacket[], originNode: st
                     if (!locUpdated) {
                         return;
                     }
+                    // TODO: better to handle the need-to-be-geod requirement in c++
+                    loc.pos.eci.pass = 99;
+                    loc.pos.geod = cosmos.ecitogeod(loc);
                     const relativeAngleRange = cosmos.groundstation(originNodeLoc, loc);
                     ret.push({ Time: currentTime, Node_name: key, Node_type: 0, ...relativeAngleRange });
                     locsUpdated.set(key, false);
