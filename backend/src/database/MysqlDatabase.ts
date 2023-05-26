@@ -677,7 +677,8 @@ LIMIT 10000`,
             const originNodeRows = rows.filter((row) => row.node_name === queryObj.arg);
             const ret = {
                 "svectors": relative_angle_range(rows, queryObj.arg),
-                "avectors": attitude(originNodeRows)
+                "avectors": attitude(originNodeRows),
+                "geoidposs": geod_position(rows)
             };
             return ret;
         }
