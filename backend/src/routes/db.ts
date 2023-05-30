@@ -290,7 +290,7 @@ router.get('/evnetmissionresource', async (req: Request<{}, {}, {}, EventType>, 
     res.status(200).json(response);
 });
 
-// curl --request GET "http://localhost:10090/db/missioneventresourceimpact"
+// curl --request GET "http://localhost:10090/db/missioneventresourceimpact?dtype=1&dname=test"
 router.get('/missioneventresourceimpact', async (req: Request<{}, {}, {}, KeyType>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.dtype === undefined || req.query.dname === undefined) {
@@ -307,6 +307,8 @@ router.get('/missioneventresourceimpact', async (req: Request<{}, {}, {}, KeyTyp
 
 // curl --request GET "http://localhost:10090/db/now?from=59874.83333333&to=59874.87333333&type=swchstruc"
 // curl --request GET "http://localhost:10090/db/now?from=59874.83333333&to=59874.87333333&type=node"
+// curl --request GET "http://localhost:10090/db/now?from=59874.83333333&to=59874.87333333&query="
+
 router.get('/now', async (req: Request<{}, {}, {}, QueryType>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.from === undefined || req.query.to === undefined || req.query.query === undefined) {
@@ -315,6 +317,7 @@ router.get('/now', async (req: Request<{}, {}, {}, QueryType>, res: Response) =>
             description: 'URL Query incorrect, must provide time range from and to; type = table name string'
         });
     }
+    // takes the table: string as argument, where table is exact name of DB table
     const ret = await db.get_now(req.query);
     const response = new_api_response('success');
     response.payload = ret;

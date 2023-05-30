@@ -32,6 +32,34 @@ export const sqlquerykeymap: Object = {
     "tsenstruc": ["node_name", "didx"]
 }
 
+// iCOSMOS front end query to database tables
+// Key: Front end Query parameter
+// Value: DB table
+
+// export const queryOptions: Array<SelectOption<string>> = [
+//     { label: 'Attitude', value: 'attitude' },
+//     { label: 'Position', value: 'position' },
+//     { label: 'Battery', value: 'battery' },
+//     { label: 'BC Regulator', value: 'bcreg' },
+//     { label: 'CPU', value: 'cpu' },
+//     { label: 'Events', value: 'event' },
+//     { label: 'Thermal', value: 'tsen' },
+//     { label: 'Nodal Awareness', value: 'nodalaware', description: 'Relative angle/range to other nodes' },
+//   ];
+export const sqlquerytranslate: Object = {
+    "swchstruc": "", //TODO
+    "battery": "battstruc",
+    "bcreg": "bcregstruc",
+    "cpu": "cpustruc",
+    "device": "", //TODO
+    "device_type": "", //TODO
+    "position": "locstruc",
+    "attitude": "locstruc",
+    "magstruc": "", //TODO
+    "node": "", //TODO
+    "tsen": "tsenstruc",
+}
+
 export interface TelegrafMetric {
     fields: {
         value: string;

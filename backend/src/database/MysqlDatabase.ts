@@ -1,4 +1,4 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, EventResourceImpact } from "database/BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, EventResourceImpact, sqlquerytranslate } from "database/BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -526,9 +526,18 @@ ORDER BY resource_name limit 1000;`,
         let query_statement: string = "";
         try {
             const queryObj: QueryObject = JSON.parse(query.query);
+            // translate the query type into the database table name
+            let databasetable: string = "";
+            for (const [key, value] of Object.entries(sqlquerytranslate)) {
+                if (queryObj.type === key) {
+                    databasetable = value;
+                }
+            }
             for (const [key, value] of Object.entries(sqlmap)) {
                 // console.log(`${key}: ${value}`);
-                if (key === queryObj.type) {
+                // argument here is the DB table name exact; see sqlmap in BaseDatabase for reference
+                // if (key === queryObj.type) {
+                if (key === databasetable) {
                     let dynamic_query: string = 'SELECT ';
                     let table: string = ' FROM ' + key;
                     let mtime: string = '';
