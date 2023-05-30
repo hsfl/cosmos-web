@@ -46,7 +46,7 @@ export default class MysqlDatabase extends BaseDatabase {
             console.log('telem:', telem[i]);
             this.pool.query(telem[i].fields.value, (err) => {
                 if (err) {
-                    console.log(err);
+                    console.error(err);
                 }
             });
             // this.pool.execute(
@@ -85,7 +85,7 @@ export default class MysqlDatabase extends BaseDatabase {
         try {
             await this.promisePool.query('DELETE FROM device');
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error updating devices'
@@ -102,7 +102,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     [devices[i].node_name, devices[i].type, devices[i].cidx, devices[i].didx, devices[i].name]
                 );
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 throw new AppError({
                     httpCode: StatusCodes.BAD_REQUEST,
                     description: 'Failure adding devices'
@@ -120,7 +120,7 @@ export default class MysqlDatabase extends BaseDatabase {
                 await this.promisePool.query('DELETE FROM ' + tableArray[i]);
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error clearing table'
@@ -157,7 +157,7 @@ export default class MysqlDatabase extends BaseDatabase {
                 }
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error writing sql insert statement'
@@ -179,7 +179,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     row_value_array
                 );
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 throw new AppError({
                     httpCode: StatusCodes.BAD_REQUEST,
                     description: 'Failure adding row'
@@ -193,7 +193,7 @@ export default class MysqlDatabase extends BaseDatabase {
         try {
             await this.promisePool.query('DELETE FROM swchstruc');
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error updating swch struc'
@@ -208,7 +208,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
                 );
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 throw new AppError({
                     httpCode: StatusCodes.BAD_REQUEST,
                     description: 'Failure adding devices'
@@ -222,7 +222,7 @@ export default class MysqlDatabase extends BaseDatabase {
         try {
             await this.promisePool.query('DELETE FROM battstruc');
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error updating batt struc'
@@ -237,7 +237,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
                 );
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 throw new AppError({
                     httpCode: StatusCodes.BAD_REQUEST,
                     description: 'Failure adding devices'
@@ -270,7 +270,7 @@ export default class MysqlDatabase extends BaseDatabase {
                             [event_id_value, resource_id, row.second_index]
                         );
                     } catch (error) {
-                        console.log(error);
+                        console.error(error);
                         throw new AppError({
                             httpCode: StatusCodes.BAD_REQUEST,
                             description: 'Failure deleting event resource impact'
@@ -283,7 +283,7 @@ export default class MysqlDatabase extends BaseDatabase {
                             [row.resource_change, row.second_index, event_id_value, resource_id]
                         );
                     } catch (error) {
-                        console.log(error);
+                        console.error(error);
                         throw new AppError({
                             httpCode: StatusCodes.BAD_REQUEST,
                             description: 'Failure updating event resource impact'
@@ -317,7 +317,7 @@ WHERE
             return ret;
         }
         catch (error) {
-            console.log('Error in get_device_keys:', error);
+            console.error('Error in get_device_keys:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -349,7 +349,7 @@ event_id = ? limit 1000`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_event_resource:', error);
+            console.error('Error in get_event_resource:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -396,7 +396,7 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_attitude:', error);
+            console.error('Error in get_attitude:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -422,7 +422,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_event:', error);
+            console.error('Error in get_event:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -447,7 +447,7 @@ ORDER BY id limit 1000;`
             return ret;
         }
         catch (error) {
-            console.log('Error in get_event_list:', error);
+            console.error('Error in get_event_list:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -470,7 +470,7 @@ ORDER BY resource_name limit 1000;`
             return ret;
         }
         catch (error) {
-            console.log('Error in get_resource_list:', error);
+            console.error('Error in get_resource_list:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -497,7 +497,7 @@ ORDER BY resource_name limit 1000;`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_resource_list:', error);
+            console.error('Error in get_resource_list:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -558,7 +558,7 @@ ORDER BY resource_name limit 1000;`,
                 }
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error writing sql insert statement'
@@ -586,7 +586,7 @@ ORDER BY resource_name limit 1000;`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_now:', error);
+            console.error('Error in get_now:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -637,7 +637,7 @@ WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_position:', error);
+            console.error('Error in get_position:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -683,7 +683,7 @@ LIMIT 10000`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_relative_angle_range:', error);
+            console.error('Error in get_relative_angle_range:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -740,7 +740,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_battery:', error);
+            console.error('Error in get_battery:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -801,7 +801,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_bcreg:', error);
+            console.error('Error in get_bcreg:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -855,7 +855,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_tsen:', error);
+            console.error('Error in get_tsen:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -907,7 +907,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_cpu:', error);
+            console.error('Error in get_cpu:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -957,7 +957,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_mag:', error);
+            console.error('Error in get_mag:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -1000,7 +1000,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             }
         }
         catch (error) {
-            console.log('Error in get_gyro:', error);
+            console.error('Error in get_gyro:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -1048,7 +1048,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             }
         }
         catch (error) {
-            console.log('Error in get_mtr:', error);
+            console.error('Error in get_mtr:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -1094,7 +1094,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             }
         }
         catch (error) {
-            console.log('Error in get_rw:', error);
+            console.error('Error in get_rw:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -1110,7 +1110,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                 console.log("table init for: ", table_schema[i].table);
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error initiating table'
