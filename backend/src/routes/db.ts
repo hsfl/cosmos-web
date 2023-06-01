@@ -14,9 +14,9 @@ const router = express.Router();
 
 // call CEO handler database array and populate the db_array as loop iterator over return. 
 export async function initiate_ceo_handler() {
-    const ceodb = CEOHandler.app_db()
-    // query CEO db to init CEOdb db_array multi mission manager on server start up
-    const ret_array = await ceodb.init_mission_list();
+    // const ceodb = CEOHandler.app_db()
+    // // query CEO db to init CEOdb db_array multi mission manager on server start up
+    // const ret_array = await ceodb.init_mission_list();
 }
 
 
@@ -504,5 +504,3 @@ module.exports = router;
 // to end and back)
 // Figure out mysql user host
 // Handle errors caused by bad connection due to incorrect credentials and what not
-
-setTimeout(() => { initiate_ceo_handler() }, 2000);

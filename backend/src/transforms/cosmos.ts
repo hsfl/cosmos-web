@@ -1,16 +1,20 @@
-import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf } from '../types/cosmos_types';
+import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf } from 'types/cosmos_types';
 import mysql from 'mysql2';
-import { GFNodeType, deviceswch, devicebatt, beacontype, locstruc_table, node, is_node } from '../database/BaseDatabase';
-
+import { GFNodeType, deviceswch, devicebatt, beacontype, locstruc_table, node, is_node } from 'database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
-// TODO: probably a better way of loading binary compilation of COSMOS C++ functions 
-let cosmos: CosmosModule;
-COSMOSJS().then((cosmos_module: CosmosModule) => {
-    cosmos = cosmos_module;
-    console.log('CosmosModule successfully imported');
-    return;
-});
+
+export class Cosmos {
+    // ALWAYS RUN `await loadCosmosModule()` or this will be uninitialized at runtime!
+    public static module: CosmosModule;
+    constructor() { }
+
+    // Loads the emscripten module. Called by App::Init()
+    public static async loadCosmosModule(): Promise<void> {
+        this.module = await COSMOSJS();
+        console.log('CosmosModule successfully imported');
+    }
+}
 
 // TODO: use interfaces
 export const attitude = (rows: mysql.RowDataPacket[]) => {
@@ -25,7 +29,7 @@ export const attitude = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w,
         };
-        const av: avector = (cosmos.a_quaternion2euler(q));
+        const av: avector = (Cosmos.module.a_quaternion2euler(q));
         //const time  
         ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...av });
     });
@@ -341,7 +345,7 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
         //     type: 0,
         // }
 
-        const geod: geoidpos = (cosmos.ecitogeod(loc));
+        const geod: geoidpos = (Cosmos.module.ecitogeod(loc));
         // const gfgeod: gfgeoidpos = {
         //     utc: geod.utc,
         //     s_lat: geod.s.lat,
@@ -376,7 +380,7 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
         loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
         loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
 
-        const geos: spherpos = (cosmos.loc2geos(loc));
+        const geos: spherpos = (Cosmos.module.loc2geos(loc));
         // const gfgeos: gfspherpos = {
         //     utc: geos.utc,
         //     s_phi: geos.s.phi,
@@ -423,7 +427,7 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
-        const lvlh: qatt = (cosmos.loc2lvlh(loc));
+        const lvlh: qatt = (Cosmos.module.loc2lvlh(loc));
         // const gflvlh: gfqatt = {
         //     utc: lvlh.utc,
         //     s_d_x: lvlh.s.d.x,
@@ -527,8 +531,8 @@ export const relative_angle_range = (rows: mysql.RowDataPacket[], originNode: st
                     }
                     // TODO: better to handle the need-to-be-geod requirement in c++
                     loc.pos.eci.pass = 99;
-                    loc.pos.geod = cosmos.ecitogeod(loc);
-                    const relativeAngleRange = cosmos.groundstation(originNodeLoc, loc);
+                    loc.pos.geod = Cosmos.module.ecitogeod(loc);
+                    const relativeAngleRange = Cosmos.module.groundstation(originNodeLoc, loc);
                     ret.push({ Time: currentTime, Node_name: key, Node_type: 0, ...relativeAngleRange });
                     locsUpdated.set(key, false);
                 });

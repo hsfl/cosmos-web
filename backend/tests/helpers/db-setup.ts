@@ -1,8 +1,8 @@
-import express from 'express';
-import { app } from '../../src/app';
+// import express from 'express';
+// import app from '../../src/app';
 import mysql from 'mysql2';
 import { Pool } from 'mysql2/promise';
-import Pool from 'mysql2/typings/mysql/lib/Pool';
+// import Pool from 'mysql2/typings/mysql/lib/Pool';
 
 export default class DBSetup {
     public static promisePool: Pool;

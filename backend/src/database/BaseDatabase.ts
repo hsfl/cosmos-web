@@ -234,10 +234,6 @@ export default class BaseDatabase {
         console.log('Writing telem point', telem);
     }
 
-    public async write_telem_bulk(): Promise<void> {
-        console.log('Writing telem in bulk',)
-    }
-
     public async reset_db(tableArray: any[]): Promise<void> {
         console.log('Reset database, clearing data')
     }
