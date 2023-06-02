@@ -294,6 +294,20 @@ export default class MysqlDatabase extends BaseDatabase {
         }
     }
 
+    // POST write new event
+
+    // update event row ; primary key (id) 
+
+    // delete event row ; primary key (id) // call resource delete as well for cascade association ?
+
+
+    // POST write new resource
+
+    // update resource row ; primary key (id) 
+
+    // delete resource row ; primary key (id) // call from event delete as well for cascade association ?
+
+
     // // // /// 
     // get list of unique device keys given empty query return for given struc type
     // "device": ["node_name", "type", "cidx", "didx", "name"],
@@ -525,6 +539,7 @@ ORDER BY resource_name limit 1000;`,
     public async get_now(query: QueryType): Promise<cosmosresponse> {
         let query_statement: string = "";
         try {
+            // parse the internal query from the request packet
             const queryObj: QueryObject = JSON.parse(query.query);
             // translate the query type into the database table name
             let databasetable: string = "";
@@ -533,22 +548,26 @@ ORDER BY resource_name limit 1000;`,
                     databasetable = value;
                 }
             }
+            // map through SQLmap JSON of COSMOS tables and columns 
             for (const [key, value] of Object.entries(sqlmap)) {
                 // console.log(`${key}: ${value}`);
                 // argument here is the DB table name exact; see sqlmap in BaseDatabase for reference
-                // if (key === queryObj.type) {
                 if (key === databasetable) {
                     let dynamic_query: string = 'SELECT ';
                     let table: string = ' FROM ' + key;
+                    let condition: string = ' WHERE utc = (select max(utc) from ' + key + ')';
+                    // refactor to avoid gross aggregation in sql
                     let mtime: string = '';
                     for (let i = 0; i < value.length; i++) {
                         if (value[i] === "utc") {
-                            mtime = 'MAX(utc) as "latest_timestamp"';
+                            // mtime = 'MAX(utc) as "latest_timestamp"';
+                            mtime = 'utc as "latest_timestamp"';
                         }
                         else {
                             dynamic_query += value[i] + ", ";
                         }
                     }
+                    // define unique key pairing when excludes utc, which is part of primary key... 
                     let query_group: string = ' GROUP BY ';
                     for (const [qkey, qvalue] of Object.entries(sqlquerykeymap)) {
                         // console.log(`${key}: ${value}`);
@@ -562,7 +581,9 @@ ORDER BY resource_name limit 1000;`,
                             }
                         }
                     }
-                    query_statement = dynamic_query.concat(mtime, table, query_group);
+                    // query_statement = dynamic_query.concat(mtime, table, query_group, condition);
+                    //updated temp patch of query; excludes group by, should return unique node:didx pairing for max(utc) as array of rows with data columns
+                    query_statement = dynamic_query.concat(mtime, table, condition);
                     console.log("query max(utc) statement construct: ", query_statement);
                 }
             }
