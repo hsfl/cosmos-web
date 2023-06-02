@@ -13,11 +13,14 @@ export const sqlmap: Object = {
     "locstruc": ["node_name", "utc", "eci_s_x", "eci_s_y", "eci_s_z", "eci_v_x", "eci_v_y", "eci_v_z", "icrf_s_x", "icrf_s_y", "icrf_s_z", "icrf_s_w", "icrf_v_x", "icrf_v_y", "icrf_v_z"],
     "magstruc": ["node_name", "didx", "utc", "mag_x", "mag_y", "mag_z"],
     "node": ["node_id", "node_name", "node_type", "agent_name", "utc", "utcstart"],
-    "tsenstruc": ["node_name", "didx", "utc", "temp"]
+    "tsenstruc": ["node_name", "didx", "utc", "temp"],
+    "resource": ["id", "name", "type", "min_level", "max_level"],
+    "event": ["id", "name", "type", "duration_seconds"],
+    "event_resource_impact": ["event_id", "resource_id", "second_index", "resource_change"]
 }
 
 // ADD PRIMARY KEY FOR CONDITIONAL QUERY TO MAP
-// group by unique key, not primary key (not utc)
+// group by unique key, not primary key (not utc) for max aggregation function... 
 // needed? or is it to query all of the type at latest timestamp... 
 export const sqlquerykeymap: Object = {
     "swchstruc": ["node_name", "didx"],
@@ -47,16 +50,16 @@ export const sqlquerykeymap: Object = {
 //     { label: 'Nodal Awareness', value: 'nodalaware', description: 'Relative angle/range to other nodes' },
 //   ];
 export const sqlquerytranslate: Object = {
-    "swchstruc": "", //TODO
+    // "": "swchstruc",
     "battery": "battstruc",
     "bcreg": "bcregstruc",
     "cpu": "cpustruc",
-    "device": "", //TODO
-    "device_type": "", //TODO
+    // "": "device",
+    // "": "device_type",
     "position": "locstruc",
     "attitude": "locstruc",
-    "magstruc": "", //TODO
-    "node": "", //TODO
+    // "": "magstruc",
+    // "": "node",
     "tsen": "tsenstruc",
 }
 

@@ -235,4 +235,35 @@ export const table_schema: Array<mysqlschema> = [
             PRIMARY KEY (node_name, utc, event_name)
         );`
     },
+    {
+        table: "event",
+        statement: `CREATE TABLE event (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            type VARCHAR(255) NOT NULL,
+            duration_seconds INT NOT NULL
+        );`
+    },
+    {
+        table: "resource",
+        statement: `CREATE TABLE resource (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            type VARCHAR(255) NOT NULL,
+            min_level DOUBLE PRECISION NOT NULL,
+            max_level DOUBLE PRECISION NOT NULL
+        );`
+    },
+    {
+        table: "event_resource_impact",
+        statement: `CREATE TABLE event_resource_impact (
+            event_id INT NOT NULL,
+            resource_id INT NOT NULL,
+            second_index INT NOT NULL,
+            resource_change DOUBLE PRECISION NOT NULL,
+            PRIMARY KEY (event_id, resource_id, second_index),
+            FOREIGN KEY (event_id) REFERENCES event(id),
+            FOREIGN KEY (resource_id) REFERENCES resource(id)
+        );`
+    },
 ];
