@@ -34,6 +34,11 @@ export default class CEOdatabase {
         this.db_array = new DynaDBHandler();
     }
 
+    public async end_connection(): Promise<void> {
+        await this.promisePool.end();
+        this.pool.end();
+    }
+
     // public async clearDatabase(): Promise<void> {
     //     console.log('Clear databases');
     // }

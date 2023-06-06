@@ -37,6 +37,11 @@ export default class MysqlDatabase extends BaseDatabase {
         this.promisePool = this.pool.promise();
     }
 
+    public async end_connection(): Promise<void> {
+        await this.promisePool.end();
+        this.pool.end();
+    }
+
     public async clearDatabase(): Promise<void> {
         console.log('Clear databases');
     }

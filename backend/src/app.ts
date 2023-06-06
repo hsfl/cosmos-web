@@ -2,8 +2,6 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-// Import .env file environment variables into process.env
-dotenv.config({path: path.resolve(__dirname, '../.env')});
 import router from 'routes/routes';
 
 import { DBHandler, SIMDBHandler, CEOHandler } from './database/DBHandler';
@@ -11,6 +9,10 @@ import BaseDatabase from 'database/BaseDatabase';
 import CEOdatabase from 'database/CEOdb';
 import { Cosmos } from 'transforms/cosmos';
 import { initiate_ceo_handler } from 'routes/db';
+
+
+// Import .env file environment variables into process.env
+dotenv.config({path: path.resolve(__dirname, '../.env')});
 
 export default class App {
     public express: Express;
@@ -29,15 +31,23 @@ export default class App {
         await Cosmos.loadCosmosModule();
 
         // Specify database the app will use
-        // DBHandler.set_database(db);
+        DBHandler.set_database(db);
 
-        // // Integrate simulated database 
-        // SIMDBHandler.set_database(simDb);
+        // Integrate simulated database 
+        SIMDBHandler.set_database(simDb);
 
-        // // Get handled missions
-        // CEOHandler.set_database(ceoDb);
-        // await initiate_ceo_handler();
+        // Get handled missions
+        CEOHandler.set_database(ceoDb);
+        await initiate_ceo_handler();
 
         return this;
+    }
+
+    public async close(): Promise<void> {
+        await DBHandler.end_connection();
+        await SIMDBHandler.end_connection();
+        // TODO: investigate why CEOHandler is hanging on some kind of async operation,
+        // commenting this out makes test hang indefinitely.
+        await CEOHandler.end_connection();
     }
 }

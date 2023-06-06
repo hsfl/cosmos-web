@@ -226,6 +226,10 @@ export interface Device {
 export default class BaseDatabase {
     constructor() { }
 
+    public async end_connection(): Promise<void> {
+        console.log('Clear database');
+    }
+
     public async clearDatabase(): Promise<void> {
         console.log('Clear database');
     }

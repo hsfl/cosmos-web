@@ -6,8 +6,7 @@ import CEOdatabase from './database/CEOdb';
 // Where this is running
 const WEB_API_PORT = 10090;
 
-// Start server app only after CosmosModule and all else has been loaded
-console.log('before new app');
+// Start server app only after CosmosModule and all else has been loaded\
 const serverApp = new App();
 serverApp.Init(new MysqlDatabase(
     process.env.DB_HOST,
@@ -27,7 +26,6 @@ new CEOdatabase(
     process.env.DB_BACKEND_USER_PASSWORD,
     'cosmos_ceo'
 )).then((app) => {
-    console.log('in new app then');
     app.express.listen(WEB_API_PORT, () => {
         console.log(`server running on port ${WEB_API_PORT}`);
     });

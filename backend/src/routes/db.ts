@@ -10,13 +10,13 @@ import { TelegrafBody, EventResourceUpdate } from 'database/BaseDatabase';
 import { dbmission } from 'database/CEOdb';
 
 
-const router = express.Router();
+export const router = express.Router();
 
 // call CEO handler database array and populate the db_array as loop iterator over return. 
 export async function initiate_ceo_handler() {
-    // const ceodb = CEOHandler.app_db()
-    // // query CEO db to init CEOdb db_array multi mission manager on server start up
-    // const ret_array = await ceodb.init_mission_list();
+    const ceodb = CEOHandler.app_db()
+    // query CEO db to init CEOdb db_array multi mission manager on server start up
+    const ret_array = await ceodb.init_mission_list();
 }
 
 
@@ -125,7 +125,6 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
         });
     }
     // extract body, format of object as string
-    const body_ob: string = JSON.stringify(req.body);
     for (let i = 0; i < req.body.metrics.length; i++) {
         // parse string object into appropriate array of ["sql_table_name", [{database type row object}, ...] ]
         console.log(req.body.metrics[i].fields.value);
@@ -494,9 +493,6 @@ router.get('/nodalaware', async (req: Request<{}, {}, {}, QueryType>, res: Respo
     response.payload = ret;
     res.status(200).json(response);
 });
-
-
-module.exports = router;
 
 // TODOs:
 // return proper error struct in res.json (try using the cosmossimpanel with name as node_name instead, for example, you'll

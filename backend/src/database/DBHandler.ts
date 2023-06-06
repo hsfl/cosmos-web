@@ -12,8 +12,16 @@ export class DBHandler {
         this.database = database;
     };
 
+    public static reset_database(): void {
+        // this.database.reset_db();
+    }
+
     public static app_db(): BaseDatabase {
         return this.database;
+    }
+
+    public static async end_connection(): Promise<void> {
+        await this.database.end_connection();
     }
 }
 
@@ -26,6 +34,10 @@ export class SIMDBHandler {
 
     public static app_db(): BaseDatabase {
         return this.database;
+    }
+
+    public static async end_connection(): Promise<void> {
+        await this.database.end_connection();
     }
 }
 
@@ -100,5 +112,9 @@ export class CEOHandler {
 
     public static app_db(): CEOdatabase {
         return this.database;
+    }
+
+    public static async end_connection(): Promise<void> {
+        await this.database.end_connection();
     }
 }
