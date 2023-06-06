@@ -219,7 +219,7 @@ export interface devicerw {
     romg: number;
 }
 
-// rwstruc sql
+// locstruc sql
 export interface locstruc_table {
     node_name: string;
     utc: number;

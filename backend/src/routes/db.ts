@@ -325,6 +325,12 @@ router.get('/now', async (req: Request<{}, {}, {}, QueryType>, res: Response) =>
 });
 
 // // curl --request GET "http://localhost:10090/db/position?from=59874.83333333&to=59874.87333333&type=eci&latestOnly=true"
+/**
+ * position: test
+ * 
+ * 
+ * curl -X GET -H "Content-Type: application/json" --data '{"query": { "type":"position", "arg":"eci", "latestOnly":false, "filters":[], "functions":[]}, "from":59874.83333333, "to":59874.87333333}' http://localhost:10090/db/position
+ */
 router.get('/position', async (req: Request<{}, {}, {}, QueryType>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.from === undefined || req.query.to === undefined || req.query.query === undefined) {
@@ -333,7 +339,7 @@ router.get('/position', async (req: Request<{}, {}, {}, QueryType>, res: Respons
             description: 'URL Query incorrect, must provide time range from and to'
         });
     }
-    console.log("position curl latestOnly: ", req.query);
+    console.log("position curl request: ", req.query);
     const ret = await db.get_position(req.query);
     const response = new_api_response('success');
     response.payload = ret;
