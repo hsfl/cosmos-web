@@ -1,4 +1,4 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, EventResourceImpact } from "database/BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, Device, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, EventResourceImpact, sqlquerytranslate, locstruc_table } from "database/BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -6,7 +6,7 @@ import { AppError } from 'exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
 import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, relative_angle_range } from '../transforms/cosmos';
 import { TimeRange, cosmosresponse, KeyType } from 'types/cosmos_types';
-import { QueryObject, QueryType } from 'types/query_types';
+import { QueryObject, QueryType, QueryFilter } from 'types/query_types';
 import { table_schema } from './inittables';
 
 
@@ -51,7 +51,7 @@ export default class MysqlDatabase extends BaseDatabase {
             console.log('telem:', telem[i]);
             this.pool.query(telem[i].fields.value, (err) => {
                 if (err) {
-                    console.log(err);
+                    console.error(err);
                 }
             });
             // this.pool.execute(
@@ -90,7 +90,7 @@ export default class MysqlDatabase extends BaseDatabase {
         try {
             await this.promisePool.query('DELETE FROM device');
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error updating devices'
@@ -107,7 +107,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     [devices[i].node_name, devices[i].type, devices[i].cidx, devices[i].didx, devices[i].name]
                 );
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 throw new AppError({
                     httpCode: StatusCodes.BAD_REQUEST,
                     description: 'Failure adding devices'
@@ -125,7 +125,7 @@ export default class MysqlDatabase extends BaseDatabase {
                 await this.promisePool.query('DELETE FROM ' + tableArray[i]);
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error clearing table'
@@ -162,7 +162,7 @@ export default class MysqlDatabase extends BaseDatabase {
                 }
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error writing sql insert statement'
@@ -184,7 +184,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     row_value_array
                 );
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 throw new AppError({
                     httpCode: StatusCodes.BAD_REQUEST,
                     description: 'Failure adding row'
@@ -198,7 +198,7 @@ export default class MysqlDatabase extends BaseDatabase {
         try {
             await this.promisePool.query('DELETE FROM swchstruc');
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error updating swch struc'
@@ -213,7 +213,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
                 );
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 throw new AppError({
                     httpCode: StatusCodes.BAD_REQUEST,
                     description: 'Failure adding devices'
@@ -227,7 +227,7 @@ export default class MysqlDatabase extends BaseDatabase {
         try {
             await this.promisePool.query('DELETE FROM battstruc');
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error updating batt struc'
@@ -242,7 +242,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
                 );
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 throw new AppError({
                     httpCode: StatusCodes.BAD_REQUEST,
                     description: 'Failure adding devices'
@@ -275,7 +275,7 @@ export default class MysqlDatabase extends BaseDatabase {
                             [event_id_value, resource_id, row.second_index]
                         );
                     } catch (error) {
-                        console.log(error);
+                        console.error(error);
                         throw new AppError({
                             httpCode: StatusCodes.BAD_REQUEST,
                             description: 'Failure deleting event resource impact'
@@ -288,7 +288,7 @@ export default class MysqlDatabase extends BaseDatabase {
                             [row.resource_change, row.second_index, event_id_value, resource_id]
                         );
                     } catch (error) {
-                        console.log(error);
+                        console.error(error);
                         throw new AppError({
                             httpCode: StatusCodes.BAD_REQUEST,
                             description: 'Failure updating event resource impact'
@@ -298,6 +298,20 @@ export default class MysqlDatabase extends BaseDatabase {
             }
         }
     }
+
+    // POST write new event
+
+    // update event row ; primary key (id) 
+
+    // delete event row ; primary key (id) // call resource delete as well for cascade association ?
+
+
+    // POST write new resource
+
+    // update resource row ; primary key (id) 
+
+    // delete resource row ; primary key (id) // call from event delete as well for cascade association ?
+
 
     // // // /// 
     // get list of unique device keys given empty query return for given struc type
@@ -322,7 +336,7 @@ WHERE
             return ret;
         }
         catch (error) {
-            console.log('Error in get_device_keys:', error);
+            console.error('Error in get_device_keys:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -330,6 +344,28 @@ WHERE
         }
     }
     // // // /// 
+
+    public async get_nodes(): Promise<cosmosresponse> {
+        try {
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT
+*
+FROM node
+limit 1000`,
+            );
+            // console.log(rows[0])
+            const ret = { nodes: rows };
+            // console.log("device return: ", ret);
+            return ret;
+        }
+        catch (error) {
+            console.error('Error in get_nodes:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
 
     // // // /// 
     // get list of unique device keys given empty query return for given struc type
@@ -354,7 +390,7 @@ event_id = ? limit 1000`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_event_resource:', error);
+            console.error('Error in get_event_resource:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -401,7 +437,7 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_attitude:', error);
+            console.error('Error in get_attitude:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -427,7 +463,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_event:', error);
+            console.error('Error in get_event:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -452,7 +488,7 @@ ORDER BY id limit 1000;`
             return ret;
         }
         catch (error) {
-            console.log('Error in get_event_list:', error);
+            console.error('Error in get_event_list:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -475,7 +511,7 @@ ORDER BY resource_name limit 1000;`
             return ret;
         }
         catch (error) {
-            console.log('Error in get_resource_list:', error);
+            console.error('Error in get_resource_list:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -502,7 +538,7 @@ ORDER BY resource_name limit 1000;`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_resource_list:', error);
+            console.error('Error in get_resource_list:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -530,21 +566,35 @@ ORDER BY resource_name limit 1000;`,
     public async get_now(query: QueryType): Promise<cosmosresponse> {
         let query_statement: string = "";
         try {
+            // parse the internal query from the request packet
             const queryObj: QueryObject = JSON.parse(query.query);
+            // translate the query type into the database table name
+            let databasetable: string = "";
+            for (const [key, value] of Object.entries(sqlquerytranslate)) {
+                if (queryObj.type === key) {
+                    databasetable = value;
+                }
+            }
+            // map through SQLmap JSON of COSMOS tables and columns 
             for (const [key, value] of Object.entries(sqlmap)) {
                 // console.log(`${key}: ${value}`);
-                if (key === queryObj.type) {
+                // argument here is the DB table name exact; see sqlmap in BaseDatabase for reference
+                if (key === databasetable) {
                     let dynamic_query: string = 'SELECT ';
                     let table: string = ' FROM ' + key;
+                    let condition: string = ' WHERE utc = (select max(utc) from ' + key + ')';
+                    // refactor to avoid gross aggregation in sql
                     let mtime: string = '';
                     for (let i = 0; i < value.length; i++) {
                         if (value[i] === "utc") {
-                            mtime = 'MAX(utc) as "latest_timestamp"';
+                            // mtime = 'MAX(utc) as "latest_timestamp"';
+                            mtime = 'utc as "latest_timestamp"';
                         }
                         else {
                             dynamic_query += value[i] + ", ";
                         }
                     }
+                    // define unique key pairing when excludes utc, which is part of primary key... 
                     let query_group: string = ' GROUP BY ';
                     for (const [qkey, qvalue] of Object.entries(sqlquerykeymap)) {
                         // console.log(`${key}: ${value}`);
@@ -558,12 +608,14 @@ ORDER BY resource_name limit 1000;`,
                             }
                         }
                     }
-                    query_statement = dynamic_query.concat(mtime, table, query_group);
+                    // query_statement = dynamic_query.concat(mtime, table, query_group, condition);
+                    //updated temp patch of query; excludes group by, should return unique node:didx pairing for max(utc) as array of rows with data columns
+                    query_statement = dynamic_query.concat(mtime, table, condition);
                     console.log("query max(utc) statement construct: ", query_statement);
                 }
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error writing sql insert statement'
@@ -591,7 +643,7 @@ ORDER BY resource_name limit 1000;`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_now:', error);
+            console.error('Error in get_now:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -603,8 +655,28 @@ ORDER BY resource_name limit 1000;`,
     public async get_position(query: QueryType): Promise<cosmosresponse> {
         try {
             const queryObj: QueryObject = JSON.parse(query.query);
-            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-                `SELECT
+            let rows: mysql.RowDataPacket[];
+            // filter for latestOnly
+            if (queryObj.latestOnly) {
+                console.log("Latest Only");
+                [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                    `SELECT
+locstruc.utc AS "time", 
+locstruc.node_name as "node_name",
+node.node_type as "node_type",
+eci_s_x, eci_s_y, eci_s_z,
+eci_v_x, eci_v_y, eci_v_z,
+icrf_s_x, icrf_s_y, icrf_s_z, 
+icrf_s_w, icrf_v_x, icrf_v_y, 
+icrf_v_z
+FROM locstruc 
+INNER JOIN node ON locstruc.node_name = node.node_name
+WHERE locstruc.utc = (select max(locstruc.utc) from locstruc) ORDER BY time limit 10000`,
+                    [query.from, query.to],
+                );
+            } else {
+                [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                    `SELECT
 locstruc.utc AS "time", 
 locstruc.node_name as "node_name",
 node.node_type as "node_type",
@@ -616,12 +688,46 @@ icrf_v_z
 FROM locstruc 
 INNER JOIN node ON locstruc.node_name = node.node_name
 WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
-                [query.from, query.to],
-            );
+                    [query.from, query.to],
+                );
+            }
             console.log(rows[0])
             if (rows.length == 0) {
                 console.log("empty rows");
+                // logic for returning list of nodes in given type on empty row return
+                const key_array = await this.get_nodes();
+                // console.log("key_array: ", key_array);
+                const locrows: Array<locstruc_table> = [];
+                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        // console.log("qvalue[i]: ", qvalue[i]);
+                        const locstruc: locstruc_table = {
+                            node_name: qvalue[i].node_name,
+                            utc: query.to,
+                            eci_s_x: 0,
+                            eci_s_y: 0,
+                            eci_s_z: 0,
+                            eci_v_x: 0,
+                            eci_v_y: 0,
+                            eci_v_z: 0,
+                            icrf_s_x: 0,
+                            icrf_s_y: 0,
+                            icrf_s_z: 0,
+                            icrf_s_w: 0,
+                            icrf_v_x: 0,
+                            icrf_v_y: 0,
+                            icrf_v_z: 0,
+                        }
+                        locrows.push({ ...locstruc });
+                    }
+                }
+                // const ret = { "ecis": locrows };
+                // console.log("compiled mock batt return: ", ret);
+                // return ret;
+                // end of logic for returning list of nodes on empty row return
             }
+            // else statement here for case where time range is valid and rows have data in return TODO
+            // else {}
             let type = queryObj.arg;
             if (type == "eci") {
                 const ret = { "ecis": eci_position(rows) };
@@ -642,7 +748,7 @@ WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_position:', error);
+            console.error('Error in get_position:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -688,7 +794,7 @@ LIMIT 10000`,
             return ret;
         }
         catch (error) {
-            console.log('Error in get_relative_angle_range:', error);
+            console.error('Error in get_relative_angle_range:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -745,7 +851,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_battery:', error);
+            console.error('Error in get_battery:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -806,7 +912,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_bcreg:', error);
+            console.error('Error in get_bcreg:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -860,7 +966,7 @@ devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_tsen:', error);
+            console.error('Error in get_tsen:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -912,7 +1018,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_cpu:', error);
+            console.error('Error in get_cpu:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -962,7 +1068,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             // return ret;
         }
         catch (error) {
-            console.log('Error in get_mag:', error);
+            console.error('Error in get_mag:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -1005,7 +1111,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             }
         }
         catch (error) {
-            console.log('Error in get_gyro:', error);
+            console.error('Error in get_gyro:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -1053,7 +1159,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             }
         }
         catch (error) {
-            console.log('Error in get_mtr:', error);
+            console.error('Error in get_mtr:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -1099,7 +1205,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             }
         }
         catch (error) {
-            console.log('Error in get_rw:', error);
+            console.error('Error in get_rw:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
@@ -1115,10 +1221,135 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                 console.log("table init for: ", table_schema[i].table);
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error initiating table'
+            });
+        }
+    }
+
+    // dynamic get dev for 2.0 query type
+    // TODO: refactor each query addition by type, i.e. so all WHERE clauses can be concatanated under the single section with appropriate syntax
+    //  solution could be to create array of each query part type, then map over each at the end to build the full statement. 
+    // TODO: consider join scenarios by endpoint query type, create a map to address each scenario dynamically
+    // TODO: need to handle input verification and validation; security and sql injection risks
+    public async get_dynamic(query: QueryType): Promise<cosmosresponse> {
+        try {
+            // parse internal query type object string
+            const queryObj: QueryObject = JSON.parse(query.query);
+
+            // map over translation from query type to sql table
+            let databasetable: string = "locstruc";
+            for (const [key, value] of Object.entries(sqlquerytranslate)) {
+                if (key === queryObj.type) {
+                    databasetable = value;
+                }
+            }
+
+            // build select sql query string 
+            let dynamic_query: string = 'SELECT ';
+            let query_time: string = ' ';
+
+            // map through SQLmap JSON of COSMOS tables and columns 
+            for (const [key, value] of Object.entries(sqlmap)) {
+                // argument here is the DB table name exact; see sqlmap in BaseDatabase for reference
+                if (key === databasetable) {
+                    for (let i = 0; i < value.length; i++) {
+                        if (value[i] === "utc") {
+                            // mtime = 'MAX(utc) as "latest_timestamp"';
+                            query_time = 'utc as "time"';
+                        }
+                        else {
+                            dynamic_query += value[i] + ", ";
+                        }
+                    }
+                }
+            }
+            dynamic_query.concat(query_time);
+            console.log("dynamic GET query, select part: ", dynamic_query);
+
+            // define table dynamically 
+            let table_query: string = ' FROM ' + databasetable;
+
+            // define WHERE conditions, build dynamic array
+            let query_filter_string: string = ' WHERE ';
+            let query_where_filter_array: Array<string> = [];
+            // build string based on query conditions... 
+            // query filterType
+            if (queryObj.filters[0].filterType) {
+                // proceed if the filter list has one or more entries
+                console.log("Query filter: ", queryObj.filters);
+                // iterate over each filter entry
+                for (const filter of queryObj.filters) {
+                    let where_query_filter: string = ' ';
+                    // check for filter type domain 
+                    if (filter.filterType == 'node') {
+                        where_query_filter += ' node_name ';
+                    } else if (filter.filterType == 'name') {
+                        where_query_filter += ' name ';
+                    }
+                    // TODO: refine this query parameter... needs to edit or change the sql column schema map
+                    // note this will change what columns are returned, not the WHERE clause
+                    // note this will break the grafana datasource return type? or perhaps does not mind missing columns 
+                    // else if (filter.filterType == 'col') {
+                    // }
+
+                    // now check for operator compare type and define target value
+                    if (filter.compareType == 'equals') {
+                        where_query_filter += '= ' + filter.filterValue;
+                    } else if (filter.compareType == 'contains') {
+                        where_query_filter += 'LIKE ' + '"%' + filter.filterValue + '%"';
+                    }
+                    query_where_filter_array.push(where_query_filter)
+                }
+                // console.log("Dynamic GET query, array of WHERE: ", query_where_filter_array);
+            }
+            // filter for latestOnly
+            if (queryObj.latestOnly) {
+                console.log("Latest Only true");
+                // let condition: string = ' WHERE utc = (select max(utc) from ' + key + ')';
+                let latestOnlycondition: string = ' utc = (select max(utc) from ' + databasetable + ')';
+                query_where_filter_array.push(latestOnlycondition);
+            } else {
+                // case for from & to timerange WHERE condition
+                //.utc BETWEEN ? and ? 
+                //[query.from, query.to]
+                let timerange: string = ' utc BETWEEN ' + query.from + ' and ' + query.to + ' ';
+                query_where_filter_array.push(timerange);
+            }
+            console.log("Dynamic GET query, array of WHERE: ", query_where_filter_array);
+            for (let i = 0; i < query_where_filter_array.length; i++) {
+                if ((i + 1) == query_where_filter_array.length) {
+                    query_filter_string += query_where_filter_array[i];
+                } else {
+                    query_filter_string += query_where_filter_array[i] + " AND ";
+                }
+            }
+            console.log("Dynamic GET query, string statement of WHERE: ", query_filter_string);
+
+            // TODO: refactor how functions are passed and handled in query
+
+            // TODO build final query string
+            let full_get_query_statement: string = "";
+            full_get_query_statement.concat(dynamic_query, table_query, query_filter_string)
+            console.log("Dynamic GET query, full statement: ", full_get_query_statement);
+
+            // final SQL call
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                full_get_query_statement
+            );
+            console.log(rows[0])
+            // TODO create mapping from table to return code; for now it is the SQL table name
+            const dname: string = databasetable;
+            const ret = { dname: rows };
+            return ret;
+        }
+        catch (error) {
+            console.error('Error in get_dynamic:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
             });
         }
     }
