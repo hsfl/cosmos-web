@@ -8,7 +8,7 @@ services:
 
   grafana-plugins-dev:
     command: tail -f /dev/null
-    image: hsfl2/grafana_plugins_dev_env
+    image: hsfl2/grafana_plugins_dev_env:0.2.0
     container_name: cosmos_grafana_plugins_dev_env
     volumes:
       - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/home/cosmos/${COSMOSWEBDIR}/grafana-plugins/cosmos-grafana-plugins
@@ -19,7 +19,7 @@ services:
 
   backend:
     container_name: cosmos_backend
-    image: hsfl2/web_backend:latest
+    image: hsfl2/web_backend:0.3.0
     volumes:
       # For syncing dev changes
       - ${COSMOSWEBDIR:-.}/backend/src:/home/node/app/src
