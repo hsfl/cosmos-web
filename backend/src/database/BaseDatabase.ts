@@ -265,6 +265,10 @@ export default class BaseDatabase {
         console.log('Clear database');
     }
 
+    public async init_tables(): Promise<void> {
+        console.log('Init database');
+    }
+
     public async write_telem(telem: TelegrafMetric[]): Promise<void> {
         console.log('Writing telem point', telem);
     }

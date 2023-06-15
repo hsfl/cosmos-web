@@ -166,7 +166,7 @@ export function is_cartpos_s_v(obj: any): obj is cartpos {
 
 // grafana parsed solution
 export interface gfcartpos {
-    utc: number; // double
+    // utc: number; // double
     s_x: number;
     s_y: number;
     s_z: number;

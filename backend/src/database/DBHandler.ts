@@ -16,6 +16,10 @@ export class DBHandler {
         // this.database.reset_db();
     }
 
+    public static init_database(): void {
+        this.database.init_tables();
+    }
+
     public static app_db(): BaseDatabase {
         return this.database;
     }

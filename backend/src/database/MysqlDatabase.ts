@@ -1234,6 +1234,8 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
     //  solution could be to create array of each query part type, then map over each at the end to build the full statement. 
     // TODO: consider join scenarios by endpoint query type, create a map to address each scenario dynamically
     // TODO: need to handle input verification and validation; security and sql injection risks
+    // TODO: add 'join' conditions to endpoint keyword translation dictionary
+    // TODO: filter select statement columns based on if 'col' filter is utilized
     public async get_dynamic(query: QueryType): Promise<cosmosresponse> {
         try {
             // parse internal query type object string

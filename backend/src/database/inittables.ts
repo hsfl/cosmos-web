@@ -237,7 +237,7 @@ export const table_schema: Array<mysqlschema> = [
     },
     {
         table: "event",
-        statement: `CREATE TABLE event (
+        statement: `CREATE TABLE IF NOT EXISTS event (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             type VARCHAR(255) NOT NULL,
@@ -246,7 +246,7 @@ export const table_schema: Array<mysqlschema> = [
     },
     {
         table: "resource",
-        statement: `CREATE TABLE resource (
+        statement: `CREATE TABLE IF NOT EXISTS resource (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             type VARCHAR(255) NOT NULL,
@@ -256,7 +256,7 @@ export const table_schema: Array<mysqlschema> = [
     },
     {
         table: "event_resource_impact",
-        statement: `CREATE TABLE event_resource_impact (
+        statement: `CREATE TABLE IF NOT EXISTS event_resource_impact (
             event_id INT NOT NULL,
             resource_id INT NOT NULL,
             second_index INT NOT NULL,

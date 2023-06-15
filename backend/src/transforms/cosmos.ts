@@ -37,7 +37,7 @@ export const attitude = (rows: mysql.RowDataPacket[]) => {
     return ret;
 };
 
-const getNewLocstruc = ():  locstruc => ({
+const getNewLocstruc = (): locstruc => ({
     utc: 0, // 59874.83333533
     pos: {
         utc: 0, // 59976.086354162231
@@ -311,7 +311,7 @@ export const eci_position = (rows: mysql.RowDataPacket[]) => {
     const ret: Array<gfcartpos & timepoint & GFNodeType> = [];
     rows.forEach((row) => {
         const gfeci: gfcartpos = {
-            utc: row.time,
+            // utc: row.time,
             s_x: row.eci_s_x,
             s_y: row.eci_s_y,
             s_z: row.eci_s_z,
@@ -504,7 +504,7 @@ export const relative_angle_range = (rows: mysql.RowDataPacket[], originNode: st
     // Keep track of which locs are newly found. Only compute groundstation() for new/updated entries.
     // If originNode is updated, then recompute for every node.
     const locsUpdated = new Map<string, boolean>();
-    for (let i=0; i<rows.length; i++) {
+    for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         // Perform groundstation() for all new entries found on the previous runs of the same timestamps
         if (row.time > currentTime || i === rows.length) {
@@ -513,7 +513,7 @@ export const relative_angle_range = (rows: mysql.RowDataPacket[], originNode: st
             if (originNodeUpdated !== undefined) {
                 // Compute groundstation() for every node if originNode has been updated
                 if (originNodeUpdated) {
-                    locsUpdated.forEach((_,key) => locsUpdated.set(key, true));
+                    locsUpdated.forEach((_, key) => locsUpdated.set(key, true));
                     locsUpdated.set(originNode, false);
                 }
                 // Now compute for each updated node
@@ -565,7 +565,7 @@ export const relative_angle_range = (rows: mysql.RowDataPacket[], originNode: st
 // TODO remaining sql tables for namespace 1.0
 // completed: device_swch, device_batt
 
-export const parse_device_swch = (deviceswch: Object) : deviceswch[] => {
+export const parse_device_swch = (deviceswch: Object): deviceswch[] => {
     const ret: Array<deviceswch> = [];
     let Ob: deviceswch = {
         node_name: "",
@@ -708,33 +708,33 @@ export const parse_locstruc = (loc: Object) => {
         icrf_v_y: 0,
         icrf_v_z: 0,
     };
-    for (const [k,v] of Object.entries(loc)) {
-        switch(k) {
-        case "node_loc":
-            if (!is_locstruc_pos_eci_att_icrf(v)) {
+    for (const [k, v] of Object.entries(loc)) {
+        switch (k) {
+            case "node_loc":
+                if (!is_locstruc_pos_eci_att_icrf(v)) {
+                    return [];
+                }
+                const node_loc = v as locstruc;
+                obj.utc = node_loc.pos.eci.utc;
+                obj.eci_s_x = node_loc.pos.eci.s.col[0];
+                obj.eci_s_y = node_loc.pos.eci.s.col[1];
+                obj.eci_s_z = node_loc.pos.eci.s.col[2];
+                obj.eci_v_x = node_loc.pos.eci.v.col[0];
+                obj.eci_v_y = node_loc.pos.eci.v.col[1];
+                obj.eci_v_z = node_loc.pos.eci.v.col[2];
+                obj.icrf_s_w = node_loc.att.icrf.s.w;
+                obj.icrf_s_x = node_loc.att.icrf.s.d.x;
+                obj.icrf_s_y = node_loc.att.icrf.s.d.y;
+                obj.icrf_s_z = node_loc.att.icrf.s.d.z;
+                obj.icrf_v_x = node_loc.att.icrf.v.col[0];
+                obj.icrf_v_y = node_loc.att.icrf.v.col[1];
+                obj.icrf_v_z = node_loc.att.icrf.v.col[2];
+                break;
+            case "node_name":
+                obj.node_name = v;
+                break;
+            default:
                 return [];
-            }
-            const node_loc = v as locstruc;
-            obj.utc = node_loc.pos.eci.utc;
-            obj.eci_s_x = node_loc.pos.eci.s.col[0];
-            obj.eci_s_y = node_loc.pos.eci.s.col[1];
-            obj.eci_s_z = node_loc.pos.eci.s.col[2];
-            obj.eci_v_x = node_loc.pos.eci.v.col[0];
-            obj.eci_v_y = node_loc.pos.eci.v.col[1];
-            obj.eci_v_z = node_loc.pos.eci.v.col[2];
-            obj.icrf_s_w = node_loc.att.icrf.s.w;
-            obj.icrf_s_x = node_loc.att.icrf.s.d.x;
-            obj.icrf_s_y = node_loc.att.icrf.s.d.y;
-            obj.icrf_s_z = node_loc.att.icrf.s.d.z;
-            obj.icrf_v_x = node_loc.att.icrf.v.col[0];
-            obj.icrf_v_y = node_loc.att.icrf.v.col[1];
-            obj.icrf_v_z = node_loc.att.icrf.v.col[2];
-        break;
-        case "node_name":
-            obj.node_name = v;
-        break;
-        default:
-            return [];
         }
     }
 
@@ -750,22 +750,22 @@ export const parse_node = (obj: Object) => {
         utc: 0,
         utcstart: 0
     };
-    for (const [k,v] of Object.entries(obj)) {
-        switch(k) {
-        case "node":
-            if (!is_node(v)) {
+    for (const [k, v] of Object.entries(obj)) {
+        switch (k) {
+            case "node":
+                if (!is_node(v)) {
+                    return [];
+                }
+                const v_as_node = v as node;
+                node.node_id = v_as_node.node_id;
+                node.node_name = v_as_node.node_name;
+                node.node_type = v_as_node.node_type;
+                node.agent_name = v_as_node.agent_name;
+                node.utc = v_as_node.utc;
+                node.utcstart = v_as_node.utcstart;
+                break;
+            default:
                 return [];
-            }
-            const v_as_node = v as node;
-            node.node_id = v_as_node.node_id;
-            node.node_name = v_as_node.node_name;
-            node.node_type = v_as_node.node_type;
-            node.agent_name = v_as_node.agent_name;
-            node.utc = v_as_node.utc;
-            node.utcstart = v_as_node.utcstart;
-        break;
-        default:
-            return [];
         }
     }
 
