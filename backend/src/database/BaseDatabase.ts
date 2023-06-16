@@ -131,7 +131,7 @@ export interface deviceswch {
     temp: number;
 }
 
-export type table_type = devicebatt | devicebcreg;
+export type table_type = devicebatt | devicebcreg | devicetsen;
 
 // battstruc sql
 export interface devicebatt {
@@ -162,9 +162,9 @@ export interface devicebcreg {
 
 // tsenstruc sql
 export interface devicetsen {
-    node_device: string;
+    node_name: string;
     didx: number;
-    time: number; // utc
+    utc: number;
     temp: number;
 }
 

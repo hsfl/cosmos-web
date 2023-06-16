@@ -116,7 +116,7 @@ curl -X POST -H "Content-Type: application/json" --data '{
 }
 ' http://localhost:10090/db/beacon
  */
-
+// TODO: beacon2obj error on any of the metrics don't notify of the error (check with tests)
 router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response) => {
     // console.log(req.body);
     if ((req.body) === undefined || req.body.metrics === undefined) {

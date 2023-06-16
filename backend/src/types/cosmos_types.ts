@@ -374,6 +374,7 @@ export function is_devicestruc(obj: any): obj is devicestruc {
 export interface devspecstruc {
     batt: battstruc[];
     bcreg: bcregstruc[];
+    tsen: tsenstruc[];
 }
 
 // Cosmos type
@@ -401,6 +402,7 @@ export function is_battstruc(obj: any): obj is battstruc {
         && typeof obj.percentage === 'number'
     );
 }
+
 // Cosmos type
 export interface bcregstruc {
     didx: number;
@@ -430,5 +432,23 @@ export function is_bcregstruc(obj: any): obj is bcregstruc {
         && typeof obj.mpptin_volt === 'number'
         && typeof obj.mpptout_amp === 'number'
         && typeof obj.mpptout_volt === 'number'
+    );
+}
+
+// Cosmos type
+export interface tsenstruc {
+    didx: number;
+    utc: number;
+    temp: number;
+}
+
+export function is_tsenstruc(obj: any): obj is tsenstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.didx === 'number'
+        && typeof obj.utc === 'number'
+        && typeof obj.temp === 'number'
     );
 }

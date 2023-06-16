@@ -1,6 +1,6 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_devicestruc } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_devicestruc, is_tsenstruc } from 'types/cosmos_types';
 import mysql from 'mysql2';
-import { device_table, GFNodeType, deviceswch, devicebatt, devicebcreg, cosmos_table_row, locstruc_table, node, table_type, is_node } from 'database/BaseDatabase';
+import { device_table, GFNodeType, deviceswch, devicebatt, devicebcreg, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node } from 'database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
 
@@ -704,6 +704,9 @@ export const parse_devspec = (obj: Partial<beacontype>): [string, table_type[]] 
     } else if (obj.devspec.bcreg !== undefined) {
         device_type = 'bcregstruc';
         ret = parse_devspec_bcreg(obj.node_name, obj.devspec);
+    } else if (obj.devspec.tsen !== undefined) {
+        device_type = 'tsenstruc';
+        ret = parse_devspec_tsen(obj.node_name, obj.devspec);
     } else {
         return ["error", []];
     }
@@ -763,6 +766,31 @@ export const parse_devspec_bcreg = (node_name: string, devspec: Partial<devspecs
             mpptin_volt: bcreg.mpptin_volt,
             mpptout_amp: bcreg.mpptout_amp,
             mpptout_volt: bcreg.mpptout_volt,
+        });
+    });
+
+    return ret;
+}
+
+
+// Parses a json array of tsenstrucs into rows of data to be written to the tsen table
+// node_name: The name of the node, determined earlier in the call stack
+// devspec: An object containing tsen -- an array of tsenstrucs, type checked inside this function
+export const parse_devspec_tsen = (node_name: string, devspec: Partial<devspecstruc>): devicetsen[] => {
+    if (!Array.isArray(devspec.tsen)) {
+        return [];
+    }
+    let ret: devicetsen[] = [];
+
+    devspec.tsen.forEach((tsen: any) => {
+        if (!is_tsenstruc(tsen)) {
+            return;
+        }
+        ret.push({
+            node_name: node_name as string,
+            didx: tsen.didx,
+            utc: tsen.utc,
+            temp: tsen.temp,
         });
     });
 

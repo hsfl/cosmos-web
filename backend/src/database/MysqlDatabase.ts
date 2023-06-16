@@ -814,9 +814,10 @@ LIMIT 10000`,
     public async get_battery(query: QueryType): Promise<cosmosresponse> {
         try {
             const queryObj: QueryObject = JSON.parse(query.query);
-            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            const sql_query =
 `SELECT
-  utc AS "time",
+  devspec.utc AS "time",
   devspec.node_name as "node_name",
   device.name as "name",
   amp,
@@ -827,12 +828,18 @@ LIMIT 10000`,
 FROM battstruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
-  device.type = 12 AND
-  devspec.node_name = ? AND
-  devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
-                ['mother', query.from, query.to],
+device.type = 12 AND\n`
++ (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
++ `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+            const query_arg_array = [
+                node_filter?.filterValue,
+                query.from,
+                query.to
+            ].filter((v) => v !== undefined);
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                sql_query,
+                query_arg_array,
             );
-            console.log('get_battery rows', rows[0])
             if (rows.length === 0) {
                 // console.log("empty rows");
                 const key_array = await this.get_device_keys({ dtype: 12, dname: "batts" }, queryObj);
@@ -856,10 +863,11 @@ WHERE
                     }
                 }
                 const ret = { "batts": battrows };
-                // console.log("compiled mock batt return: ", ret);
+                console.log('get_battery rows', rows[0])
                 return ret;
             } else {
                 const ret = { "batts": rows };
+                console.log('get_battery rows', rows[0])
                 return ret;
             }
         }
@@ -897,7 +905,6 @@ device.type = 30 AND\n`
                 query.from,
                 query.to
             ].filter((v) => v !== undefined);
-            // if (node_filter !== undefined)
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 sql_query,
                 query_arg_array,
@@ -949,48 +956,50 @@ device.type = 30 AND\n`
     public async get_tsen(query: QueryType): Promise<cosmosresponse> {
         try {
             const queryObj: QueryObject = JSON.parse(query.query);
-            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-                `SELECT
-utc AS "time",
-CONCAT(devspec.node_name, ':', device.name) as "node:device",
-devspec.temp
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            const sql_query =
+`SELECT
+  devspec.utc AS "time",
+  devspec.node_name as "node_name",
+  device.name as "name",
+  temp
 FROM tsenstruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
-  device.type = 15 AND
-devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`,
-                [query.from, query.to],
+device.type = 15 AND\n`
++ (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
++ `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+            const query_arg_array = [
+                node_filter?.filterValue,
+                query.from,
+                query.to
+            ].filter((v) => v !== undefined);
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                sql_query,
+                query_arg_array,
             );
-            console.log(rows[0])
-            // tsenstruc sql
-            // export interface devicetsen {
-            //     node_name: string;
-            //     didx: number;
-            //     time: number; // utc
-            //     temp: number;
-            // }
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({ dtype: 15, dname: "tsen" }, queryObj);
-                const tsenrows: Array<devicetsen> = [];
-                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                const tsenrows: Array<devicetsen & Partial<device_table> & timepoint> = [];
+                for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devtsen: devicetsen = {
-                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            node_name: qvalue[i].node_name,
                             didx: qvalue[i].didx,
-                            time: query.to,
+                            utc: query.from,
                             temp: 0,
                         }
-                        tsenrows.push({ ...devtsen });
+                        tsenrows.push({name: qvalue[i].name, Time: query.from, ...devtsen });
                     }
                 }
                 const ret = { "tsens": tsenrows };
+                console.log('get_tsen rows', rows[0])
                 return ret;
             } else {
                 const ret = { "tsens": rows };
+                console.log('get_tsen rows', rows[0])
                 return ret;
             }
-            // const ret = { "tsens": rows };
-            // return ret;
         }
         catch (error) {
             console.error('Error in get_tsen:', error);

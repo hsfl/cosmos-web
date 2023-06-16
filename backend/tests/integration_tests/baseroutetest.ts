@@ -123,7 +123,7 @@ describe('GET /', () => {
             metrics: [
                 {
                     fields: {
-                        value: '{"device": [{"cidx": 0, "didx": 0, "name": "Battery0", "type": 12}, {"cidx": 1, "didx": 1, "name": "Battery1", "type": 12}, {"cidx": 2, "didx": 0, "name": "Left", "type": 30}, {"cidx": 3, "didx": 1, "name": "Right", "type": 30}], "node_name": "mother"}'
+                        value: '{"device": [{"cidx": 0, "didx": 0, "name": "Battery0", "type": 12}, {"cidx": 1, "didx": 1, "name": "Battery1", "type": 12}, {"cidx": 2, "didx": 0, "name": "Left", "type": 30}, {"cidx": 3, "didx": 1, "name": "Right", "type": 30}, {"cidx": 4, "didx": 0, "name": "Camera", "type": 15}, {"cidx": 5, "didx": 1, "name": "Heat sink", "type": 15}, {"cidx": 6, "didx": 2, "name": "CPU", "type": 15}], "node_name": "mother"}'
                     },
                     name: 'socket_listener',
                     tags: { host: '12345678' },
@@ -187,6 +187,29 @@ describe('GET /', () => {
             .expect(StatusCodes.ACCEPTED);
     });
 
+    it('Can post tsen beacon', async () => {
+        const beacon = {
+            metrics: [
+                {
+                    fields: {
+                        value: '{"devspec": {"tsen": [{"didx": 0, "temp": 398.80574312936784, "utc": 60101.0}, {"didx": 1, "temp": 397.90487670009253, "utc": 60101.0}, {"didx": 2, "temp": 390.89279319899754, "utc": 60101.0}]}, "node_name": "mother"}'
+                    },
+                    name: 'socket_listener',
+                    tags: { host: '12345678' },
+                    timestamp: 12345678
+                },
+            ]
+        };
+        await request(app)
+            .post('/db/beacon')
+            .set('Accept', 'application/json')
+            .send(beacon)
+            .expect((res: request.Response) => {
+                expect(res.body.message).toBe('success');
+            })
+            .expect(StatusCodes.ACCEPTED);
+    });
+
     it('Can get battery', async () => {
         const queryObject: QueryObject = {
             type: 'battery',
@@ -231,6 +254,30 @@ describe('GET /', () => {
             .expect((res: request.Response) => {
                 expect(res.body.message).toBe('success');
                 expect(res.body.payload.bcregs).not.toHaveLength(0);
+            })
+            .expect(StatusCodes.OK);
+    });
+
+    it('Can get tsen', async () => {
+        const queryObject: QueryObject = {
+            type: 'tsen',
+            arg: '',
+            latestOnly: false,
+            filters: [],
+            functions: []
+        }
+        const query: QueryType = {
+            query: JSON.stringify(queryObject),
+            from: 60101.0,
+            to: 60101.1
+        }
+        await request(app)
+            .get('/db/tsen')
+            .set('Accept', 'application/json')
+            .query(query)
+            .expect((res: request.Response) => {
+                expect(res.body.message).toBe('success');
+                expect(res.body.payload.tsens).not.toHaveLength(0);
             })
             .expect(StatusCodes.OK);
     });
