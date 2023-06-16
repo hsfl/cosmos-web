@@ -1,6 +1,4 @@
-export interface cosmos_types {
-
-}
+import { node } from "database/BaseDatabase";
 
 export interface attitude {
     node_id: number;
@@ -339,3 +337,98 @@ export interface rmatrix {
     row: [rvector, rvector, rvector];
 }
 
+// Beacons received for writing to the db, essentially a cosmosstruc
+// The type after JSON unmarshalling a beacon.
+// Utilize this interface as Partial<beacontype> and perform explicit
+// member checking.
+export interface beacontype {
+    node_name: string;
+    node_loc: Partial<locstruc>;
+    node: Partial<node>;
+    device: Partial<devicestruc>[];
+    devspec: Partial<devspecstruc>;
+}
+
+// Cosmos type
+
+export interface devicestruc {
+    type: number;
+    cidx: number;
+    didx: number;
+    name: string;
+}
+
+export function is_devicestruc(obj: any): obj is devicestruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.type === 'number'
+        && typeof obj.cidx === 'number'
+        && typeof obj.didx === 'number'
+        && typeof obj.name === 'string'
+    );
+}
+
+// Cosmos type
+export interface devspecstruc {
+    batt: battstruc[];
+    bcreg: bcregstruc[];
+}
+
+// Cosmos type
+export interface battstruc {
+    didx: number;
+    utc: number;
+    volt: number;
+    amp: number;
+    power: number;
+    temp: number;
+    percentage: number;
+}
+
+export function is_battstruc(obj: any): obj is battstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.didx === 'number'
+        && typeof obj.utc === 'number'
+        && typeof obj.volt === 'number'
+        && typeof obj.amp === 'number'
+        && typeof obj.power === 'number'
+        && typeof obj.temp === 'number'
+        && typeof obj.percentage === 'number'
+    );
+}
+// Cosmos type
+export interface bcregstruc {
+    didx: number;
+    utc: number;
+    volt: number;
+    amp: number;
+    power: number;
+    temp: number;
+    mpptin_amp: number;
+    mpptin_volt: number;
+    mpptout_amp: number;
+    mpptout_volt: number;
+}
+
+export function is_bcregstruc(obj: any): obj is bcregstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.didx === 'number'
+        && typeof obj.utc === 'number'
+        && typeof obj.volt === 'number'
+        && typeof obj.amp === 'number'
+        && typeof obj.power === 'number'
+        && typeof obj.temp === 'number'
+        && typeof obj.mpptin_amp === 'number'
+        && typeof obj.mpptin_volt === 'number'
+        && typeof obj.mpptout_amp === 'number'
+        && typeof obj.mpptout_volt === 'number'
+    );
+}

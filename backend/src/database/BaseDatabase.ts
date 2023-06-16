@@ -118,7 +118,7 @@ export function is_node(obj: any): obj is node {
     );
 }
 
-export type beacontype = deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table | node;
+export type cosmos_table_row = device_table | deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table | node;
 
 // swchstruc sql
 export interface deviceswch {
@@ -130,6 +130,8 @@ export interface deviceswch {
     power: number;
     temp: number;
 }
+
+export type table_type = devicebatt | devicebcreg;
 
 // battstruc sql
 export interface devicebatt {
@@ -145,9 +147,9 @@ export interface devicebatt {
 
 // bcregstruc sql
 export interface devicebcreg {
-    node_device: string;
+    node_name: string;
     didx: number;
-    time: number; // utc
+    utc: number;
     volt: number;
     amp: number;
     power: number;
@@ -245,7 +247,7 @@ export interface GFNodeType {
     Node_type: number;
 }
 
-export interface Device {
+export interface device_table {
     node_name: string;
     type: number;
     cidx: number;
@@ -277,7 +279,7 @@ export default class BaseDatabase {
         console.log('Reset database, clearing data')
     }
 
-    public async write_device(devices: Device[]): Promise<void> {
+    public async write_device(devices: device_table[]): Promise<void> {
         console.log('Writing devices', devices);
     }
 

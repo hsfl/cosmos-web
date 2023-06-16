@@ -59,7 +59,8 @@ router.get('/dbmissionall', async (req: Request<{}, {}, {}, QueryType>, res: Res
         console.log("db return_array [i].mission : ", instance.mission);
     }
     // example database call for random 3 object in array, to the device list enpoint query, specified for type batts 
-    const ret = await ret_array[2].dbin.get_device_keys({ dtype: 12, dname: "batts" })
+    const dummyQuery = {type: '', arg: '', latestOnly: false, filters: [], functions: []};
+    const ret = await ret_array[2].dbin.get_device_keys({ dtype: 12, dname: "batts" }, dummyQuery);
     console.log("db return_array [2].dbin.get_device_keys : ", ret);
     const response = new_api_response('success');
     // response.payload = ret_array[0].dbin.get_event; .... ret
@@ -127,14 +128,14 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
     // extract body, format of object as string
     for (let i = 0; i < req.body.metrics.length; i++) {
         // parse string object into appropriate array of ["sql_table_name", [{database type row object}, ...] ]
-        console.log(req.body.metrics[i].fields.value);
-        const parsedbeacon = beacon2obj(req.body.metrics[i].fields.value);
+        // console.log(req.body.metrics[i].fields.value);
+        const [table_name, parsedbeacon] = beacon2obj(req.body.metrics[i].fields.value);
         // check to make sure beacon is parsed with successful response, then sort on key
-        if (parsedbeacon[0] !== "error") {
+        if (table_name !== "error") {
             // open database connection
             const db = DBHandler.app_db();
             // dynamic sql insert statement; takes (table: string, objectArray: any[])
-            await db.write_beacon(parsedbeacon[0], parsedbeacon[1]);
+            await db.write_beacon(table_name, parsedbeacon);
         }
     }
     res.status(202).json(new_api_response('success'));

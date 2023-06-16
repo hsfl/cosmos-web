@@ -1,6 +1,6 @@
-import { CosmosModule, quaternion, avector, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_devicestruc } from 'types/cosmos_types';
 import mysql from 'mysql2';
-import { GFNodeType, deviceswch, devicebatt, beacontype, locstruc_table, node, is_node } from 'database/BaseDatabase';
+import { device_table, GFNodeType, deviceswch, devicebatt, devicebcreg, cosmos_table_row, locstruc_table, node, table_type, is_node } from 'database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
 
@@ -622,165 +622,162 @@ export const parse_device_swch = (deviceswch: Object): deviceswch[] => {
     return ret
 };
 
-export const parse_device_batt = (devicebatt: Object) => {
-    const ret: Array<devicebatt> = [];
-    let Ob: devicebatt = {
-        node_name: "",
-        didx: 0,
-        utc: 0,
-        amp: 0,
-        volt: 0,
-        power: 0,
-        temp: 0,
-        percentage: 0,
-    };
-    for (const [key, value] of Object.entries(devicebatt)) {
-        // console.log(`${key}: ${value}`);
-        if (key.includes("device_batt_utc")) {
-            let tid = key.slice(16, 19);
-            // three digit id string is parsed into an integer... i.e. "001" becomes 1
-            Ob.didx = parseInt(tid);
-            // console.log("didx parsed string to int: ", Ob.didx);
-            Ob.utc = value;
-        }
-        if (key.includes("device_batt_amp") && key.includes(String(Ob.didx))) {
-            let tid = key.slice(16, 19);
-            Ob.amp = value;
-        }
-        if (key.includes("device_batt_volt") && key.includes(String(Ob.didx))) {
-            let tid = key.slice(17, 20);
-            Ob.volt = value;
-        }
-        if (key.includes("device_batt_power") && key.includes(String(Ob.didx))) {
-            let tid = key.slice(18, 21);
-            Ob.power = value;
-        }
-        if (key.includes("device_batt_temp") && key.includes(String(Ob.didx))) {
-            let tid = key.slice(17, 20);
-            Ob.temp = value;
-        }
-        if (key.includes("device_batt_percentage") && key.includes(String(Ob.didx))) {
-            let tid = key.slice(23, 26);
-            Ob.percentage = value;
-            // runs after all columns have been parsed
-            // set type object
-            const device_batt_object: devicebatt = {
-                node_name: Ob.node_name,
-                utc: Ob.utc,
-                didx: Ob.didx,
-                amp: Ob.amp,
-                volt: Ob.volt,
-                power: Ob.power,
-                temp: Ob.temp,
-                percentage: Ob.percentage
-            };
-            // push object to type array
-            ret.push(device_batt_object);
-            // reset type object
-            Ob.node_name = "";
-            Ob.didx = 0;
-            Ob.utc = 0;
-            Ob.amp = 0;
-            Ob.volt = 0;
-            Ob.power = 0;
-            Ob.temp = 0;
-            Ob.percentage = 0;
-        }
+export const parse_locstruc = (obj: Partial<beacontype>) => {
+    if (!is_locstruc_pos_eci_att_icrf(obj.node_loc)) {
+        return [];
     }
-    return ret
-};
-
-export const parse_locstruc = (loc: Object) => {
-    let obj: locstruc_table = {
-        node_name: "",
-        utc: 0,
-        eci_s_x: 0,
-        eci_s_y: 0,
-        eci_s_z: 0,
-        eci_v_x: 0,
-        eci_v_y: 0,
-        eci_v_z: 0,
-        icrf_s_x: 0,
-        icrf_s_y: 0,
-        icrf_s_z: 0,
-        icrf_s_w: 0,
-        icrf_v_x: 0,
-        icrf_v_y: 0,
-        icrf_v_z: 0,
-    };
-    for (const [k, v] of Object.entries(loc)) {
-        switch (k) {
-            case "node_loc":
-                if (!is_locstruc_pos_eci_att_icrf(v)) {
-                    return [];
-                }
-                const node_loc = v as locstruc;
-                obj.utc = node_loc.pos.eci.utc;
-                obj.eci_s_x = node_loc.pos.eci.s.col[0];
-                obj.eci_s_y = node_loc.pos.eci.s.col[1];
-                obj.eci_s_z = node_loc.pos.eci.s.col[2];
-                obj.eci_v_x = node_loc.pos.eci.v.col[0];
-                obj.eci_v_y = node_loc.pos.eci.v.col[1];
-                obj.eci_v_z = node_loc.pos.eci.v.col[2];
-                obj.icrf_s_w = node_loc.att.icrf.s.w;
-                obj.icrf_s_x = node_loc.att.icrf.s.d.x;
-                obj.icrf_s_y = node_loc.att.icrf.s.d.y;
-                obj.icrf_s_z = node_loc.att.icrf.s.d.z;
-                obj.icrf_v_x = node_loc.att.icrf.v.col[0];
-                obj.icrf_v_y = node_loc.att.icrf.v.col[1];
-                obj.icrf_v_z = node_loc.att.icrf.v.col[2];
-                break;
-            case "node_name":
-                obj.node_name = v;
-                break;
-            default:
-                return [];
-        }
+    if (obj.node_name === undefined) {
+        return [];
     }
+    const ret: locstruc_table = {
+        node_name: obj.node_name,
+        utc: obj.node_loc.pos.eci.utc,
+        eci_s_x: obj.node_loc.pos.eci.s.col[0],
+        eci_s_y: obj.node_loc.pos.eci.s.col[1],
+        eci_s_z: obj.node_loc.pos.eci.s.col[2],
+        eci_v_x: obj.node_loc.pos.eci.v.col[0],
+        eci_v_y: obj.node_loc.pos.eci.v.col[1],
+        eci_v_z: obj.node_loc.pos.eci.v.col[2],
+        icrf_s_x: obj.node_loc.att.icrf.s.d.x,
+        icrf_s_y: obj.node_loc.att.icrf.s.d.y,
+        icrf_s_z: obj.node_loc.att.icrf.s.d.z,
+        icrf_s_w: obj.node_loc.att.icrf.s.w,
+        icrf_v_x: obj.node_loc.att.icrf.v.col[0],
+        icrf_v_y: obj.node_loc.att.icrf.v.col[1],
+        icrf_v_z: obj.node_loc.att.icrf.v.col[2],
+    };
 
-    return [obj];
+    return [ret];
 }
 
-export const parse_node = (obj: Object) => {
-    let node: node = {
-        node_id: 0,
-        node_name: '',
-        node_type: 0,
-        agent_name: '',
-        utc: 0,
-        utcstart: 0
-    };
-    for (const [k, v] of Object.entries(obj)) {
-        switch (k) {
-            case "node":
-                if (!is_node(v)) {
-                    return [];
-                }
-                const v_as_node = v as node;
-                node.node_id = v_as_node.node_id;
-                node.node_name = v_as_node.node_name;
-                node.node_type = v_as_node.node_type;
-                node.agent_name = v_as_node.agent_name;
-                node.utc = v_as_node.utc;
-                node.utcstart = v_as_node.utcstart;
-                break;
-            default:
-                return [];
-        }
+export const parse_node = (obj: Partial<beacontype>) => {
+    if (!is_node(obj.node)) {
+        return [];
     }
+    const ret: node = {
+        node_id: obj.node.node_id,
+        node_name: obj.node.node_name,
+        node_type: obj.node.node_type,
+        agent_name: obj.node.agent_name,
+        utc: obj.node.utc,
+        utcstart: obj.node.utcstart
+    };
 
-    return [node];
+    return [ret];
+}
+
+// Parses the json of an array of devicestrucs into an array of rows of device data
+// Called by beacon2obj when a device beacon is to be written to the db
+export const parse_device = (obj: Partial<beacontype>): device_table[] => {
+    if (!Array.isArray(obj.device) || obj.node_name === undefined || typeof obj.node_name !== 'string') {
+        return [];
+    }
+    const ret: device_table[] = [];
+    obj.device.forEach((device) => {
+        if (!is_devicestruc(device)) {
+            return;
+        }
+        ret.push({
+            node_name: obj.node_name!,
+            type: device.type,
+            cidx: device.cidx,
+            didx: device.didx,
+            name: device.name,
+        })
+    });
+
+    return ret;
+}
+
+// Parses a json of devspec into an array of rows of specific device data
+// Called by beacon2obj when a devspec beacon is to be written to the db
+export const parse_devspec = (obj: Partial<beacontype>): [string, table_type[]] => {
+    if (obj.devspec === undefined || typeof obj.devspec !== 'object' || obj.node_name === undefined || typeof obj.node_name !== 'string') {
+        return ['error', []];
+    }
+    let device_type: string = '';
+    let ret: table_type[] = [];
+
+    if (obj.devspec.batt !== undefined) {
+        device_type = 'battstruc';
+        ret = parse_devspec_batt(obj.node_name, obj.devspec);
+    } else if (obj.devspec.bcreg !== undefined) {
+        device_type = 'bcregstruc';
+        ret = parse_devspec_bcreg(obj.node_name, obj.devspec);
+    } else {
+        return ["error", []];
+    }
+    return [device_type, ret];
+}
+
+// Parses a json array of battstrucs into rows of data to be written to the battstruc table
+// node_name: The name of the node, determined earlier in the call stack
+// devspec: An object containing batt -- an array of battstrucs, type checked inside this function
+export const parse_devspec_batt = (node_name: string, devspec: Partial<devspecstruc>): devicebatt[] => {
+    if (!Array.isArray(devspec.batt)) {
+        return [];
+    }
+    let ret: devicebatt[] = [];
+
+    devspec.batt.forEach((batt: any) => {
+        if (!is_battstruc(batt)) {
+            return;
+        }
+        ret.push({
+            node_name: node_name as string,
+            didx: batt.didx,
+            utc: batt.utc,
+            volt: batt.volt,
+            amp: batt.amp,
+            power: batt.power,
+            temp: batt.temp,
+            percentage: batt.percentage,
+        });
+    });
+
+    return ret;
+}
+
+// Parses a json array of bcregstrucs into rows of data to be written to the bcreg table
+// node_name: The name of the node, determined earlier in the call stack
+// devspec: An object containing bcreg -- an array of bcregstrucs, type checked inside this function
+export const parse_devspec_bcreg = (node_name: string, devspec: Partial<devspecstruc>): devicebcreg[] => {
+    if (!Array.isArray(devspec.bcreg)) {
+        return [];
+    }
+    let ret: devicebcreg[] = [];
+
+    devspec.bcreg.forEach((bcreg: any) => {
+        if (!is_bcregstruc(bcreg)) {
+            return;
+        }
+        ret.push({
+            node_name: node_name as string,
+            didx: bcreg.didx,
+            utc: bcreg.utc,
+            volt: bcreg.volt,
+            amp: bcreg.amp,
+            power: bcreg.power,
+            temp: bcreg.temp,
+            mpptin_amp: bcreg.mpptin_amp,
+            mpptin_volt: bcreg.mpptin_volt,
+            mpptout_amp: bcreg.mpptout_amp,
+            mpptout_volt: bcreg.mpptout_volt,
+        });
+    });
+
+    return ret;
 }
 
 // SQL POST request format must be an array of dictionaries; SQL sub function requires a type specific array of object
-// return list of objects for single type
-export const beacon2obj = (beacon: string): [string, beacontype[] | []] => {
-    const object: Object = JSON.parse(beacon);
+// return the table name and list of objects for single type
+export const beacon2obj = (beacon: string): [string, cosmos_table_row[]] => {
+    const object: Partial<beacontype> = JSON.parse(beacon);
     // console.log("beacon Telem Object fields.value string: ", object);
     // console.log("object 1 key ", Object.entries(object)[1][0]);
 
     // locstruc
-    if ('node_loc' in object) {
+    if (object.node_loc !== undefined) {
         const locstruc_array = parse_locstruc(object);
         if (locstruc_array.length === 0) {
             return ['error', locstruc_array];
@@ -789,12 +786,30 @@ export const beacon2obj = (beacon: string): [string, beacontype[] | []] => {
     }
 
     // node
-    if ("node" in object) {
+    if (object.node !== undefined) {
         const node_array = parse_node(object);
         if (node_array.length === 0) {
             return ['error', node_array];
         }
         return ['node', node_array];
+    }
+
+    // device
+    if (object.device !== undefined) {
+        const device_array = parse_device(object);
+        if (device_array.length === 0) {
+            return ['error', device_array];
+        }
+        return ['device', device_array];
+    }
+
+    // All specific devices
+    if (object.devspec !== undefined) {
+        const [device_type, devspec_array] = parse_devspec(object);
+        if (devspec_array.length === 0) {
+            return ['error', devspec_array];
+        }
+        return [device_type, devspec_array];
     }
 
     const keycomp: Array<string> = Object.entries(object)[1][0].split('_');
@@ -810,15 +825,6 @@ export const beacon2obj = (beacon: string): [string, beacontype[] | []] => {
         return ["swchstruc", device_swch_array];
     }
 
-    // device_batt
-    if (typekey == "device_batt") {
-        // function to parse device batt, returns list of objects for type
-        const device_batt_array = parse_device_batt(object);
-        // add the format ["sqlTableName", [{}, {}, {}, ...]] for the response to the db.ts call
-        // console.log("device object type: ", (ret)[0]);
-        return ["battstruc", device_batt_array];
-    }
-
-    return ["error", []];
+    return ['error', []];
 };
 
