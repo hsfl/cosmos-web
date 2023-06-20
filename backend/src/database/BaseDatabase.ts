@@ -7,7 +7,7 @@ export const sqlmap: Object = {
     "swchstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp"],
     "battstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "percentage"],
     "bcregstruc": ["node_name", "didx", "utc", "volt", "amp", "power", "temp", "mpptin_amp", "mpptin_volt", "mpptout_amp", "mpptout_volt"],
-    "cpustruc": ["node_name", "didx", "utc", "temp", "uptime", "cpu_load", "gib", "boot_count", "storage"],
+    "cpustruc": ["node_name", "didx", "utc", "temp", "uptime", "load", "gib", "boot_count", "storage"],
     "device": ["node_name", "type", "cidx", "didx", "name"],
     "device_type": ["name", "id"],
     "locstruc": ["node_name", "utc", "eci_s_x", "eci_s_y", "eci_s_z", "eci_v_x", "eci_v_y", "eci_v_z", "icrf_s_x", "icrf_s_y", "icrf_s_z", "icrf_s_w", "icrf_v_x", "icrf_v_y", "icrf_v_z"],
@@ -131,7 +131,7 @@ export interface deviceswch {
     temp: number;
 }
 
-export type table_type = devicebatt | devicebcreg | devicetsen;
+export type table_type = devicebatt | devicebcreg | devicecpu | devicetsen;
 
 // battstruc sql
 export interface devicebatt {
@@ -170,12 +170,12 @@ export interface devicetsen {
 
 // cpustruc sql
 export interface devicecpu {
-    node_device: string;
+    node_name: string;
     didx: number;
-    time: number; // utc
+    utc: number;
     temp: number;
     uptime: number;
-    cpu_load: number;
+    load: number;
     gib: number;
     boot_count: number;
     storage: number;

@@ -374,6 +374,7 @@ export function is_devicestruc(obj: any): obj is devicestruc {
 export interface devspecstruc {
     batt: battstruc[];
     bcreg: bcregstruc[];
+    cpu: cpustruc[];
     tsen: tsenstruc[];
 }
 
@@ -432,6 +433,34 @@ export function is_bcregstruc(obj: any): obj is bcregstruc {
         && typeof obj.mpptin_volt === 'number'
         && typeof obj.mpptout_amp === 'number'
         && typeof obj.mpptout_volt === 'number'
+    );
+}
+
+// Cosmos type
+export interface cpustruc {
+    didx: number;
+    utc: number;
+    temp: number;
+    uptime: number;
+    load: number;
+    gib: number;
+    boot_count: number;
+    storage: number;
+}
+
+export function is_cpustruc(obj: any): obj is cpustruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.didx === 'number'
+        && typeof obj.utc === 'number'
+        && typeof obj.temp === 'number'
+        && typeof obj.uptime === 'number'
+        && typeof obj.load === 'number'
+        && typeof obj.gib === 'number'
+        && typeof obj.boot_count === 'number'
+        && typeof obj.storage === 'number'
     );
 }
 

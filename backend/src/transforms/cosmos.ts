@@ -1,6 +1,6 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_devicestruc, is_tsenstruc } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc } from 'types/cosmos_types';
 import mysql from 'mysql2';
-import { device_table, GFNodeType, deviceswch, devicebatt, devicebcreg, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node } from 'database/BaseDatabase';
+import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node } from 'database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
 
@@ -704,6 +704,9 @@ export const parse_devspec = (obj: Partial<beacontype>): [string, table_type[]] 
     } else if (obj.devspec.bcreg !== undefined) {
         device_type = 'bcregstruc';
         ret = parse_devspec_bcreg(obj.node_name, obj.devspec);
+    } else if (obj.devspec.cpu !== undefined) {
+        device_type = 'cpustruc';
+        ret = parse_devspec_cpu(obj.node_name, obj.devspec);
     } else if (obj.devspec.tsen !== undefined) {
         device_type = 'tsenstruc';
         ret = parse_devspec_tsen(obj.node_name, obj.devspec);
@@ -766,6 +769,35 @@ export const parse_devspec_bcreg = (node_name: string, devspec: Partial<devspecs
             mpptin_volt: bcreg.mpptin_volt,
             mpptout_amp: bcreg.mpptout_amp,
             mpptout_volt: bcreg.mpptout_volt,
+        });
+    });
+
+    return ret;
+}
+
+// Parses a json array of cpustrucs into rows of data to be written to the cpu table
+// node_name: The name of the node, determined earlier in the call stack
+// devspec: An object containing cpu -- an array of cpustrucs, type checked inside this function
+export const parse_devspec_cpu = (node_name: string, devspec: Partial<devspecstruc>): devicecpu[] => {
+    if (!Array.isArray(devspec.cpu)) {
+        return [];
+    }
+    let ret: devicecpu[] = [];
+
+    devspec.cpu.forEach((cpu: any) => {
+        if (!is_cpustruc(cpu)) {
+            return;
+        }
+        ret.push({
+            node_name: node_name as string,
+            didx: cpu.didx,
+            utc: cpu.utc,
+            temp: cpu.temp,
+            uptime: cpu.uptime,
+            load: cpu.load,
+            gib: cpu.gib,
+            boot_count: cpu.boot_count,
+            storage: cpu.storage,
         });
     });
 

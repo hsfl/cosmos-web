@@ -123,7 +123,7 @@ describe('GET /', () => {
             metrics: [
                 {
                     fields: {
-                        value: '{"device": [{"cidx": 0, "didx": 0, "name": "Battery0", "type": 12}, {"cidx": 1, "didx": 1, "name": "Battery1", "type": 12}, {"cidx": 2, "didx": 0, "name": "Left", "type": 30}, {"cidx": 3, "didx": 1, "name": "Right", "type": 30}, {"cidx": 4, "didx": 0, "name": "Camera", "type": 15}, {"cidx": 5, "didx": 1, "name": "Heat sink", "type": 15}, {"cidx": 6, "didx": 2, "name": "CPU", "type": 15}], "node_name": "mother"}'
+                        value: '{"device": [{"cidx": 0, "didx": 0, "name": "Battery0", "type": 12}, {"cidx": 1, "didx": 1, "name": "Battery1", "type": 12}, {"cidx": 2, "didx": 0, "name": "Left", "type": 30}, {"cidx": 3, "didx": 1, "name": "Right", "type": 30}, {"cidx": 4, "didx": 0, "name": "iOBC", "type": 5}, {"cidx": 5, "didx": 1, "name": "iX5-100", "type": 5}, {"cidx": 6, "didx": 0, "name": "Camera", "type": 15}, {"cidx": 7, "didx": 1, "name": "Heat sink", "type": 15}, {"cidx": 8, "didx": 2, "name": "CPU", "type": 15}], "node_name": "mother"}'
                     },
                     name: 'socket_listener',
                     tags: { host: '12345678' },
@@ -170,6 +170,29 @@ describe('GET /', () => {
                 {
                     fields: {
                         value: '{"devspec": {"bcreg": [{"amp": 0.63888734579086304, "didx": 0, "mpptin_amp": 0.57499861121177676, "mpptin_volt": 5.9957190513610845, "mpptout_amp": 0.31944367289543152, "mpptout_volt": 3.3309550285339355, "power": 4.2562098503112793, "temp": 386.93492629655401, "utc": 60101.0, "volt": 6.6619100570678711}, {"amp": 0.81443548202514648, "didx": 1, "mpptin_amp": 0.73299193382263184, "mpptin_volt": 5.4849178791046143, "mpptout_amp": 0.40721774101257324, "mpptout_volt": 3.0471765995025635, "power": 4.9634575843811035, "temp": 387.83502275489036, "utc": 60101.0, "volt": 6.094353199005127}]}, "node_name": "mother"}'
+                    },
+                    name: 'socket_listener',
+                    tags: { host: '12345678' },
+                    timestamp: 12345678
+                },
+            ]
+        };
+        await request(app)
+            .post('/db/beacon')
+            .set('Accept', 'application/json')
+            .send(beacon)
+            .expect((res: request.Response) => {
+                expect(res.body.message).toBe('success');
+            })
+            .expect(StatusCodes.ACCEPTED);
+    });
+
+    it('Can post cpu beacon', async () => {
+        const beacon = {
+            metrics: [
+                {
+                    fields: {
+                        value: '{"devspec": {"cpu": [{"boot_count": 2, "didx": 0, "gib": 2.1752872560989518, "load": 0.61722362410147846, "storage": 23.03814284412104, "temp": 388.3110243190597, "uptime": 167.07905720784038, "utc": 60101.0}, {"boot_count": 2, "didx": 1, "gib": 2.1874804721155581, "load": 0.55007403439379954, "storage": 14.785614523005492, "temp": 392.15312319209477, "uptime": 167.07905720789859, "utc": 60101.0}]}, "node_name": "mother"}'
                     },
                     name: 'socket_listener',
                     tags: { host: '12345678' },
@@ -254,6 +277,30 @@ describe('GET /', () => {
             .expect((res: request.Response) => {
                 expect(res.body.message).toBe('success');
                 expect(res.body.payload.bcregs).not.toHaveLength(0);
+            })
+            .expect(StatusCodes.OK);
+    });
+
+    it('Can get cpu', async () => {
+        const queryObject: QueryObject = {
+            type: 'cpu',
+            arg: '',
+            latestOnly: false,
+            filters: [],
+            functions: []
+        }
+        const query: QueryType = {
+            query: JSON.stringify(queryObject),
+            from: 60101.0,
+            to: 60101.1
+        }
+        await request(app)
+            .get('/db/cpu')
+            .set('Accept', 'application/json')
+            .query(query)
+            .expect((res: request.Response) => {
+                expect(res.body.message).toBe('success');
+                expect(res.body.payload.cpus).not.toHaveLength(0);
             })
             .expect(StatusCodes.OK);
     });

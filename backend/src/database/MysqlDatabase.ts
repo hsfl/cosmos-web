@@ -149,10 +149,10 @@ export default class MysqlDatabase extends BaseDatabase {
                     for (let i = 0; i < value.length; i++) {
                         dynamic_col_array.push(value[i]);
                         if ((i + 1) == value.length) {
-                            table_cols += value[i];
+                            table_cols += "`" + value[i] + "`";
                             table_variables += '?)'
                         } else {
-                            table_cols += value[i] + ", ";
+                            table_cols += "`" + value[i] + "`, ";
                             table_variables += '?,'
                         }
                     }
@@ -467,7 +467,7 @@ FROM cosmos_event
 WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                 [query.from, query.to],
             );
-            console.log(rows[0])
+            console.log('get_event rows', rows[0])
             const ret = { "events": rows };
             return ret;
         }
@@ -863,7 +863,7 @@ device.type = 12 AND\n`
                     }
                 }
                 const ret = { "batts": battrows };
-                console.log('get_battery rows', rows[0])
+                console.log('get_battery rows', battrows[0])
                 return ret;
             } else {
                 const ret = { "batts": rows };
@@ -993,7 +993,7 @@ device.type = 15 AND\n`
                     }
                 }
                 const ret = { "tsens": tsenrows };
-                console.log('get_tsen rows', rows[0])
+                console.log('get_tsen rows', tsenrows[0])
                 return ret;
             } else {
                 const ret = { "tsens": rows };
@@ -1013,42 +1013,59 @@ device.type = 15 AND\n`
     public async get_cpu(query: QueryType): Promise<cosmosresponse> {
         try {
             const queryObj: QueryObject = JSON.parse(query.query);
-            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-                `SELECT
-  utc AS "time",
-  CONCAT(node_name, ':', didx) as node,
-  cpu_load as "load",
-  temp, uptime,
-  gib, boot_count,
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            const sql_query =
+`SELECT
+  devspec.utc AS "time",
+  devspec.node_name as "node_name",
+  device.name as "name",
+  temp,
+  uptime,
+  \`load\`,
+  gib,
+  boot_count,
   storage
-FROM cpustruc
-WHERE utc BETWEEN ? and ? ORDER BY time limit 1000`,
-                [query.from, query.to],
+FROM cpustruc AS devspec
+INNER JOIN device ON devspec.didx = device.didx
+WHERE
+device.type = 5 AND\n`
++ (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
++ `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+            const query_arg_array = [
+                node_filter?.filterValue,
+                query.from,
+                query.to
+            ].filter((v) => v !== undefined);
+            console.log('sql_query:', sql_query);
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                sql_query,
+                query_arg_array,
             );
-            console.log(rows[0])
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({ dtype: 5, dname: "cpu" }, queryObj)
-                const cpurows: Array<devicecpu> = [];
-                for (const [qkey, qvalue] of Object.entries(key_array)) {
+                const cpurows: Array<devicecpu & Partial<device_table> & timepoint> = [];
+                for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devcpu: devicecpu = {
-                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            node_name: qvalue[i].node_name,
                             didx: qvalue[i].didx,
-                            time: query.to,
+                            utc: query.from,
                             temp: 0,
                             uptime: 0,
-                            cpu_load: 0,
+                            load: 0,
                             gib: 0,
                             boot_count: 0,
                             storage: 0,
                         }
-                        cpurows.push({ ...devcpu });
+                        cpurows.push({name: qvalue[i].name, Time: query.from, ...devcpu });
                     }
                 }
                 const ret = { "cpus": cpurows };
+                console.log('get_cpu rows', cpurows[0])
                 return ret;
             } else {
                 const ret = { "cpus": rows };
+                console.log('get_cpu rows', rows[0])
                 return ret;
             }
             // const ret = { "cpus": rows };

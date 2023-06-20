@@ -78,11 +78,11 @@ node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
 temp DOUBLE,
-uptime INT UNSIGNED,   
-cpu_load DOUBLE, 
-gib DOUBLE,  
-boot_count INT UNSIGNED,   
-storage DOUBLE,  
+uptime INT UNSIGNED,
+`load` DOUBLE,
+gib DOUBLE,
+boot_count INT UNSIGNED,
+storage DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 
