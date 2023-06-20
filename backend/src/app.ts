@@ -20,7 +20,11 @@ export default class App {
     constructor() {
         this.express = express();
         // Middlewares
-        this.express.use(cors({origin: true}), express.json());
+        this.express.use(
+            cors({origin: true}),
+            express.json({limit: '50mb'}),
+            express.urlencoded({limit: '50mb'})
+        );
         // Routes
         this.express.use(router);
     }
