@@ -10,7 +10,7 @@ export default class DBSetup {
 
     public async init(): Promise<void> {
         // First create test database and users
-        const dbinit = 
+        // const dbinit = 
     }
 
     public static async getPromisePool(): Promise<Pool> {

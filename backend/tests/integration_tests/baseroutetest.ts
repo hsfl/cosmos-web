@@ -8,7 +8,7 @@ import { QueryObject, QueryType } from 'types/query_types';
 describe('GET /', () => {
     let app: express.Application;
 
-    beforeAll(async() => {
+    beforeAll(async () => {
         // Call endpoints with the app
         app = await IntegrationHelpers.getApp();
         // Reset the database
@@ -34,7 +34,7 @@ describe('GET /', () => {
             .expect(StatusCodes.ACCEPTED);
     });
 
-    afterAll(async() => {
+    afterAll(async () => {
         await IntegrationHelpers.closeApp();
     });
 

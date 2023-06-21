@@ -4,3 +4,39 @@ services:
     image: mysql:8.0.30-debian
     container_name: cosmos_db
     platform: linux/amd64
+#   telegraf:
+#     image: telegraf:1.25.0
+#     container_name: cosmos_telegraf
+#     env_file:
+#       - ${COSMOSWEBDIR:-.}/.env
+#     environment:
+#       # InfluxDB output setup
+#       - DOCKER_INFLUXDB_INIT_BUCKET=COSMOS_Dev_Bucket
+#       # Reserve ports for data ingestion
+#       - COSMOS_DEV_PORT=10095
+#       - AGENT_BEACON_PORT=10096
+#       - LOG_PORT=10098
+#     logging:
+#       driver: "local"
+#       options:
+#         max-file: 5
+#         max-size: 10m
+#     networks:
+#       - cwnetwork
+#     ports:
+#       # accessible to agent_ground and other external programs
+#       - "10095:10095/udp"
+#       - "10096:10096/udp"
+#       - "10098:10098/udp"
+#     restart: always
+#     volumes:
+#       - ${COSMOSWEBDIR:-.}/telegraf_scripts/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+#       - ${COSMOSWEBDIR:-.}/telegraf_scripts:/telegraf_scripts:ro
+#     depends_on:
+#       - influxdb
+
+# networks:
+#   cwnetwork:
+#     name: cosmos_cwnetwork
+#     external: true
+#     driver: bridge

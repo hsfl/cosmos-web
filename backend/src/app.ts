@@ -12,7 +12,7 @@ import { initiate_ceo_handler } from 'routes/db';
 
 
 // Import .env file environment variables into process.env
-dotenv.config({path: path.resolve(__dirname, '../.env')});
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 export default class App {
     public express: Express;
@@ -21,9 +21,9 @@ export default class App {
         this.express = express();
         // Middlewares
         this.express.use(
-            cors({origin: true}),
-            express.json({limit: '50mb'}),
-            express.urlencoded({limit: '50mb'})
+            cors({ origin: true }),
+            express.json({ limit: '50mb' }),
+            express.urlencoded({ limit: '50mb' })
         );
         // Routes
         this.express.use(router);
@@ -36,6 +36,7 @@ export default class App {
 
         // Specify database the app will use
         DBHandler.set_database(db);
+        await DBHandler.init_database();
 
         // Integrate simulated database 
         SIMDBHandler.set_database(simDb);

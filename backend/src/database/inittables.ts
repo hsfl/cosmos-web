@@ -82,7 +82,7 @@ export const table_schema: Array<mysqlschema> = [
             utc DOUBLE NOT NULL,
             temp DOUBLE,
             uptime INT UNSIGNED,   
-            cpu_load DOUBLE, 
+            'load' DOUBLE, 
             gib DOUBLE,  
             boot_count INT UNSIGNED,   
             storage DOUBLE,  
