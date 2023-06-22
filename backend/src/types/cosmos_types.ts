@@ -26,6 +26,14 @@ export interface avector {
     b: number;
 }
 
+// reference class for aattstruc
+export interface aattstruc {
+    utc: number; // double
+    s: avector;
+    v: avector;
+    a: avector;
+}
+
 export interface cvector {
     x: number;
     y: number;

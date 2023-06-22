@@ -1,4 +1,4 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, aattstruc } from 'types/cosmos_types';
 import mysql from 'mysql2';
 import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node } from 'database/BaseDatabase';
 
@@ -32,6 +32,45 @@ export const attitude = (rows: mysql.RowDataPacket[]) => {
         const av: avector = (Cosmos.module.a_quaternion2euler(q));
         //const time  
         ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...av });
+    });
+    console.log('attitude iret:', rows[0], ret[0]);
+    return ret;
+};
+
+
+export const icrf_att = (rows: mysql.RowDataPacket[]) => {
+
+    const ret: Array<aattstruc & timepoint & GFNodeType> = [];
+    rows.forEach((row) => {
+        const q: quaternion = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z,
+            },
+            w: row.icrf_s_w,
+        };
+        const sav: avector = (Cosmos.module.a_quaternion2euler(q));
+        // TODO pending conversion to second derivative: Angular Vel (rad/s)
+        const vav: avector = {
+            h: 0,
+            e: 0,
+            b: 0
+        };
+        // database does not account for third derivative: Angular Accel (rad/s2) 
+        const aav: avector = {
+            h: 0,
+            e: 0,
+            b: 0
+        };
+        const aatt: aattstruc = {
+            utc: row.time,
+            s: sav,
+            v: vav,
+            a: aav
+        };
+        //const time  
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...aatt });
     });
     console.log('attitude iret:', rows[0], ret[0]);
     return ret;

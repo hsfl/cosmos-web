@@ -4,8 +4,8 @@ import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
 import { AppError } from 'exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
-import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, relative_angle_range } from '../transforms/cosmos';
-import { TimeRange, cosmosresponse, KeyType, timepoint } from 'types/cosmos_types';
+import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, relative_angle_range } from '../transforms/cosmos';
+import { TimeRange, cosmosresponse, KeyType, timepoint, qvatt, qaatt } from 'types/cosmos_types';
 import { QueryObject, QueryType, QueryFilter } from 'types/query_types';
 import { table_schema } from './inittables';
 
@@ -323,14 +323,14 @@ export default class MysqlDatabase extends BaseDatabase {
         try {
             const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
             const sql_query =
-`SELECT
+                `SELECT
 node_name,
 didx,
 name
 FROM device
 WHERE\n`
-+ (node_filter !== undefined ? `node_name = ? AND\n` : '')
-+ `type = ? limit 1000`;
+                + (node_filter !== undefined ? `node_name = ? AND\n` : '')
+                + `type = ? limit 1000`;
             const query_arg_array = [
                 node_filter?.filterValue,
                 keytype.dtype,
@@ -750,6 +750,30 @@ WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
             } else if (type == "lvlh") {
                 const ret = { "qatts": lvlh_attitude(rows) };
                 return ret;
+            } else if (type == "icrf") {
+                // const vrows: Array<qvatt & timepoint> = [];
+                // rows.forEach((row) => {
+                //     const qv: qvatt = {
+                //         qvx: row.icrf_v_x,
+                //         qvy: row.icrf_v_y,
+                //         qvz: row.icrf_v_z
+                //     };
+                //     vrows.push({ Time: row.time, ...qv });
+                // });
+                // const arows: Array<qaatt & timepoint> = [];
+                // rows.forEach((row) => {
+                //     const qa: qaatt = {
+                //         qax: 0,
+                //         qay: 0,
+                //         qaz: 0
+                //     };
+                //     arows.push({ Time: row.time, ...qa });
+                // });
+                // update return to single array of aatstruc type, s v a of avectors... 
+                const ret = { "aattstrucs": icrf_att(rows) };
+                // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
+                // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
+                return ret;
             }
             const ret = { "ecis": eci_position(rows) };
             // switch statement here also to parse type option passed in from request
@@ -816,7 +840,7 @@ LIMIT 10000`,
             const queryObj: QueryObject = JSON.parse(query.query);
             const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
             const sql_query =
-`SELECT
+                `SELECT
   devspec.utc AS "time",
   devspec.node_name as "node_name",
   device.name as "name",
@@ -829,8 +853,8 @@ FROM battstruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
 device.type = 12 AND\n`
-+ (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
-+ `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
+                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
             const query_arg_array = [
                 node_filter?.filterValue,
                 query.from,
@@ -859,7 +883,7 @@ device.type = 12 AND\n`
                             temp: 0,
                             percentage: 0
                         }
-                        battrows.push({name: qvalue[i].name, Time: query.from, ...devbatt });
+                        battrows.push({ name: qvalue[i].name, Time: query.from, ...devbatt });
                     }
                 }
                 const ret = { "batts": battrows };
@@ -885,7 +909,7 @@ device.type = 12 AND\n`
             const queryObj: QueryObject = JSON.parse(query.query);
             const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
             const sql_query =
-`SELECT
+                `SELECT
 devspec.utc AS "time",
 devspec.node_name as "node_name",
 device.name as "name",
@@ -898,8 +922,8 @@ FROM bcregstruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
 device.type = 30 AND\n`
-+ (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
-+ `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
+                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
             const query_arg_array = [
                 node_filter?.filterValue,
                 query.from,
@@ -930,7 +954,7 @@ device.type = 30 AND\n`
                             mpptout_amp: 0,
                             mpptout_volt: 0,
                         }
-                        bcregrows.push({name: qvalue[i].name, Time: query.from, ...devbcreg });
+                        bcregrows.push({ name: qvalue[i].name, Time: query.from, ...devbcreg });
                     }
                 }
                 console.log('get_bcreg bcregrows', bcregrows[0])
@@ -958,7 +982,7 @@ device.type = 30 AND\n`
             const queryObj: QueryObject = JSON.parse(query.query);
             const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
             const sql_query =
-`SELECT
+                `SELECT
   devspec.utc AS "time",
   devspec.node_name as "node_name",
   device.name as "name",
@@ -967,8 +991,8 @@ FROM tsenstruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
 device.type = 15 AND\n`
-+ (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
-+ `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
+                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
             const query_arg_array = [
                 node_filter?.filterValue,
                 query.from,
@@ -989,7 +1013,7 @@ device.type = 15 AND\n`
                             utc: query.from,
                             temp: 0,
                         }
-                        tsenrows.push({name: qvalue[i].name, Time: query.from, ...devtsen });
+                        tsenrows.push({ name: qvalue[i].name, Time: query.from, ...devtsen });
                     }
                 }
                 const ret = { "tsens": tsenrows };
@@ -1015,7 +1039,7 @@ device.type = 15 AND\n`
             const queryObj: QueryObject = JSON.parse(query.query);
             const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
             const sql_query =
-`SELECT
+                `SELECT
   devspec.utc AS "time",
   devspec.node_name as "node_name",
   device.name as "name",
@@ -1029,8 +1053,8 @@ FROM cpustruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
 device.type = 5 AND\n`
-+ (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
-+ `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
+                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
             const query_arg_array = [
                 node_filter?.filterValue,
                 query.from,
@@ -1057,7 +1081,7 @@ device.type = 5 AND\n`
                             boot_count: 0,
                             storage: 0,
                         }
-                        cpurows.push({name: qvalue[i].name, Time: query.from, ...devcpu });
+                        cpurows.push({ name: qvalue[i].name, Time: query.from, ...devcpu });
                     }
                 }
                 const ret = { "cpus": cpurows };
