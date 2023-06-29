@@ -51,11 +51,11 @@ export const icrf_att = (rows: mysql.RowDataPacket[]) => {
             w: row.icrf_s_w,
         };
         const sav: avector = (Cosmos.module.a_quaternion2euler(q));
-        // TODO pending conversion to second derivative: Angular Vel (rad/s)
+        // TODO pending conversion to second derivative: Angular Vel (rad/s) /// should be rvector ? combined for ADCS? 
         const vav: avector = {
-            h: 0,
-            e: 0,
-            b: 0
+            h: row.icrf_v_x,
+            e: row.icrf_v_y,
+            b: row.icrf_v_z
         };
         // database does not account for third derivative: Angular Accel (rad/s2) 
         const aav: avector = {
@@ -75,6 +75,8 @@ export const icrf_att = (rows: mysql.RowDataPacket[]) => {
     console.log('attitude iret:', rows[0], ret[0]);
     return ret;
 };
+
+
 
 const getNewLocstruc = (): locstruc => ({
     utc: 0, // 59874.83333533
@@ -344,6 +346,65 @@ const getNewLocstruc = (): locstruc => ({
         }
     }
 });
+
+export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
+    const ret: Array<aattstruc & timepoint & GFNodeType> = [];
+    const loc = getNewLocstruc();
+    rows.forEach((row) => {
+        loc.pos.eci.utc = row.time;
+        loc.pos.eci.pass = 1;
+        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
+        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        // this object not in database
+        loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
+        loc.att.icrf.pass = 1;
+        loc.att.icrf.utc = row.time;
+        // s element needed to populate lvlh s element 
+        loc.att.icrf.s = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z
+            },
+            w: row.icrf_s_w
+        };
+        const lvlh: qatt = (Cosmos.module.loc2lvlh(loc));
+        // 
+        const q: quaternion = lvlh.s;
+        // {
+        //     d: {
+        //         x: row.icrf_s_x,
+        //         y: row.icrf_s_y,
+        //         z: row.icrf_s_z,
+        //     },
+        //     w: row.icrf_s_w,
+        // };
+        const sav: avector = (Cosmos.module.a_quaternion2euler(q));
+        // TODO pending conversion to second derivative: Angular Vel (rad/s) /// should be rvector ? combined for ADCS? 
+        const vav: avector = {
+            h: lvlh.v.col[0],
+            e: lvlh.v.col[1],
+            b: lvlh.v.col[2]
+        };
+        // database does not account for third derivative: Angular Accel (rad/s2) 
+        const aav: avector = {
+            h: lvlh.a.col[0],
+            e: lvlh.a.col[1],
+            b: lvlh.a.col[2]
+        };
+        const aatt: aattstruc = {
+            utc: row.time,
+            s: sav,
+            v: vav,
+            a: aav
+        };
+        //const time  
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...aatt });
+    });
+    console.log('attitude iret:', rows[0], ret[0]);
+    return ret;
+};
 
 
 export const eci_position = (rows: mysql.RowDataPacket[]) => {

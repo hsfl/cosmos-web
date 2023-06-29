@@ -4,7 +4,7 @@ import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
 import { AppError } from 'exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
-import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, relative_angle_range } from '../transforms/cosmos';
+import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, relative_angle_range } from '../transforms/cosmos';
 import { TimeRange, cosmosresponse, KeyType, timepoint, qvatt, qaatt } from 'types/cosmos_types';
 import { QueryObject, QueryType, QueryFilter } from 'types/query_types';
 import { table_schema } from './inittables';
@@ -664,6 +664,9 @@ ORDER BY resource_name limit 1000;`,
     public async get_position(query: QueryType): Promise<cosmosresponse> {
         try {
             const queryObj: QueryObject = JSON.parse(query.query);
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            console.log("node filter: ", node_filter);
+
             let rows: mysql.RowDataPacket[];
             // filter for latestOnly
             if (queryObj.latestOnly) {
@@ -680,8 +683,10 @@ icrf_s_w, icrf_v_x, icrf_v_y,
 icrf_v_z
 FROM locstruc 
 INNER JOIN node ON locstruc.node_name = node.node_name
-WHERE locstruc.utc = (select max(locstruc.utc) from locstruc) ORDER BY time limit 10000`,
-                    [query.from, query.to],
+WHERE locstruc.utc = (select max(locstruc.utc) from locstruc) \n`
+                    + (node_filter !== undefined ? ` AND locstruc.node_name = ?\n` : '')
+                    + ` ORDER BY time limit 10000`,
+                    [node_filter?.filterValue, query.from, query.to].filter((v) => v !== undefined),
                 );
             } else {
                 [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
@@ -696,8 +701,10 @@ icrf_s_w, icrf_v_x, icrf_v_y,
 icrf_v_z
 FROM locstruc 
 INNER JOIN node ON locstruc.node_name = node.node_name
-WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
-                    [query.from, query.to],
+WHERE `
+                    + (node_filter !== undefined ? ` locstruc.node_name = ? \n` : '')
+                    + ` AND locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
+                    [node_filter?.filterValue, query.from, query.to].filter((v) => v !== undefined),
                 );
             }
             console.log(rows[0])
@@ -771,6 +778,13 @@ WHERE locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
                 // });
                 // update return to single array of aatstruc type, s v a of avectors... 
                 const ret = { "aattstrucs": icrf_att(rows) };
+                // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
+                // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
+                return ret;
+            } else if (type == "eul_lvlh") {
+                // update return combined Euler Angle from return of LVLH conversion quatt... call both in new custom formula
+                // ... to single array of aatstruc type, s v a of avectors... 
+                const ret = { "aattstrucs": icrf_lvlh_att(rows) };
                 // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
                 // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
                 return ret;
