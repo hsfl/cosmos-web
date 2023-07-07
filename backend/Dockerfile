@@ -8,4 +8,6 @@ RUN npm i
 
 COPY . .
 
+ENV PATH="${PATH}:/home/web_user/cosmos/bin"
+
 CMD [ "npm", "run", "dev" ]
