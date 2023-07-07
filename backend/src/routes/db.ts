@@ -59,7 +59,7 @@ router.get('/dbmissionall', async (req: Request<{}, {}, {}, QueryType>, res: Res
         console.log("db return_array [i].mission : ", instance.mission);
     }
     // example database call for random 3 object in array, to the device list enpoint query, specified for type batts 
-    const dummyQuery = {type: '', arg: '', latestOnly: false, filters: [], functions: []};
+    const dummyQuery = { type: '', arg: '', latestOnly: false, filters: [], functions: [] };
     const ret = await ret_array[2].dbin.get_device_keys({ dtype: 12, dname: "batts" }, dummyQuery);
     console.log("db return_array [2].dbin.get_device_keys : ", ret);
     const response = new_api_response('success');
@@ -195,10 +195,16 @@ router.post('/device', async (req: Request, res: Response) => {
 // POST event resource impact change / delete rows endpoint 
 router.post('/eventresourceimpact', async (req: Request<{}, {}, EventResourceUpdate>, res: Response) => {
     // console.log(req.body);
-    if (!Array.isArray(req.body)) {
+    // if (!Array.isArray(req.body)) {
+    //     throw new AppError({
+    //         httpCode: StatusCodes.BAD_REQUEST,
+    //         description: 'Argument format incorrect. Must be object of {event_id:number, update:{resource_name:{second_index:number, resource_change:number}}} dicts'
+    //     });
+    // }
+    if (req.body.update === undefined || req.body.event_id === undefined) {
         throw new AppError({
             httpCode: StatusCodes.BAD_REQUEST,
-            description: 'Argument format incorrect. Must be object of {event_id:number, update:{resource_name:{second_index:number, resource_change:number}}} dicts'
+            description: 'Argument format undefined'
         });
     }
     const db = DBHandler.app_db();

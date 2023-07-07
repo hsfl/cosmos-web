@@ -254,10 +254,14 @@ export default class MysqlDatabase extends BaseDatabase {
 
     // POST write event resource impact function, dynamic pool call for update and delete values, dynamic event+resource id 
     public async update_eventresourceimpact(event_id: number, resourceimpact: EventResourceUpdateBody[]): Promise<void> {
-        let dynamic_update: string = `UPDATE event_resource_impact
-                                      SET resource_change = ?
-                                      WHERE second_index = ? AND event_id = ? AND resource_id = ?;`;
-        // [resourceimpact[i].resource_change, resourceimpact[i].second_index, resourceimpact[i].event_id, resourceimpact[i].resource_id]
+        // let dynamic_update: string = `UPDATE event_resource_impact
+        //                               SET resource_change = ?
+        //                               WHERE second_index = ? AND event_id = ? AND resource_id = ?;`;
+        // // [resourceimpact[i].resource_change, resourceimpact[i].second_index, resourceimpact[i].event_id, resourceimpact[i].resource_id]
+        let dynamic_update: string = `INSERT INTO event_resource_impact 
+                                    (resource_change, second_index, event_id, resource_id) 
+                                    VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE resource_change = ?;`;
+        // [resourceimpact[i].resource_change, resourceimpact[i].second_index, resourceimpact[i].event_id, resourceimpact[i].resource_id, resourceimpact[i].resource_change]
 
         // IF resource_change = 0
         let dynamic_delete: string = `DELETE FROM event_resource_impact
@@ -285,7 +289,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     try {
                         await this.promisePool.execute(
                             dynamic_update,
-                            [row.resource_change, row.second_index, event_id_value, resource_id]
+                            [row.resource_change, row.second_index, event_id_value, resource_id, row.resource_change]
                         );
                     } catch (error) {
                         console.error(error);
@@ -685,7 +689,7 @@ FROM locstruc
 INNER JOIN node ON locstruc.node_name = node.node_name
 WHERE locstruc.utc = (select max(locstruc.utc) from locstruc) \n`
                     + (node_filter !== undefined ? ` AND locstruc.node_name = ?\n` : '')
-                    + ` ORDER BY time limit 10000`,
+                    + ` ORDER BY time limit 10000;`,
                     [node_filter?.filterValue, query.from, query.to].filter((v) => v !== undefined),
                 );
             } else {
@@ -702,8 +706,8 @@ icrf_v_z
 FROM locstruc 
 INNER JOIN node ON locstruc.node_name = node.node_name
 WHERE `
-                    + (node_filter !== undefined ? ` locstruc.node_name = ? \n` : '')
-                    + ` AND locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000`,
+                    + (node_filter !== undefined ? ` locstruc.node_name = ? AND \n` : '')
+                    + ` locstruc.utc BETWEEN ? and ? ORDER BY time limit 10000;`,
                     [node_filter?.filterValue, query.from, query.to].filter((v) => v !== undefined),
                 );
             }
