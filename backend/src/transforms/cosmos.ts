@@ -1,4 +1,4 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, aattstruc } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, adcsstruc, rvector } from 'types/cosmos_types';
 import mysql from 'mysql2';
 import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node } from 'database/BaseDatabase';
 
@@ -40,7 +40,15 @@ export const attitude = (rows: mysql.RowDataPacket[]) => {
 
 export const icrf_att = (rows: mysql.RowDataPacket[]) => {
 
-    const ret: Array<aattstruc & timepoint & GFNodeType> = [];
+    const ret: Array<adcsstruc & timepoint & GFNodeType> = [];
+    // TODO index rows on time; create variable in state for "time -1", then update on each iteration of forEach, adding current time
+    // behavior will return 0s for the first utc, then computation for every delta following
+    let prev_vrv: rvector = {
+        col: [0, 0, 0]
+    };
+    let prev_utc: number = 0;
+    rows.sort((a, b) => (a.time > b.time) ? 1 : ((b.time > a.time) ? -1 : 0))
+    // console.log("sorted row packet", rows);
     rows.forEach((row) => {
         const q: quaternion = {
             d: {
@@ -52,25 +60,38 @@ export const icrf_att = (rows: mysql.RowDataPacket[]) => {
         };
         const sav: avector = (Cosmos.module.a_quaternion2euler(q));
         // TODO pending conversion to second derivative: Angular Vel (rad/s) /// should be rvector ? combined for ADCS? 
-        const vav: avector = {
-            h: row.icrf_v_x,
-            e: row.icrf_v_y,
-            b: row.icrf_v_z
+        // TODO make this just an rvector 
+        const vrv: rvector = {
+            col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]
         };
         // database does not account for third derivative: Angular Accel (rad/s2) 
-        const aav: avector = {
-            h: 0,
-            e: 0,
-            b: 0
+        // TODO compute this as delta v over delta t, use row index mapping above... 
+        // TODO make this just an rvector X, Y, Z
+        let arv: rvector = {
+            col: [0, 0, 0]
         };
-        const aatt: aattstruc = {
-            utc: row.time,
+        const delta_time: number = (row.time - prev_utc);
+        if ((delta_time) < .000012) {
+            const arv_x: number = (row.icrf_v_x - prev_vrv.col[0]) / (delta_time);
+            const arv_y: number = (row.icrf_v_y - prev_vrv.col[1]) / (delta_time);
+            const arv_z: number = (row.icrf_v_z - prev_vrv.col[2]) / (delta_time);
+            arv = {
+                col: [arv_x, arv_y, arv_z]
+            };
+        };
+        const adcs: adcsstruc = {
+            // utc: row.time,
             s: sav,
-            v: vav,
-            a: aav
+            v: vrv,
+            a: arv
         };
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...aatt });
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
+        // load the current v values for next iteration
+        prev_utc = row.time;
+        prev_vrv = {
+            col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]
+        };
     });
     console.log('attitude iret:', rows[0], ret[0]);
     return ret;
@@ -348,7 +369,7 @@ const getNewLocstruc = (): locstruc => ({
 });
 
 export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<aattstruc & timepoint & GFNodeType> = [];
+    const ret: Array<adcsstruc & timepoint & GFNodeType> = [];
     const loc = getNewLocstruc();
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
@@ -369,8 +390,10 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
+        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
         const lvlh: qatt = (Cosmos.module.loc2lvlh(loc));
-        // 
+        // console.log("lvlh qatt: ", lvlh);
+
         const q: quaternion = lvlh.s;
         // {
         //     d: {
@@ -381,26 +404,24 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
         //     w: row.icrf_s_w,
         // };
         const sav: avector = (Cosmos.module.a_quaternion2euler(q));
+        // console.log("sav avector: ", sav);
+
         // TODO pending conversion to second derivative: Angular Vel (rad/s) /// should be rvector ? combined for ADCS? 
-        const vav: avector = {
-            h: lvlh.v.col[0],
-            e: lvlh.v.col[1],
-            b: lvlh.v.col[2]
+        const vrv: rvector = {
+            col: [lvlh.v.col[0], lvlh.v.col[1], lvlh.v.col[2]]
         };
         // database does not account for third derivative: Angular Accel (rad/s2) 
-        const aav: avector = {
-            h: lvlh.a.col[0],
-            e: lvlh.a.col[1],
-            b: lvlh.a.col[2]
+        const arv: rvector = {
+            col: [lvlh.a.col[0], lvlh.a.col[1], lvlh.a.col[2]]
         };
-        const aatt: aattstruc = {
-            utc: row.time,
+        const adcs: adcsstruc = {
+            // utc: row.time,
             s: sav,
-            v: vav,
-            a: aav
+            v: vrv,
+            a: arv
         };
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...aatt });
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
     });
     console.log('attitude iret:', rows[0], ret[0]);
     return ret;
@@ -527,6 +548,7 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
+        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
         const lvlh: qatt = (Cosmos.module.loc2lvlh(loc));
         // const gflvlh: gfqatt = {
         //     utc: lvlh.utc,

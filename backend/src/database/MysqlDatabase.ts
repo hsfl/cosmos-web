@@ -42,9 +42,9 @@ export default class MysqlDatabase extends BaseDatabase {
         this.pool.end();
     }
 
-    public async clearDatabase(): Promise<void> {
-        console.log('Clear databases');
-    }
+    // public async clearDatabase(): Promise<void> {
+    //     console.log('Clear databases');
+    // }
 
     public async write_telem(telem: TelegrafMetric[]): Promise<void> {
         for (let i = 0; i < telem.length; i++) {
@@ -570,12 +570,14 @@ ORDER BY resource_name limit 1000;`,
     // SELECT @@sql_mode ;
     // or also
     // SHOW GLOBAL VARIABLES LIKE 'sql_mode';
-    //
+    // ['ONLY_FULL_GROUP_BY','STRICT_TRANS_TABLES','NO_ZERO_IN_DATE','NO_ZERO_DATE','ERROR_FOR_DIVISION_BY_ZERO','NO_ENGINE_SUBSTITUTION'];
     // remove the specified config with:
     // SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
+    // SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'STRICT_TRANS_TABLES','ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'));
+
 
     // this needs a fix... sql seems to update and revert back to only full group by on restart... TODO
-
+    // TODO remove depreciated; this is now integrated into each function with query 2.0
     public async get_now(query: QueryType): Promise<cosmosresponse> {
         let query_statement: string = "";
         try {
@@ -639,19 +641,7 @@ ORDER BY resource_name limit 1000;`,
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 query_statement
             );
-            // const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-            //     `SELECT
-            //     node_name,
-            //     node_type,
-            //     node_id,
-            //     agent_name,
-            //     MAX(utc) as "latest timestamp"
-            //     FROM node
-            //     WHERE node_name="mothership" and utc BETWEEN ? and ? ORDER BY time limit 1000`,
-            //     [timerange.from, timerange.to],
-            // );
-
-            console.log(rows[0])
+            // console.log(rows[0])
             const ret = { table: rows };
             return ret;
         }
@@ -688,9 +678,9 @@ icrf_v_z
 FROM locstruc 
 INNER JOIN node ON locstruc.node_name = node.node_name
 WHERE locstruc.utc = (select max(locstruc.utc) from locstruc) \n`
-                    + (node_filter !== undefined ? ` AND locstruc.node_name = ?\n` : '')
+                    + (node_filter !== undefined ? ` AND locstruc.node_name = ? \n` : '')
                     + ` ORDER BY time limit 10000;`,
-                    [node_filter?.filterValue, query.from, query.to].filter((v) => v !== undefined),
+                    [node_filter?.filterValue].filter((v) => v !== undefined),
                 );
             } else {
                 [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
@@ -712,33 +702,38 @@ WHERE `
                 );
             }
             console.log(rows[0])
+            let rows_undef: boolean = false;
             if (rows.length === 0) {
                 console.log("empty rows");
+                rows_undef = true;
                 // logic for returning list of nodes in given type on empty row return
                 const key_array = await this.get_nodes();
                 // console.log("key_array: ", key_array);
                 const locrows: Array<locstruc_table> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
-                    for (let i = 0; i < qvalue.length; i++) {
-                        // console.log("qvalue[i]: ", qvalue[i]);
-                        const locstruc: locstruc_table = {
-                            node_name: qvalue[i].node_name,
-                            utc: query.to,
-                            eci_s_x: 0,
-                            eci_s_y: 0,
-                            eci_s_z: 0,
-                            eci_v_x: 0,
-                            eci_v_y: 0,
-                            eci_v_z: 0,
-                            icrf_s_x: 0,
-                            icrf_s_y: 0,
-                            icrf_s_z: 0,
-                            icrf_s_w: 0,
-                            icrf_v_x: 0,
-                            icrf_v_y: 0,
-                            icrf_v_z: 0,
+                    console.log("qkey, qvalue: ", qkey, " ", qvalue);
+                    if (qkey === 'nodes') {
+                        for (let i = 0; i < qvalue.length; i++) {
+                            console.log("qvalue[i]: ", qvalue[i]);
+                            const locstruc: locstruc_table = {
+                                node_name: qvalue[i].node_name,
+                                utc: query.to,
+                                eci_s_x: 0,
+                                eci_s_y: 0,
+                                eci_s_z: 0,
+                                eci_v_x: 0,
+                                eci_v_y: 0,
+                                eci_v_z: 0,
+                                icrf_s_x: 0,
+                                icrf_s_y: 0,
+                                icrf_s_z: 0,
+                                icrf_s_w: 0,
+                                icrf_v_x: 0,
+                                icrf_v_y: 0,
+                                icrf_v_z: 0,
+                            }
+                            locrows.push({ ...locstruc });
                         }
-                        locrows.push({ ...locstruc });
                     }
                 }
                 // const ret = { "ecis": locrows };
@@ -762,35 +757,12 @@ WHERE `
                 const ret = { "qatts": lvlh_attitude(rows) };
                 return ret;
             } else if (type == "icrf") {
-                // const vrows: Array<qvatt & timepoint> = [];
-                // rows.forEach((row) => {
-                //     const qv: qvatt = {
-                //         qvx: row.icrf_v_x,
-                //         qvy: row.icrf_v_y,
-                //         qvz: row.icrf_v_z
-                //     };
-                //     vrows.push({ Time: row.time, ...qv });
-                // });
-                // const arows: Array<qaatt & timepoint> = [];
-                // rows.forEach((row) => {
-                //     const qa: qaatt = {
-                //         qax: 0,
-                //         qay: 0,
-                //         qaz: 0
-                //     };
-                //     arows.push({ Time: row.time, ...qa });
-                // });
-                // update return to single array of aatstruc type, s v a of avectors... 
-                const ret = { "aattstrucs": icrf_att(rows) };
-                // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
-                // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
+                const ret = { "adcsstrucs": icrf_att(rows) };
                 return ret;
             } else if (type == "eul_lvlh") {
                 // update return combined Euler Angle from return of LVLH conversion quatt... call both in new custom formula
                 // ... to single array of aatstruc type, s v a of avectors... 
-                const ret = { "aattstrucs": icrf_lvlh_att(rows) };
-                // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
-                // const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
+                const ret = { "lvlhadcsstrucs": icrf_lvlh_att(rows) };
                 return ret;
             }
             const ret = { "ecis": eci_position(rows) };

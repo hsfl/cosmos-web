@@ -26,12 +26,14 @@ export interface avector {
     b: number;
 }
 
-// reference class for aattstruc
-export interface aattstruc {
-    utc: number; // double
+// reference class for aattstruc; that is icrf/ lvlh type
+// TODO update, this is wrong. attempted to combine s attitude of avector with v + a velocity and accl rvectors. 
+// rename to custom type for ADCS return
+export interface adcsstruc {
+    // utc: number; // double
     s: avector;
-    v: avector;
-    a: avector;
+    v: rvector;
+    a: rvector;
 }
 
 export interface cvector {
