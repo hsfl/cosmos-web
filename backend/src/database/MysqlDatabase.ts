@@ -1,10 +1,10 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, EventResourceImpact, sqlquerytranslate, locstruc_table } from "database/BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, MissionEvent, sqlquerytranslate, locstruc_table } from "database/BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
 import { AppError } from 'exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
-import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, relative_angle_range } from '../transforms/cosmos';
+import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, icrf_geoc_att, relative_angle_range } from '../transforms/cosmos';
 import { TimeRange, cosmosresponse, KeyType, timepoint, qvatt, qaatt } from 'types/cosmos_types';
 import { QueryObject, QueryType, QueryFilter } from 'types/query_types';
 import { table_schema } from './inittables';
@@ -303,9 +303,29 @@ export default class MysqlDatabase extends BaseDatabase {
         }
     }
 
-    // POST write new event
-
+    // POST write new event AND/OR
     // update event row ; primary key (id) 
+    // TODO update for logic of self-assigned unique key, validate or seperate out new/duplicate entries, or split functions
+    public async post_event(event: MissionEvent[]): Promise<void> {
+        let post_event: string = `INSERT INTO event 
+                                    (name, type, duration_seconds) 
+                                    VALUES (?, ?, ?);`;
+        // post no id
+        // []
+        try {
+            await this.promisePool.execute(
+                post_event,
+                [event[0].event_name, event[0].event_type, event[0].event_duration]
+            );
+        } catch (error) {
+            console.error(error);
+            throw new AppError({
+                httpCode: StatusCodes.BAD_REQUEST,
+                description: 'Failure updating event resource impact'
+            });
+        }
+    }
+
 
     // delete event row ; primary key (id) // call resource delete as well for cascade association ?
 
@@ -457,7 +477,7 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
             });
         }
     }
-
+    // old sql table .... still used though depreciated
     public async get_event(query: QueryType): Promise<cosmosresponse> {
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
@@ -536,7 +556,7 @@ ORDER BY resource_name limit 1000;`
         try {
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 `SELECT DISTINCT
-id,
+id as "resource_id",
 name as "resource_name",
 type as "resource_type"
 FROM resource
@@ -655,6 +675,7 @@ ORDER BY resource_name limit 1000;`,
     }
 
     // LocType adds output type option variable to the function inputs // , type: string
+    // rename get_locstruc, and pass position and attitude endpoints to this function
     public async get_position(query: QueryType): Promise<cosmosresponse> {
         try {
             const queryObj: QueryObject = JSON.parse(query.query);
@@ -702,10 +723,10 @@ WHERE `
                 );
             }
             console.log(rows[0])
-            let rows_undef: boolean = false;
+            // let rows_undef: boolean = false;
             if (rows.length === 0) {
                 console.log("empty rows");
-                rows_undef = true;
+                // rows_undef = true;
                 // logic for returning list of nodes in given type on empty row return
                 const key_array = await this.get_nodes();
                 // console.log("key_array: ", key_array);
@@ -736,9 +757,9 @@ WHERE `
                         }
                     }
                 }
-                // const ret = { "ecis": locrows };
+                const ret = { "ecis": locrows };
                 // console.log("compiled mock batt return: ", ret);
-                // return ret;
+                return ret;
                 // end of logic for returning list of nodes on empty row return
             }
             // else statement here for case where time range is valid and rows have data in return TODO
@@ -758,6 +779,9 @@ WHERE `
                 return ret;
             } else if (type == "icrf") {
                 const ret = { "adcsstrucs": icrf_att(rows) };
+                return ret;
+            } else if (type == "geoc") {
+                const ret = { "geocadcsstrucs": icrf_geoc_att(rows) };
                 return ret;
             } else if (type == "eul_lvlh") {
                 // update return combined Euler Angle from return of LVLH conversion quatt... call both in new custom formula
