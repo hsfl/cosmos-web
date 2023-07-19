@@ -377,7 +377,8 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
         loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
         loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
         // this object not in database
-        loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        loc.pos.eci.a = { col: [0, 0, 0] };
         // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
         loc.att.icrf.pass = 1;
         loc.att.icrf.utc = row.time;
@@ -406,11 +407,11 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
         const sav: avector = (Cosmos.module.a_quaternion2euler(q));
         // console.log("sav avector: ", sav);
 
-        // TODO pending conversion to second derivative: Angular Vel (rad/s) /// should be rvector ? combined for ADCS? 
+        // COSMOS module lvlh conversion for second derivative: Angular Vel (rad/s) 
         const vrv: rvector = {
             col: [lvlh.v.col[0], lvlh.v.col[1], lvlh.v.col[2]]
         };
-        // database does not account for third derivative: Angular Accel (rad/s2) 
+        // COSMOS module lvlh conversion for third derivative: Angular Accel (rad/s2) 
         const arv: rvector = {
             col: [lvlh.a.col[0], lvlh.a.col[1], lvlh.a.col[2]]
         };
@@ -427,6 +428,58 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
     return ret;
 };
 
+
+export const icrf_geoc_att = (rows: mysql.RowDataPacket[]) => {
+    const ret: Array<adcsstruc & timepoint & GFNodeType> = [];
+    const loc = getNewLocstruc();
+    rows.forEach((row) => {
+        loc.pos.eci.utc = row.time;
+        loc.pos.eci.pass = 1;
+        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
+        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        // this object not in database
+        // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        loc.pos.eci.a = { col: [0, 0, 0] };
+        // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
+        loc.att.icrf.pass = 1;
+        loc.att.icrf.utc = row.time;
+        // s element needed to populate lvlh s element 
+        loc.att.icrf.s = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z
+            },
+            w: row.icrf_s_w
+        };
+        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        const geoc: qatt = (Cosmos.module.loc2lvlh(loc));
+        // const geoc: qatt = (Cosmos.module.loc2attgeoc(loc));
+        // console.log("geoc qatt: ", lvlh);
+        const q: quaternion = geoc.s;
+        const sav: avector = (Cosmos.module.a_quaternion2euler(q));
+        // console.log("sav avector: ", sav);
+
+        // COSMOS module lvlh conversion for second derivative: Angular Vel (rad/s) 
+        const vrv: rvector = {
+            col: [geoc.v.col[0], geoc.v.col[1], geoc.v.col[2]]
+        };
+        // COSMOS module lvlh conversion for third derivative: Angular Accel (rad/s2) 
+        const arv: rvector = {
+            col: [geoc.a.col[0], geoc.a.col[1], geoc.a.col[2]]
+        };
+        const adcs: adcsstruc = {
+            // utc: row.time,
+            s: sav,
+            v: vrv,
+            a: arv
+        };
+        //const time  
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
+    });
+    console.log('attitude iret:', rows[0], ret[0]);
+    return ret;
+};
 
 export const eci_position = (rows: mysql.RowDataPacket[]) => {
     const ret: Array<gfcartpos & timepoint & GFNodeType> = [];
@@ -460,7 +513,20 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
         loc.pos.eci.pass = 1;
         loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
         loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
-        loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        loc.pos.eci.a = { col: [0, 0, 0] };
+        loc.att.icrf.pass = 1;
+        loc.att.icrf.utc = row.time;
+        // s element needed to populate lvlh s element 
+        loc.att.icrf.s = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z
+            },
+            w: row.icrf_s_w
+        };
+        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
         // const typed_node: GFNodeType = {
         //     name: row.node_name,
         //     type: 0,
@@ -499,7 +565,20 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
         loc.pos.eci.pass = 1;
         loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
         loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
-        loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        loc.pos.eci.a = { col: [0, 0, 0] };
+        loc.att.icrf.pass = 1;
+        loc.att.icrf.utc = row.time;
+        // s element needed to populate lvlh s element 
+        loc.att.icrf.s = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z
+            },
+            w: row.icrf_s_w
+        };
+        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
 
         const geos: spherpos = (Cosmos.module.loc2geos(loc));
         // const gfgeos: gfspherpos = {

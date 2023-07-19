@@ -95,6 +95,13 @@ export interface EventResourceUpdate {
     update: EventResourceUpdateBody[];
 }
 
+export interface MissionEvent {
+    event_id: number;
+    event_name: string;
+    event_type: string;
+    event_duration: number;
+}
+
 export interface node {
     node_id: number;
     node_name: string;

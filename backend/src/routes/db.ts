@@ -237,6 +237,7 @@ router.get('/attitude', async (req: Request<{}, {}, {}, QueryType>, res: Respons
 });
 
 // curl --request GET "http://localhost:10090/db/event?from=59874.83333333&to=59874.87333333"
+// returns outdated cosmos_event table data
 router.get('/event', async (req: Request<{}, {}, {}, QueryType>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.from === undefined || req.query.to === undefined) {
@@ -252,6 +253,7 @@ router.get('/event', async (req: Request<{}, {}, {}, QueryType>, res: Response) 
 });
 
 // curl --request GET "http://localhost:10090/db/missionevent"
+// returns 2.0 mission event table data list
 router.get('/missionevent', async (req: Request<{}, {}, {}>, res: Response) => {
     const db = DBHandler.app_db();
     // if (req.query.from === undefined || req.query.to === undefined) {
@@ -267,6 +269,7 @@ router.get('/missionevent', async (req: Request<{}, {}, {}>, res: Response) => {
 });
 
 // curl --request GET "http://localhost:10090/db/missionresource"
+// returns 2.0 mission resource table data list
 router.get('/missionresource', async (req: Request<{}, {}, {}>, res: Response) => {
     const db = DBHandler.app_db();
     // if (req.query.from === undefined || req.query.to === undefined) {
@@ -281,8 +284,9 @@ router.get('/missionresource', async (req: Request<{}, {}, {}>, res: Response) =
     res.status(200).json(response);
 });
 
-// curl --request GET "http://localhost:10090/db/evnetmissionresource?eventid=1"
-router.get('/evnetmissionresource', async (req: Request<{}, {}, {}, EventType>, res: Response) => {
+// curl --request GET "http://localhost:10090/db/eventmissionresource?eventid=1"
+// returns 2.0 mission event_resource_impact list table data, for a single select event, providing all resources and impacts
+router.get('/eventmissionresource', async (req: Request<{}, {}, {}, EventType>, res: Response) => {
     const db = DBHandler.app_db();
     // if (req.query.from === undefined || req.query.to === undefined) {
     //     throw new AppError({
@@ -297,6 +301,7 @@ router.get('/evnetmissionresource', async (req: Request<{}, {}, {}, EventType>, 
 });
 
 // curl --request GET "http://localhost:10090/db/missioneventresourceimpact?dtype=1&dname=test"
+// returns 2.0 mission event_resource_impact list table data, for a single select event
 router.get('/missioneventresourceimpact', async (req: Request<{}, {}, {}, KeyType>, res: Response) => {
     const db = DBHandler.app_db();
     if (req.query.dtype === undefined || req.query.dname === undefined) {
