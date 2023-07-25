@@ -21,9 +21,9 @@ export default class App {
         this.express = express();
         // Middlewares
         this.express.use(
-            cors({ origin: true }),
-            express.json({ limit: '50mb' }),
-            express.urlencoded({ limit: '50mb' })
+            cors({origin: true}),
+            express.json({limit: '50mb'}),
+            express.urlencoded({limit: '50mb', extended: true})
         );
         // Routes
         this.express.use(router);
