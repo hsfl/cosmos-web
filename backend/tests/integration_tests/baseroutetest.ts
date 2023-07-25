@@ -5,47 +5,47 @@ import { StatusCodes } from 'http-status-codes';
 import IntegrationHelpers from 'tests/helpers/Integration-helpers';
 import { QueryObject, QueryType } from 'types/query_types';
 
-describe('GET /', () => {
-    let app: express.Application;
-
-    beforeAll(async () => {
-        // Call endpoints with the app
-        app = await IntegrationHelpers.getApp();
-        // Reset the database
-        const resetCall = {
-            metrics: [
-                {
-                    fields: {
-                        value: '{ "swchstruc": true, "battstruc": true, "bcregstruc": true, "cpustruc": true, "device": true, "device_type": true, "locstruc": true, "magstruc": true, "node": true, "tsenstruc": true, "rwstruc": true, "mtrstruc": true, "attstruc_icrf": true, "cosmos_event": true, "event_type": true, "gyrostruc": true, "locstruc_eci": true }'
-                    },
-                    name: 'socket_listener',
-                    tags: { host: '12345678' },
-                    timestamp: 12345678
+beforeAll(async () => {
+    // Call endpoints with the app
+    let app = await IntegrationHelpers.getApp();
+    // Reset the database
+    const resetCall = {
+        metrics: [
+            {
+                fields: {
+                    value: '{ "swchstruc": true, "battstruc": true, "bcregstruc": true, "cpustruc": true, "device": true, "device_type": true, "locstruc": true, "magstruc": true, "node": true, "tsenstruc": true, "rwstruc": true, "mtrstruc": true, "attstruc_icrf": true, "cosmos_event": true, "event_type": true, "gyrostruc": true, "locstruc_eci": true, "target": true }'
                 },
-            ]
-        };
-        await request(app)
-            .post('/db/resetdanger')
-            .set('Accept', 'application/json')
-            .send(resetCall)
-            .expect((res: request.Response) => {
-                expect(res.body.message).toBe('success');
-            })
-            .expect(StatusCodes.ACCEPTED);
-    });
+                name: 'socket_listener',
+                tags: { host: '12345678' },
+                timestamp: 12345678
+            },
+        ]
+    };
+    await request(app)
+        .post('/db/resetdanger')
+        .set('Accept', 'application/json')
+        .send(resetCall)
+        .expect((res: request.Response) => {
+            expect(res.body.message).toBe('success');
+        })
+        .expect(StatusCodes.ACCEPTED);
+});
 
+// Close app
+afterAll(async () => {
+    await IntegrationHelpers.closeApp();
+});
+
+describe('Can POST Beacons to /beacon', () => {
+    let app: express.Application;
+    beforeAll(async () => {
+        app = await IntegrationHelpers.getApp();
+    })
+
+    // Since beacon writes are no longer synchronous, sleep a bit until
+    // all db writes have been completed.
     afterAll(async () => {
-        await IntegrationHelpers.closeApp();
-    });
-
-    it('Can get server time', async () => {
-        await request(app)
-            .get('/')
-            .set('Accept', 'application/json')
-            .expect((res: request.Response) => {
-                expect(res.text).toBe('Hello World!\n');
-            })
-            .expect(StatusCodes.OK);
+        await new Promise(r => setTimeout(r, 1000));
     });
 
     it('Can post node beacon', async () => {
@@ -94,30 +94,6 @@ describe('GET /', () => {
             .expect(StatusCodes.ACCEPTED);
     });
 
-    it('Can get eci positions', async () => {
-        const queryObject: QueryObject = {
-            type: 'position',
-            arg: 'eci',
-            latestOnly: false,
-            filters: [],
-            functions: []
-        }
-        const query: QueryType = {
-            query: JSON.stringify(queryObject),
-            from: 60101.0,
-            to: 60101.1
-        }
-        await request(app)
-            .get('/db/position')
-            .set('Accept', 'application/json')
-            .query(query)
-            .expect((res: request.Response) => {
-                expect(res.body.message).toBe('success');
-                expect(res.body.payload.ecis).not.toHaveLength(0);
-            })
-            .expect(StatusCodes.OK);
-    });
-    
     it('Can post device beacon', async () => {
         const beacon = {
             metrics: [
@@ -210,6 +186,29 @@ describe('GET /', () => {
             .expect(StatusCodes.ACCEPTED);
     });
 
+    it('Can post target beacon', async () => {
+        const beacon = {
+            metrics: [
+                {
+                    fields: {
+                        value: '{"target": [{"area": 500, "h": 634, "id": 1, "lat": 0.62236695796865793, "lon": 2.439010363199476, "name": "tokyotwr", "type": 5}, {"area": 0, "h": 10, "id": 5, "lat": 0.37264524859330928, "lon": -2.7572711523006417, "name": "pearlharbor", "type": 13}]}'
+                    },
+                    name: 'socket_listener',
+                    tags: { host: '12345678' },
+                    timestamp: 12345678
+                },
+            ]
+        };
+        await request(app)
+            .post('/db/beacon')
+            .set('Accept', 'application/json')
+            .send(beacon)
+            .expect((res: request.Response) => {
+                expect(res.body.message).toBe('success');
+            })
+            .expect(StatusCodes.ACCEPTED);
+    });
+
     it('Can post tsen beacon', async () => {
         const beacon = {
             metrics: [
@@ -231,6 +230,38 @@ describe('GET /', () => {
                 expect(res.body.message).toBe('success');
             })
             .expect(StatusCodes.ACCEPTED);
+    });
+});
+
+describe('Can GET telems', () => {
+    let app: express.Application;
+    beforeAll(async () => {
+        app = await IntegrationHelpers.getApp();
+    })
+
+
+    it('Can get eci positions', async () => {
+        const queryObject: QueryObject = {
+            type: 'position',
+            arg: 'eci',
+            latestOnly: false,
+            filters: [],
+            functions: []
+        }
+        const query: QueryType = {
+            query: JSON.stringify(queryObject),
+            from: 60101.0,
+            to: 60101.1
+        }
+        await request(app)
+            .get('/db/position')
+            .set('Accept', 'application/json')
+            .query(query)
+            .expect((res: request.Response) => {
+                expect(res.body.message).toBe('success');
+                expect(res.body.payload.ecis).not.toHaveLength(0);
+            })
+            .expect(StatusCodes.OK);
     });
 
     it('Can get battery', async () => {

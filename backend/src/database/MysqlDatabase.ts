@@ -157,7 +157,7 @@ export default class MysqlDatabase extends BaseDatabase {
                         }
                     }
                     insert_statement = dynamic_insert.concat(table_cols, table_variables);
-                    console.log("insert statement construct: ", insert_statement);
+                    // console.log("insert statement construct: ", insert_statement);
                     // console.log("dynamic col array: ", dynamic_col_array);
                 }
             }
@@ -176,7 +176,7 @@ export default class MysqlDatabase extends BaseDatabase {
         for (let i = 0; i < objectArray.length; i++) {
             let row_value_array: Array<any> = [];
             row_value_array = dynamic_col_array.map(x => objectArray[i][x]);
-            console.log("parsed row values array: ", row_value_array);
+            // console.log("parsed row values array: ", row_value_array);
 
             try {
                 await this.promisePool.execute(
@@ -1448,6 +1448,22 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'
+            });
+        }
+    }
+
+    // Logs history of executed agent commands
+    public async write_command_history(command: string): Promise<void> {
+        try {
+            await this.promisePool.execute(
+                'INSERT INTO command_history (command) VALUES (?)',
+                [command]
+            );
+        } catch (error) {
+            console.error(error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Error writing to command_history'
             });
         }
     }

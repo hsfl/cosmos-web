@@ -1,4 +1,4 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, adcsstruc, rvector } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, rvector } from 'types/cosmos_types';
 import mysql from 'mysql2';
 import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node } from 'database/BaseDatabase';
 
@@ -867,6 +867,31 @@ export const parse_node = (obj: Partial<beacontype>) => {
     return [ret];
 }
 
+// Parses the json of an array of targetstrucs into an array of rows of target data
+// Called by beacon2obj when a target beacon is to be written to the db
+export const parse_target = (obj: Partial<beacontype>): targetstruc[] => {
+    if (!Array.isArray(obj.target)) {
+        return [];
+    }
+    const ret: targetstruc[] = [];
+    obj.target.forEach((target) => {
+        if (!is_targetstruc(target)) {
+            return;
+        }
+        ret.push({
+            id: target.id,
+            type: target.type,
+            name: target.name,
+            lat: target.lat,
+            lon: target.lon,
+            h: target.h,
+            area: target.area,
+        })
+    });
+
+    return ret;
+}
+
 // Parses the json of an array of devicestrucs into an array of rows of device data
 // Called by beacon2obj when a device beacon is to be written to the db
 export const parse_device = (obj: Partial<beacontype>): device_table[] => {
@@ -1053,6 +1078,15 @@ export const beacon2obj = (beacon: string): [string, cosmos_table_row[]] => {
             return ['error', node_array];
         }
         return ['node', node_array];
+    }
+
+    // target
+    if (object.target !== undefined) {
+        const target_array = parse_target(object);
+        if (target_array.length === 0) {
+            return ['error', target_array];
+        }
+        return ['target', target_array];
     }
 
     // device

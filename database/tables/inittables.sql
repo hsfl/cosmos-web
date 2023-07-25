@@ -21,6 +21,17 @@ utcstart DOUBLE,
 PRIMARY KEY (node_name)
 );
 
+CREATE TABLE IF NOT EXISTS target (
+id TINYINT UNSIGNED NOT NULL UNIQUE,
+name VARCHAR(40) NOT NULL UNIQUE,
+type MEDIUMINT UNSIGNED NOT NULL,
+lat DOUBLE NOT NULL,
+lon DOUBLE NOT NULL,
+h DOUBLE NOT NULL,
+area DOUBLE NOT NULL,
+PRIMARY KEY (id)
+);
+
 # COSMOS device types
 # Each specific device has a unique device type ID
 # name: Name of the device type
@@ -226,4 +237,19 @@ CREATE TABLE IF NOT EXISTS cosmos_event (
 # All available agent commands
 # node_name: Node name
 # request: The agent request
-# 
+# not yet implemented
+
+# Command history
+# History of commands sent to various nodes/agents
+# node_name: Node name of intended recipient of command
+# id: Internal id of the command, dont assign directly
+# utc: timestamp (decisecond precision)
+# command: The sent command as a string
+CREATE TABLE IF NOT EXISTS command_history (
+    id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
+    utc TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    command VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (id),
+    INDEX (utc)
+);

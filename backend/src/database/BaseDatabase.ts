@@ -1,4 +1,4 @@
-import { cosmosresponse, TimeRange, KeyType } from '../types/cosmos_types';
+import { cosmosresponse, TimeRange, KeyType, targetstruc } from '../types/cosmos_types';
 import { QueryType } from 'types/query_types';
 
 // map of cosmos sql tables; 
@@ -13,6 +13,7 @@ export const sqlmap: Object = {
     "locstruc": ["node_name", "utc", "eci_s_x", "eci_s_y", "eci_s_z", "eci_v_x", "eci_v_y", "eci_v_z", "icrf_s_x", "icrf_s_y", "icrf_s_z", "icrf_s_w", "icrf_v_x", "icrf_v_y", "icrf_v_z"],
     "magstruc": ["node_name", "didx", "utc", "mag_x", "mag_y", "mag_z"],
     "node": ["node_id", "node_name", "node_type", "agent_name", "utc", "utcstart"],
+    "target": ["id", "name", "type", "lat", "lon", "h", "area"],
     "tsenstruc": ["node_name", "didx", "utc", "temp"],
     "resource": ["id", "name", "type", "min_level", "max_level"],
     "event": ["id", "name", "type", "duration_seconds"],
@@ -125,7 +126,7 @@ export function is_node(obj: any): obj is node {
     );
 }
 
-export type cosmos_table_row = device_table | deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table | node;
+export type cosmos_table_row = device_table | deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table | node | targetstruc;
 
 // swchstruc sql
 export interface deviceswch {
@@ -390,6 +391,10 @@ export default class BaseDatabase {
     public async get_now(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting now for table type');
         return {};
+    }
+
+    public async write_command_history(command: string): Promise<void> {
+        console.log('Writing command to command history');
     }
 
 

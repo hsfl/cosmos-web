@@ -355,11 +355,37 @@ export interface beacontype {
     node_name: string;
     node_loc: Partial<locstruc>;
     node: Partial<node>;
+    target: Partial<targetstruc>;
     device: Partial<devicestruc>[];
     devspec: Partial<devspecstruc>;
 }
 
 // Cosmos type
+
+export interface targetstruc {
+    id: number;
+    type: number;
+    name: string;
+    lat: number;
+    lon: number;
+    h: number;
+    area: number;
+}
+
+export function is_targetstruc(obj: any): obj is targetstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.id === 'number'
+        && typeof obj.type === 'number'
+        && typeof obj.name === 'string'
+        && typeof obj.lat === 'number'
+        && typeof obj.lon === 'number'
+        && typeof obj.h === 'number'
+        && typeof obj.area === 'number'
+    );
+}
 
 export interface devicestruc {
     type: number;

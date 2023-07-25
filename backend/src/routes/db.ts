@@ -117,6 +117,7 @@ curl -X POST -H "Content-Type: application/json" --data '{
 ' http://localhost:10090/db/beacon
  */
 // TODO: beacon2obj error on any of the metrics don't notify of the error (check with tests)
+// Note: batch of 250 metrics takes about 3.00 seconds
 router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response) => {
     // console.log(req.body);
     if ((req.body) === undefined || req.body.metrics === undefined) {
@@ -125,6 +126,7 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
             description: 'Argument format incorrect. Must be list of objects'
         });
     }
+    console.log('Write beacon, metric size:', req.body.metrics.length)
     // extract body, format of object as string
     for (let i = 0; i < req.body.metrics.length; i++) {
         // parse string object into appropriate array of ["sql_table_name", [{database type row object}, ...] ]
@@ -135,7 +137,7 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
             // open database connection
             const db = DBHandler.app_db();
             // dynamic sql insert statement; takes (table: string, objectArray: any[])
-            await db.write_beacon(table_name, parsedbeacon);
+            db.write_beacon(table_name, parsedbeacon);
         }
     }
     res.status(202).json(new_api_response('success'));
