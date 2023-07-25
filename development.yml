@@ -19,7 +19,7 @@ services:
 
   backend:
     container_name: cosmos_backend
-    image: hsfl2/web_backend:0.3.0
+    image: hsfl2/web_backend:0.4.0
     volumes:
       # For syncing dev changes
       - ${COSMOSWEBDIR:-.}/backend/src:/home/node/app/src
