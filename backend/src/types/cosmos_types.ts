@@ -1,4 +1,4 @@
-import { node } from "database/BaseDatabase";
+import { node, event } from "database/BaseDatabase";
 
 export interface attitude {
     node_id: number;
@@ -358,6 +358,7 @@ export interface beacontype {
     target: Partial<targetstruc>;
     device: Partial<devicestruc>[];
     devspec: Partial<devspecstruc>;
+    event: Partial<event>;
 }
 
 // Cosmos type

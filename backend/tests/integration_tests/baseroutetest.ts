@@ -12,8 +12,9 @@ beforeAll(async () => {
     const resetCall = {
         metrics: [
             {
+                // TODO: fix crash if json is bad
                 fields: {
-                    value: '{ "swchstruc": true, "battstruc": true, "bcregstruc": true, "cpustruc": true, "device": true, "device_type": true, "locstruc": true, "magstruc": true, "node": true, "tsenstruc": true, "rwstruc": true, "mtrstruc": true, "attstruc_icrf": true, "cosmos_event": true, "event_type": true, "gyrostruc": true, "locstruc_eci": true, "target": true }'
+                    value: '{ "swchstruc": true, "battstruc": true, "bcregstruc": true, "cpustruc": true, "device": true, "device_type": true, "locstruc": true, "magstruc": true, "node": true, "tsenstruc": true, "rwstruc": true, "mtrstruc": true, "attstruc_icrf": true, "cosmos_event": true, "event_type": true, "gyrostruc": true, "locstruc_eci": true, "target": true, "cosmos_event": true }'
                 },
                 name: 'socket_listener',
                 tags: { host: '12345678' },
@@ -186,6 +187,29 @@ describe('Can POST Beacons to /beacon', () => {
             .expect(StatusCodes.ACCEPTED);
     });
 
+    it('Can post event beacon', async () => {
+        const beacon = {
+            metrics: [
+                {
+                    fields: {
+                        value: '{"event": [{"duration": 0.006944444467080757, "event_id": 1, "event_name": "ggbridge", "node_name": "mother", "type": 6144, "utc": 60101.0}, {"duration": 0.006944444467080757, "event_id": 2, "event_name": "spacendl", "node_name": "mother", "type": 6144, "utc": 60101.0}]}'
+                    },
+                    name: 'socket_listener',
+                    tags: { host: '12345678' },
+                    timestamp: 12345678
+                },
+            ]
+        };
+        await request(app)
+            .post('/db/beacon')
+            .set('Accept', 'application/json')
+            .send(beacon)
+            .expect((res: request.Response) => {
+                expect(res.body.message).toBe('success');
+            })
+            .expect(StatusCodes.ACCEPTED);
+    });
+
     it('Can post target beacon', async () => {
         const beacon = {
             metrics: [
@@ -336,6 +360,30 @@ describe('Can GET telems', () => {
             .expect(StatusCodes.OK);
     });
 
+    it('Can get event', async () => {
+        const queryObject: QueryObject = {
+            type: 'event',
+            arg: '',
+            latestOnly: false,
+            filters: [],
+            functions: []
+        }
+        const query: QueryType = {
+            query: JSON.stringify(queryObject),
+            from: 60101.0,
+            to: 60101.1
+        }
+        await request(app)
+            .get('/db/event')
+            .set('Accept', 'application/json')
+            .query(query)
+            .expect((res: request.Response) => {
+                expect(res.body.message).toBe('success');
+                expect(res.body.payload.events).not.toHaveLength(0);
+            })
+            .expect(StatusCodes.OK);
+    });
+
     it('Can get tsen', async () => {
         const queryObject: QueryObject = {
             type: 'tsen',
@@ -360,3 +408,7 @@ describe('Can GET telems', () => {
             .expect(StatusCodes.OK);
     });
 });
+
+// TODO:
+// db duplicate entries crash the app
+// bad json produces silent error that disables db access

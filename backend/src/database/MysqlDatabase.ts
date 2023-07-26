@@ -486,6 +486,7 @@ utc AS "time",
 node_name,
 duration,
 event_id,
+type,
 event_name
 FROM cosmos_event
 WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,

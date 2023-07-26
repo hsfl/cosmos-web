@@ -16,6 +16,7 @@ export const sqlmap: Object = {
     "target": ["id", "name", "type", "lat", "lon", "h", "area"],
     "tsenstruc": ["node_name", "didx", "utc", "temp"],
     "resource": ["id", "name", "type", "min_level", "max_level"],
+    "cosmos_event": ["node_name", "utc", "duration", "event_id", "type", "event_name"],
     "event": ["id", "name", "type", "duration_seconds"],
     "event_resource_impact": ["event_id", "resource_id", "second_index", "resource_change"]
 }
@@ -126,7 +127,29 @@ export function is_node(obj: any): obj is node {
     );
 }
 
-export type cosmos_table_row = device_table | deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table | node | targetstruc;
+export interface event {
+    node_name: string;
+    utc: number;
+    duration: number;
+    event_id: number;
+    type: number;
+    event_name: string;
+}
+
+export function is_event(obj: any): obj is event {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.node_name === 'string'
+        && typeof obj.utc === 'number'
+        && typeof obj.duration === 'number'
+        && typeof obj.event_id === 'number'
+        && typeof obj.event_name === 'string'
+    );
+}
+
+export type cosmos_table_row = device_table | deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table | node | targetstruc | event;
 
 // swchstruc sql
 export interface deviceswch {

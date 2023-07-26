@@ -1,6 +1,6 @@
 import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, rvector } from 'types/cosmos_types';
 import mysql from 'mysql2';
-import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node } from 'database/BaseDatabase';
+import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event } from 'database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
 
@@ -892,6 +892,30 @@ export const parse_target = (obj: Partial<beacontype>): targetstruc[] => {
     return ret;
 }
 
+// Parses the json of an array of eventstruc into an array of rows of event data
+// Called by beacon2obj when a event beacon is to be written to the db
+export const parse_event = (obj: Partial<beacontype>): event[] => {
+    if (!Array.isArray(obj.event)) {
+        return [];
+    }
+    const ret: event[] = [];
+    obj.event.forEach((e) => {
+        if (!is_event(e)) {
+            return;
+        }
+        ret.push({
+            node_name: e.node_name,
+            utc: e.utc,
+            duration: e.duration,
+            event_id: e.event_id,
+            type: e.type,
+            event_name: e.event_name,
+        })
+    });
+
+    return ret;
+}
+
 // Parses the json of an array of devicestrucs into an array of rows of device data
 // Called by beacon2obj when a device beacon is to be written to the db
 export const parse_device = (obj: Partial<beacontype>): device_table[] => {
@@ -1105,6 +1129,14 @@ export const beacon2obj = (beacon: string): [string, cosmos_table_row[]] => {
             return ['error', devspec_array];
         }
         return [device_type, devspec_array];
+    }
+
+    if (object.event !== undefined) {
+        const event_array = parse_event(object);
+        if (event_array.length === 0) {
+            return ['error', event_array];
+        }
+        return ['cosmos_event', event_array];
     }
 
     const keycomp: Array<string> = Object.entries(object)[1][0].split('_');
