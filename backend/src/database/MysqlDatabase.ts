@@ -480,7 +480,9 @@ WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
     // old sql table .... still used though depreciated
     public async get_event(query: QueryType): Promise<cosmosresponse> {
         try {
-            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+            const queryObj: QueryObject = JSON.parse(query.query);
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            const sql_query =
                 `SELECT 
 utc AS "time",
 node_name,
@@ -489,8 +491,18 @@ event_id,
 type,
 event_name
 FROM cosmos_event
-WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
-                [query.from, query.to],
+WHERE\n`
+                + (node_filter !== undefined ? `node_name = ? AND\n` : '')
+                + `utc BETWEEN ? and ? ORDER BY time limit 1000`;
+            const query_arg_array = [
+                node_filter?.filterValue,
+                query.from,
+                query.to
+            ].filter((v) => v !== undefined);
+            console.log('sql_query:', sql_query);
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                sql_query,
+                query_arg_array,
             );
             console.log('get_event rows', rows[0])
             const ret = { "events": rows };
