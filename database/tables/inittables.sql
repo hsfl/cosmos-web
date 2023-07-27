@@ -227,7 +227,7 @@ CREATE TABLE IF NOT EXISTS event_type (
 CREATE TABLE IF NOT EXISTS cosmos_event (
     node_name VARCHAR(40) NOT NULL,
     utc DOUBLE(17, 8) NOT NULL,
-    duration INT UNSIGNED,
+    duration DOUBLE,
     event_id TINYINT UNSIGNED NOT NULL,
     type INT UNSIGNED NOT NULL,
     event_name VARCHAR(40) NOT NULL,
