@@ -29,7 +29,7 @@ git submodule update --init --recursive
 
 3. Modify cosmos .env file
 
-We will need to modify two .env files to configure the COSMOS Web setup. Let's start with the .env in the root folder of cosmos-docker that we created in step 2 from the previous [COSMOS Installation guide](https://github.com/hsfl/cosmos). Open the .env file at ```~/cosmos-docker/.env``` with your preferred text editor (you can also open the entire cosmos folder in VSCode).
+We will need to modify two .env files to configure the COSMOS Web setup. Let's start with the .env in the root folder of cosmos-docker that we created in step 2 from the previous [COSMOS Installation guide](https://github.com/hsfl/cosmos). Open the .env file at ```~/cosmos-docker/.env``` with your preferred text editor (you can also open the entire cosmos-docker folder in VSCode).
 
 The bottom half of the file has several lines commented out, with only this line uncommented:
 ```
