@@ -745,10 +745,10 @@ WHERE `
                 // console.log("key_array: ", key_array);
                 const locrows: Array<locstruc_table> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
-                    console.log("qkey, qvalue: ", qkey, " ", qvalue);
+                    // console.log("qkey, qvalue: ", qkey, " ", qvalue);
                     if (qkey === 'nodes') {
                         for (let i = 0; i < qvalue.length; i++) {
-                            console.log("qvalue[i]: ", qvalue[i]);
+                            // console.log("qvalue[i]: ", qvalue[i]);
                             const locstruc: locstruc_table = {
                                 node_name: qvalue[i].node_name,
                                 utc: query.to,

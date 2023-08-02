@@ -14,8 +14,10 @@ export interface CosmosModule {
     ecitogeod: (arg: any) => geoidpos;
     check_get_cos: (arg: any) => string;
     loc2lvlh: (arg: any) => qatt; //(arg: [number, string]) => ((arg0: number, arg1: string) // => (arg0: cartpos, arg1: qatt)  
+    loc2geoc: (arg: any) => qatt;
     loc2eci: (arg: any) => cartpos;
     loc2geos: (arg: any) => spherpos;
+    loc2sunv: (arg: any) => rvector;
     eci2geod: (arg: any) => geoidpos;
     groundstation: (satellite: locstruc, groundstation: locstruc) => svector;
 }
@@ -34,6 +36,8 @@ export interface adcsstruc {
     s: avector;
     v: rvector;
     a: rvector;
+    sun: rvector;
+    nad: rvector;
 }
 
 export interface cvector {
