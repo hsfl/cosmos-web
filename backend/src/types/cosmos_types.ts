@@ -40,6 +40,17 @@ export interface adcsstruc {
     nad: rvector;
 }
 
+export interface EulAdcsstruc {
+    // utc: number; // double
+    icrfs: avector;
+    s: avector;
+    v: rvector;
+    a: rvector;
+    sun: rvector;
+    nad: rvector;
+    sqatt: quaternion;
+}
+
 export interface cvector {
     x: number;
     y: number;

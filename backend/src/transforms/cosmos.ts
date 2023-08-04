@@ -1,4 +1,4 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, rvector } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector } from 'types/cosmos_types';
 import mysql from 'mysql2';
 import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event } from 'database/BaseDatabase';
 
@@ -417,20 +417,32 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
             w: row.icrf_s_w
         };
         loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        // translate icrf_sav
+        const icrf_q: quaternion = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z,
+            },
+            w: row.icrf_s_w,
+        };
+        const icrf_sav: avector = (Cosmos.module.a_quaternion2euler(icrf_q));
+
         // need to get pos in lvlh
         // need to write math; lvlh qatt transforms lvlh to body
         const lvlh: qatt = (Cosmos.module.loc2lvlh(loc));
         // console.log("lvlh qatt: ", lvlh);
 
-        const q: quaternion = lvlh.s;
-        // {
-        //     d: {
-        //         x: row.icrf_s_x,
-        //         y: row.icrf_s_y,
-        //         z: row.icrf_s_z,
-        //     },
-        //     w: row.icrf_s_w,
-        // };
+        const q: quaternion =
+        // lvlh.s;
+        {
+            d: {
+                x: -lvlh.s.d.x,
+                y: -lvlh.s.d.y,
+                z: -lvlh.s.d.z,
+            },
+            w: lvlh.s.w,
+        };
         const sav: avector = (Cosmos.module.a_quaternion2euler(q));
         // console.log("sav avector: ", sav);
 
@@ -446,13 +458,15 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
         const nadir: rvector = { col: [(-1 * row.eci_s_x), (-1 * row.eci_s_y), (-1 * row.eci_s_z)] };
         // const nadir: rvector = { col: [(-1 * sav.b), (-1 * sav.e), (-1 * sav.h)] };
 
-        const adcs: adcsstruc = {
+        const adcs: EulAdcsstruc = {
             // utc: row.time,
+            icrfs: icrf_sav,
             s: sav,
             v: vrv,
             a: arv,
             sun: sunv,
-            nad: nadir
+            nad: nadir,
+            sqatt: lvlh.s
         };
         //const time  
         ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
@@ -489,9 +503,29 @@ export const icrf_geoc_att = (rows: mysql.RowDataPacket[]) => {
         const geoc: qatt = (Cosmos.module.loc2geoc(loc));
         // const geoc: qatt = (Cosmos.module.loc2attgeoc(loc));
         // console.log("geoc qatt: ", lvlh);
-        const q: quaternion = geoc.s;
+        const q: quaternion =
+        // geoc.s;
+        {
+            d: {
+                x: -geoc.s.d.x,
+                y: -geoc.s.d.y,
+                z: -geoc.s.d.z
+            },
+            w: geoc.s.w
+        };
         const sav: avector = (Cosmos.module.a_quaternion2euler(q));
         // console.log("sav avector: ", sav);
+
+        // translate icrf_sav
+        const icrf_q: quaternion = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z,
+            },
+            w: row.icrf_s_w,
+        };
+        const icrf_sav: avector = (Cosmos.module.a_quaternion2euler(icrf_q));
 
         // COSMOS module lvlh conversion for second derivative: Angular Vel (rad/s) 
         const vrv: rvector = {
@@ -504,13 +538,15 @@ export const icrf_geoc_att = (rows: mysql.RowDataPacket[]) => {
         const sunv: rvector = (Cosmos.module.loc2sunv(loc));
         const nadir: rvector = { col: [(-1 * row.eci_s_x), (-1 * row.eci_s_y), (-1 * row.eci_s_z)] };
 
-        const adcs: adcsstruc = {
+        const adcs: EulAdcsstruc = {
             // utc: row.time,
+            icrfs: icrf_sav,
             s: sav,
             v: vrv,
             a: arv,
             sun: sunv,
-            nad: nadir
+            nad: nadir,
+            sqatt: geoc.s
         };
         //const time  
         ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
