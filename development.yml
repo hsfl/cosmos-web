@@ -5,13 +5,14 @@ services:
     image: grafana/grafana-oss:9.5.1
     volumes:
       - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins/src:/var/lib/grafana/plugins/cosmos-plugins
+      - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-apps:/var/lib/grafana/plugins/cosmos-apps
 
   grafana-plugins-dev:
     command: tail -f /dev/null
     image: hsfl2/grafana_plugins_dev_env:0.2.0
     container_name: cosmos_grafana_plugins_dev_env
     volumes:
-      - ${COSMOSWEBDIR:-.}/grafana-plugins/cosmos-grafana-plugins:/home/cosmos/${COSMOSWEBDIR}/grafana-plugins/cosmos-grafana-plugins
+      - ${COSMOSWEBDIR:-.}/grafana-plugins:/home/cosmos/${COSMOSWEBDIR}/grafana-plugins
       # Grabbing root git folder for submodule
       - ./.git:/home/cosmos/.git
       # Save yarn cache to avoid redownload each time
@@ -19,7 +20,7 @@ services:
 
   backend:
     container_name: cosmos_backend
-    image: hsfl2/web_backend:0.4.0
+    image: hsfl2/web_backend:0.4.1
     volumes:
       # For syncing dev changes
       - ${COSMOSWEBDIR:-.}/backend/src:/home/node/app/src
