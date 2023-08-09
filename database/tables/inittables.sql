@@ -232,7 +232,7 @@ CREATE TABLE IF NOT EXISTS cosmos_event (
     type INT UNSIGNED NOT NULL,
     event_name VARCHAR(40) NOT NULL,
 
-    PRIMARY KEY (node_name, utc, event_name)
+    PRIMARY KEY (node_name, utc, event_name, type)
 );
 
 # All available agent commands
