@@ -58,7 +58,7 @@ services:
   backend:
     image: hsfl2/web_backend:0.4.0
     #platform: linux/x86_64 # tentatively used for macOS M1 to compile grafana plugins
-    command: sh -c "ls /root/web_core_dist; cp /root/web_core_dist/CosmosWebCore.data /home/node/app/; npm run dev"
+    command: sh -c "cp /root/web_core_dist/CosmosWebCore.data /home/node/app/; npm run dev"
     container_name: cosmos_backend
     depends_on:
       - web-core-dist
