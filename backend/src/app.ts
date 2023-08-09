@@ -23,10 +23,10 @@ export default class App {
         this.express.use(
             cors({origin: true}),
             express.json({limit: '50mb'}),
-            express.urlencoded({limit: '50mb', extended: true})
+            express.urlencoded({limit: '50mb', extended: true}),
+            // Routes
+            router
         );
-        // Routes
-        this.express.use(router);
     }
 
     // Load all static variables
