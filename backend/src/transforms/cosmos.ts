@@ -1,4 +1,4 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit } from 'types/cosmos_types';
 import mysql from 'mysql2';
 import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event } from 'database/BaseDatabase';
 
@@ -374,6 +374,7 @@ export const icrf_att = (rows: mysql.RowDataPacket[]) => {
 
         const adcs: adcsstruc = {
             // utc: row.time,
+            q_s: q,
             s: sav,
             v: vrv,
             a: arv,
@@ -461,6 +462,7 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
         const adcs: EulAdcsstruc = {
             // utc: row.time,
             icrfs: icrf_sav,
+            q_s: loc.att.icrf.s,
             s: sav,
             v: vrv,
             a: arv,
@@ -541,6 +543,7 @@ export const icrf_geoc_att = (rows: mysql.RowDataPacket[]) => {
         const adcs: EulAdcsstruc = {
             // utc: row.time,
             icrfs: icrf_sav,
+            q_s: loc.att.icrf.s,
             s: sav,
             v: vrv,
             a: arv,
@@ -552,6 +555,50 @@ export const icrf_geoc_att = (rows: mysql.RowDataPacket[]) => {
         ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
     });
     console.log('attitude iret:', rows[0], ret[0]);
+    return ret;
+};
+
+export const orbit_position = (rows: mysql.RowDataPacket[]) => {
+    const ret: Array<gforbit & timepoint & GFNodeType> = [];
+    const loc = getNewLocstruc();
+    rows.forEach((row) => {
+        loc.pos.eci.utc = row.time;
+        loc.pos.eci.pass = 1;
+        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
+        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        // this object not in database
+        // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        loc.pos.eci.a = { col: [0, 0, 0] };
+        // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
+        loc.att.icrf.pass = 1;
+        loc.att.icrf.utc = row.time;
+        // s element needed to populate lvlh s element 
+        loc.att.icrf.s = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z
+            },
+            w: row.icrf_s_w
+        };
+        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        const sunbeta: number = (Cosmos.module.loc2kepbeta(loc));
+        const geod: geoidpos = (Cosmos.module.ecitogeod(loc));
+
+        const gforbit: gforbit = {
+            // utc: row.time,
+            eci_s_x: row.eci_s_x,
+            eci_s_y: row.eci_s_y,
+            eci_s_z: row.eci_s_z,
+            geod_s_lat: geod.s.lat,
+            geod_s_lon: geod.s.lon,
+            geod_s_h: geod.s.h,
+            q_s: loc.att.icrf.s,
+            sunbeta: sunbeta
+        }
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...gforbit });
+    });
+    console.log('iret:', rows[0], ret[0]);
     return ret;
 };
 
@@ -577,7 +624,7 @@ export const eci_position = (rows: mysql.RowDataPacket[]) => {
     });
     console.log('iret:', rows[0], ret[0]);
     return ret;
-}
+};
 
 export const geod_position = (rows: mysql.RowDataPacket[]) => {
     const ret: Array<geoidpos & timepoint & GFNodeType> = [];
@@ -629,7 +676,7 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
     loc.pos.eci.a = { col: [0, 0, 0] };
     console.log('iret:', rows[0], ret[0]);
     return ret;
-}
+};
 
 export const geos_position = (rows: mysql.RowDataPacket[]) => {
     const ret: Array<spherpos & timepoint & GFNodeType> = [];

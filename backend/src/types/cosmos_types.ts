@@ -19,6 +19,7 @@ export interface CosmosModule {
     loc2geos: (arg: any) => spherpos;
     loc2sunv: (arg: any) => rvector;
     eci2geod: (arg: any) => geoidpos;
+    loc2kepbeta: (arg: any) => number;
     groundstation: (satellite: locstruc, groundstation: locstruc) => svector;
 }
 
@@ -33,6 +34,7 @@ export interface avector {
 // rename to custom type for ADCS return
 export interface adcsstruc {
     // utc: number; // double
+    q_s: quaternion;
     s: avector;
     v: rvector;
     a: rvector;
@@ -43,6 +45,7 @@ export interface adcsstruc {
 export interface EulAdcsstruc {
     // utc: number; // double
     icrfs: avector;
+    q_s: quaternion;
     s: avector;
     v: rvector;
     a: rvector;
@@ -199,6 +202,24 @@ export interface gfcartpos {
     a_x: number;
     a_y: number;
     a_z: number;
+}
+
+export interface gforbit {
+    // utc: number; // double
+    eci_s_x: number;
+    eci_s_y: number;
+    eci_s_z: number;
+    geod_s_lat: number;
+    geod_s_lon: number;
+    geod_s_h: number;
+    q_s: quaternion;
+    // v_x: number;
+    // v_y: number;
+    // v_z: number;
+    // a_x: number;
+    // a_y: number;
+    // a_z: number;
+    sunbeta: number;
 }
 
 export interface rvector {
