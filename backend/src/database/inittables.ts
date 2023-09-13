@@ -161,6 +161,55 @@ export const table_schema: Array<mysqlschema> = [
             );`
     },
     {
+        table: "imustruc",
+        statement: `CREATE TABLE IF NOT EXISTS imustruc (
+            node_name VARCHAR(40) NOT NULL,
+            didx TINYINT UNSIGNED NOT NULL,
+            utc DOUBLE NOT NULL,
+            theta_x DOUBLE,
+            theta_y DOUBLE,
+            theta_z DOUBLE,
+            theta_w DOUBLE,
+            omega_x DOUBLE,
+            omega_y DOUBLE,
+            omega_z DOUBLE,
+            mag_x DOUBLE,
+            mag_y DOUBLE,
+            mag_z DOUBLE,
+            PRIMARY KEY (node_name, didx, utc)
+            );`
+    },
+    {
+        table: "ssenstruc",
+        statement: `CREATE TABLE IF NOT EXISTS ssenstruc (
+            node_name VARCHAR(40) NOT NULL,
+            didx TINYINT UNSIGNED NOT NULL,
+            utc DOUBLE NOT NULL,
+            qva DOUBLE,
+            qvb DOUBLE,
+            qvc DOUBLE,
+            qvd DOUBLE,
+            azi DOUBLE,
+            elev DOUBLE,
+            PRIMARY KEY (node_name, didx, utc)
+            );`
+    },
+    {
+        table: "gpsstruc",
+        statement: `CREATE TABLE IF NOT EXISTS gpsstruc (
+            node_name VARCHAR(40) NOT NULL,
+            didx TINYINT UNSIGNED NOT NULL,
+            utc DOUBLE NOT NULL,
+            geocs_x DOUBLE,
+            geocs_y DOUBLE,
+            geocs_z DOUBLE,
+            geods_lat DOUBLE,
+            geods_lon DOUBLE,
+            geods_alt DOUBLE,
+            PRIMARY KEY (node_name, didx, utc)
+            );`
+    },
+    {
         table: "locstruc",
         statement: `CREATE TABLE IF NOT EXISTS locstruc (
             node_name VARCHAR(40) NOT NULL,
@@ -231,8 +280,9 @@ export const table_schema: Array<mysqlschema> = [
             utc DOUBLE(17, 8) NOT NULL,
             duration INT UNSIGNED,
             event_id TINYINT UNSIGNED NOT NULL,
+            type INT UNSIGNED NOT NULL,
             event_name VARCHAR(40) NOT NULL,
-            PRIMARY KEY (node_name, utc, event_name)
+            PRIMARY KEY (node_name, utc, event_name, type)
         );`
     },
     {

@@ -1,4 +1,4 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, EventResourceUpdateBody, MissionEvent, sqlquerytranslate, locstruc_table } from "database/BaseDatabase";
+import BaseDatabase, { sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, deviceimu, devicessen, devicegps, EventResourceUpdateBody, MissionEvent, sqlquerytranslate, locstruc_table } from "database/BaseDatabase";
 import mysql from 'mysql2';
 import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
@@ -194,63 +194,65 @@ export default class MysqlDatabase extends BaseDatabase {
         }
     }
 
-    public async write_swchstruc(swchstruc: deviceswch[]): Promise<void> {
-        try {
-            await this.promisePool.query('DELETE FROM swchstruc');
-        } catch (error) {
-            console.error(error);
-            throw new AppError({
-                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
-                description: 'Error updating swch struc'
-            });
-        }
-        // Load in new beacon mappings
-        for (let i = 0; i < swchstruc.length; i++) {
-            try {
-                await this.promisePool.execute(
-                    // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0}]
-                    'INSERT INTO swchstruc (node_name, didx, utc, volt, amp, power, temp) VALUES (?,?,?,?,?,?,?)',
-                    [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
-                );
-            } catch (error) {
-                console.error(error);
-                throw new AppError({
-                    httpCode: StatusCodes.BAD_REQUEST,
-                    description: 'Failure adding devices'
-                });
-            }
+    // depreciated .. TODO delete 
+    // public async write_swchstruc(swchstruc: deviceswch[]): Promise<void> {
+    //     try {
+    //         await this.promisePool.query('DELETE FROM swchstruc');
+    //     } catch (error) {
+    //         console.error(error);
+    //         throw new AppError({
+    //             httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+    //             description: 'Error updating swch struc'
+    //         });
+    //     }
+    //     // Load in new beacon mappings
+    //     for (let i = 0; i < swchstruc.length; i++) {
+    //         try {
+    //             await this.promisePool.execute(
+    //                 // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0}]
+    //                 'INSERT INTO swchstruc (node_name, didx, utc, volt, amp, power, temp) VALUES (?,?,?,?,?,?,?)',
+    //                 [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
+    //             );
+    //         } catch (error) {
+    //             console.error(error);
+    //             throw new AppError({
+    //                 httpCode: StatusCodes.BAD_REQUEST,
+    //                 description: 'Failure adding devices'
+    //             });
+    //         }
 
-        }
-    }
+    //     }
+    // }
 
-    public async write_battstruc(battstruc: devicebatt[]): Promise<void> {
-        try {
-            await this.promisePool.query('DELETE FROM battstruc');
-        } catch (error) {
-            console.error(error);
-            throw new AppError({
-                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
-                description: 'Error updating batt struc'
-            });
-        }
-        // Load in new beacon mappings
-        for (let i = 0; i < battstruc.length; i++) {
-            try {
-                await this.promisePool.execute(
-                    // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0,"percentage":0.92000002}]
-                    'INSERT INTO battstruc (node_name, didx, utc, volt, amp, power, temp, percentage) VALUES (?,?,?,?,?,?,?,?)',
-                    [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
-                );
-            } catch (error) {
-                console.error(error);
-                throw new AppError({
-                    httpCode: StatusCodes.BAD_REQUEST,
-                    description: 'Failure adding devices'
-                });
-            }
+    // depreciated .. TODO delete 
+    // public async write_battstruc(battstruc: devicebatt[]): Promise<void> {
+    //     try {
+    //         await this.promisePool.query('DELETE FROM battstruc');
+    //     } catch (error) {
+    //         console.error(error);
+    //         throw new AppError({
+    //             httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+    //             description: 'Error updating batt struc'
+    //         });
+    //     }
+    //     // Load in new beacon mappings
+    //     for (let i = 0; i < battstruc.length; i++) {
+    //         try {
+    //             await this.promisePool.execute(
+    //                 // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0,"percentage":0.92000002}]
+    //                 'INSERT INTO battstruc (node_name, didx, utc, volt, amp, power, temp, percentage) VALUES (?,?,?,?,?,?,?,?)',
+    //                 [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
+    //             );
+    //         } catch (error) {
+    //             console.error(error);
+    //             throw new AppError({
+    //                 httpCode: StatusCodes.BAD_REQUEST,
+    //                 description: 'Failure adding devices'
+    //             });
+    //         }
 
-        }
-    }
+    //     }
+    // }
 
     // POST write event resource impact function, dynamic pool call for update and delete values, dynamic event+resource id 
     public async update_eventresourceimpact(event_id: number, resourceimpact: EventResourceUpdateBody[]): Promise<void> {
@@ -1325,6 +1327,215 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
     }
 
+    public async get_imu(query: QueryType): Promise<cosmosresponse> {
+        try {
+            const queryObj: QueryObject = JSON.parse(query.query);
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            const sql_query =
+                `SELECT
+  devspec.utc AS "time",
+  devspec.node_name as "node_name",
+  device.name as "name",
+  theta_x,
+theta_y,
+theta_z,
+theta_w,
+omega_x,
+omega_y,
+omega_z,
+mag_x,
+mag_y,
+mag_z
+FROM imustruc AS devspec
+INNER JOIN device ON devspec.didx = device.didx
+WHERE
+device.type = 2 AND\n`
+                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
+                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+            const query_arg_array = [
+                node_filter?.filterValue,
+                query.from,
+                query.to
+            ].filter((v) => v !== undefined);
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                sql_query,
+                query_arg_array,
+            );
+            if (rows.length === 0) {
+                const key_array = await this.get_device_keys({ dtype: 2, dname: "imu" }, queryObj);
+                const imurows: Array<deviceimu & Partial<device_table> & timepoint> = [];
+                for (const [_, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devimu: deviceimu = {
+                            node_name: qvalue[i].node_name,
+                            didx: qvalue[i].didx,
+                            time: query.from,
+                            theta_x: 0,
+                            theta_y: 0,
+                            theta_z: 0,
+                            theta_w: 0,
+                            omega_x: 0,
+                            omega_y: 0,
+                            omega_z: 0,
+                            mag_x: 0,
+                            mag_y: 0,
+                            mag_z: 0,
+                        }
+                        imurows.push({ name: qvalue[i].name, Time: query.from, ...devimu });
+                    }
+                }
+                const ret = { "imus": imurows };
+                console.log('get_imu rows', imurows[0])
+                return ret;
+            } else {
+                const ret = { "imus": rows };
+                console.log('get_imu rows', rows[0])
+                return ret;
+            }
+        }
+        catch (error) {
+            console.error('Error in get_imu:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_ssen(query: QueryType): Promise<cosmosresponse> {
+        try {
+            const queryObj: QueryObject = JSON.parse(query.query);
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            const sql_query =
+                `SELECT
+  devspec.utc AS "time",
+  devspec.node_name as "node_name",
+  device.name as "name",
+  qva,
+qvb,
+qvc,
+qvd,
+azi,
+elev
+FROM imustruc AS devspec
+INNER JOIN device ON devspec.didx = device.didx
+WHERE
+device.type = 1 AND\n`
+                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
+                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+            const query_arg_array = [
+                node_filter?.filterValue,
+                query.from,
+                query.to
+            ].filter((v) => v !== undefined);
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                sql_query,
+                query_arg_array,
+            );
+            if (rows.length === 0) {
+                const key_array = await this.get_device_keys({ dtype: 1, dname: "ssen" }, queryObj);
+                const ssenrows: Array<devicessen & Partial<device_table> & timepoint> = [];
+                for (const [_, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devssen: devicessen = {
+                            node_name: qvalue[i].node_name,
+                            didx: qvalue[i].didx,
+                            time: query.from,
+                            qva: 0,
+                            qvb: 0,
+                            qvc: 0,
+                            qvd: 0,
+                            azi: 0,
+                            elev: 0,
+                        }
+                        ssenrows.push({ name: qvalue[i].name, Time: query.from, ...devssen });
+                    }
+                }
+                const ret = { "ssens": ssenrows };
+                console.log('get_ssen rows', ssenrows[0])
+                return ret;
+            } else {
+                const ret = { "ssens": rows };
+                console.log('get_ssen rows', rows[0])
+                return ret;
+            }
+        }
+        catch (error) {
+            console.error('Error in get_ssen:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_gps(query: QueryType): Promise<cosmosresponse> {
+        try {
+            const queryObj: QueryObject = JSON.parse(query.query);
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            const sql_query =
+                `SELECT
+  devspec.utc AS "time",
+  devspec.node_name as "node_name",
+  device.name as "name",
+  geocs_x,
+  geocs_y,
+  geocs_z,
+geods_lat,
+geods_lon,
+geods_alt
+FROM imustruc AS devspec
+INNER JOIN device ON devspec.didx = device.didx
+WHERE
+device.type = 6 AND\n`
+                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
+                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+            const query_arg_array = [
+                node_filter?.filterValue,
+                query.from,
+                query.to
+            ].filter((v) => v !== undefined);
+            const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                sql_query,
+                query_arg_array,
+            );
+            if (rows.length === 0) {
+                const key_array = await this.get_device_keys({ dtype: 6, dname: "gps" }, queryObj);
+                const gpsrows: Array<devicegps & Partial<device_table> & timepoint> = [];
+                for (const [_, qvalue] of Object.entries(key_array)) {
+                    for (let i = 0; i < qvalue.length; i++) {
+                        const devgps: devicegps = {
+                            node_name: qvalue[i].node_name,
+                            didx: qvalue[i].didx,
+                            time: query.from,
+                            geocs_x: 0,
+                            geocs_y: 0,
+                            geocs_z: 0,
+                            geods_lat: 0,
+                            geods_lon: 0,
+                            geods_alt: 0,
+                        }
+                        gpsrows.push({ name: qvalue[i].name, Time: query.from, ...devgps });
+                    }
+                }
+                const ret = { "gpss": gpsrows };
+                console.log('get_gps rows', gpsrows[0])
+                return ret;
+            } else {
+                const ret = { "gpss": rows };
+                console.log('get_gps rows', rows[0])
+                return ret;
+            }
+        }
+        catch (error) {
+            console.error('Error in get_gps:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
     public async init_tables(): Promise<void> {
         // init table schema for new db
         try {
@@ -1373,6 +1584,9 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                         if (value[i] === "utc") {
                             // mtime = 'MAX(utc) as "latest_timestamp"';
                             query_time = 'utc as "time"';
+                        } else if ((i + 1) == value.length) {
+                            dynamic_query += value[i];
+                            // table_variables += '?)'
                         }
                         else {
                             dynamic_query += value[i] + ", ";
@@ -1385,6 +1599,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
 
             // define table dynamically 
             let table_query: string = ' FROM ' + databasetable;
+            console.log("dynamic GET table: ", table_query);
 
             // define WHERE conditions, build dynamic array
             let query_filter_string: string = ' WHERE ';
@@ -1399,7 +1614,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                     let where_query_filter: string = ' ';
                     // check for filter type domain 
                     if (filter.filterType == 'node') {
-                        where_query_filter += ' node_name ';
+                        where_query_filter += databasetable + '.node_name ';
                     } else if (filter.filterType == 'name') {
                         where_query_filter += ' name ';
                     }
@@ -1411,7 +1626,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
 
                     // now check for operator compare type and define target value
                     if (filter.compareType == 'equals') {
-                        where_query_filter += '= ' + filter.filterValue;
+                        where_query_filter += '= ' + '"' + filter.filterValue + '"';
                     } else if (filter.compareType == 'contains') {
                         where_query_filter += 'LIKE ' + '"%' + filter.filterValue + '%"';
                     }
@@ -1444,9 +1659,9 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
 
             // TODO: refactor how functions are passed and handled in query
 
-            // TODO build final query string
+            //  build final query string
             let full_get_query_statement: string = "";
-            full_get_query_statement.concat(dynamic_query, table_query, query_filter_string)
+            full_get_query_statement = dynamic_query.concat(table_query, query_filter_string, ';');
             console.log("Dynamic GET query, full statement: ", full_get_query_statement);
 
             // final SQL call
@@ -1456,7 +1671,13 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             console.log(rows[0])
             // TODO create mapping from table to return code; for now it is the SQL table name
             const dname: string = databasetable;
-            const ret = { dname: rows };
+            type getPacket = {
+                [key: string]: mysql.RowDataPacket[]
+            }
+            const ret: getPacket = {};
+            ret[dname] = rows;
+            // const ret = { dname: rows };
+            // console.log('ret', ret, 'ret1 ', ret1);
             return ret;
         }
         catch (error) {

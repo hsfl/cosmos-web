@@ -1,4 +1,4 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit, cartpos } from 'types/cosmos_types';
 import mysql from 'mysql2';
 import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event } from 'database/BaseDatabase';
 
@@ -581,9 +581,18 @@ export const orbit_position = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
+        const eci: cartpos = {
+            utc: row.time,
+            pass: 1,
+            s: { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] },
+            v: { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] },
+            a: { col: [0, 0, 0] }
+        }
         loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
         const sunbeta: number = (Cosmos.module.loc2kepbeta(loc));
-        const geod: geoidpos = (Cosmos.module.ecitogeod(loc));
+        // const geod: geoidpos = (Cosmos.module.ecitogeod(loc));
+        const geod: geoidpos = (Cosmos.module.eci2geod(eci));
+        // console.log('sun b', sunbeta);
 
         const gforbit: gforbit = {
             // utc: row.time,

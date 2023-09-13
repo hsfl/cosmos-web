@@ -12,6 +12,7 @@ import { dbmission } from 'database/CEOdb';
 
 export const router = express.Router();
 
+
 // call CEO handler database array and populate the db_array as loop iterator over return. 
 export async function initiate_ceo_handler() {
     const ceodb = CEOHandler.app_db()
@@ -127,6 +128,8 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
         });
     }
     console.log('Write beacon, metric size:', req.body.metrics.length)
+    // open db connection first
+    // const db = DBHandler.app_db();
     // extract body, format of object as string
     for (let i = 0; i < req.body.metrics.length; i++) {
         // parse string object into appropriate array of ["sql_table_name", [{database type row object}, ...] ]
@@ -140,6 +143,7 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
             db.write_beacon(table_name, parsedbeacon);
         }
     }
+    // db.end_connection();
     res.status(202).json(new_api_response('success'));
 });
 
@@ -359,6 +363,20 @@ router.get('/position', async (req: Request<{}, {}, {}, QueryType>, res: Respons
     res.status(200).json(response);
 });
 
+router.get('/getdynamic', async (req: Request<{}, {}, {}, QueryType>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined || req.query.query === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    // console.log("position curl request: ", req.query);
+    const ret = await db.get_dynamic(req.query);
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
 // // curl --request GET "http://localhost:10090/db/battery?from=59874.83333333&to=59874.87333333"
 // out of range device key test: 
 // curl --request GET "http://localhost:10090/db/battery?from=69874.83333333&to=69874.87333333"
@@ -500,6 +518,47 @@ router.get('/rw', async (req: Request<{}, {}, {}, QueryType>, res: Response) => 
     res.status(200).json(response);
 });
 
+router.get('/imu', async (req: Request<{}, {}, {}, QueryType>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_imu(req.query);
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+router.get('/ssen', async (req: Request<{}, {}, {}, QueryType>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_ssen(req.query);
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
+router.get('/gps', async (req: Request<{}, {}, {}, QueryType>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    const ret = await db.get_gps(req.query);
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
 
 // Returns the relative angle/range from an origin node to other nodes
 // curl --request GET "http://localhost:10090/db/nodalaware?from=59874.83333333&to=59874.87333333&type=eci&latestOnly=true"

@@ -18,7 +18,10 @@ export const sqlmap: Object = {
     "resource": ["id", "name", "type", "min_level", "max_level"],
     "cosmos_event": ["node_name", "utc", "duration", "event_id", "type", "event_name"],
     "event": ["id", "name", "type", "duration_seconds"],
-    "event_resource_impact": ["event_id", "resource_id", "second_index", "resource_change"]
+    "event_resource_impact": ["event_id", "resource_id", "second_index", "resource_change"],
+    "imustruc": ["node_name", "didx", "utc", "theta_x", "theta_y", "theta_z", "theta_w", "omega_x", "omega_y", "omega_z", "mag_x", "mag_y", "mag_z"],
+    "ssenstruc": ["node_name", "didx", "utc", "qva", "qvb", "qvc", "qvd", "azi", "elev"],
+    "gpsstruc": ["node_name", "didx", "utc", "geocs_x", "geocs_y", "geocs_z", "geods_lat", "geods_lon", "geods_alt"]
 }
 
 // ADD PRIMARY KEY FOR CONDITIONAL QUERY TO MAP
@@ -63,6 +66,9 @@ export const sqlquerytranslate: Object = {
     // "": "magstruc",
     // "": "node",
     "tsen": "tsenstruc",
+    "imu": "imustruc",
+    "sunsens": "ssenstruc",
+    "gps": "gpsstruc",
 }
 
 export interface TelegrafMetric {
@@ -252,6 +258,49 @@ export interface devicerw {
     romg: number;
 }
 
+// imustruc sql
+export interface deviceimu {
+    node_name: string;
+    didx: number;
+    time: number; // utc
+    theta_x: number;
+    theta_y: number;
+    theta_z: number;
+    theta_w: number;
+    omega_x: number;
+    omega_y: number;
+    omega_z: number;
+    mag_x: number;
+    mag_y: number;
+    mag_z: number;
+}
+
+// ssenstruc sql
+export interface devicessen {
+    node_name: string;
+    didx: number;
+    time: number; // utc
+    qva: number;
+    qvb: number;
+    qvc: number;
+    qvd: number;
+    azi: number;
+    elev: number;
+}
+
+// gpsstruc sql
+export interface devicegps {
+    node_name: string;
+    didx: number;
+    time: number; // utc
+    geocs_x: number;
+    geocs_y: number;
+    geocs_z: number;
+    geods_lat: number;
+    geods_lon: number;
+    geods_alt: number;
+}
+
 // locstruc sql
 export interface locstruc_table {
     node_name: string;
@@ -399,6 +448,21 @@ export default class BaseDatabase {
         return {};
     }
 
+    public async get_imu(query: QueryType): Promise<cosmosresponse> {
+        console.log('Getting imus');
+        return {};
+    }
+
+    public async get_ssen(query: QueryType): Promise<cosmosresponse> {
+        console.log('Getting ssens');
+        return {};
+    }
+
+    public async get_gps(query: QueryType): Promise<cosmosresponse> {
+        console.log('Getting gpss');
+        return {};
+    }
+
     public async write_beacon(table: string, objectArray: any[]): Promise<void> {
         console.log('Writing beacon');
     }
@@ -412,6 +476,11 @@ export default class BaseDatabase {
     }
 
     public async get_now(query: QueryType): Promise<cosmosresponse> {
+        console.log('Getting now for table type');
+        return {};
+    }
+
+    public async get_dynamic(query: QueryType): Promise<cosmosresponse> {
         console.log('Getting now for table type');
         return {};
     }

@@ -156,6 +156,54 @@ temp DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 
+# COSMOS device specific structures
+# associated device + utc reference 
+
+# Inertial Measurement Unit (IMU) structure
+CREATE TABLE IF NOT EXISTS imustruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+theta_x DOUBLE,
+theta_y DOUBLE,
+theta_z DOUBLE,
+theta_w DOUBLE,
+omega_x DOUBLE,
+omega_y DOUBLE,
+omega_z DOUBLE,
+mag_x DOUBLE,
+mag_y DOUBLE,
+mag_z DOUBLE,
+PRIMARY KEY (node_name, didx, utc)
+);
+
+# Sun Sensor (SSEN) Structure
+CREATE TABLE IF NOT EXISTS ssenstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+qva DOUBLE,
+qvb DOUBLE,
+qvc DOUBLE,
+qvd DOUBLE,
+azi DOUBLE,
+elev DOUBLE,
+PRIMARY KEY (node_name, didx, utc)
+);
+
+# GPS Sensor Structure
+CREATE TABLE IF NOT EXISTS gpsstruc (
+node_name VARCHAR(40) NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
+utc DOUBLE NOT NULL,
+geocs_x DOUBLE,
+geocs_y DOUBLE,
+geocs_z DOUBLE,
+geods_lat DOUBLE,
+geods_lon DOUBLE,
+geods_alt DOUBLE,
+PRIMARY KEY (node_name, didx, utc)
+);
 
 CREATE TABLE IF NOT EXISTS locstruc (
     node_name VARCHAR(40) NOT NULL,
@@ -173,40 +221,39 @@ CREATE TABLE IF NOT EXISTS locstruc (
     icrf_v_x DOUBLE,
     icrf_v_y DOUBLE,
     icrf_v_z DOUBLE,
-
     PRIMARY KEY (node_name, utc)
 );
 
-CREATE TABLE IF NOT EXISTS locstruc_eci (
-node_name VARCHAR(40) NOT NULL,
-utc DOUBLE NOT NULL,
-s_x DOUBLE,
-s_y DOUBLE,
-s_z DOUBLE,
-v_x DOUBLE,
-v_y DOUBLE,
-v_z DOUBLE,
-a_x DOUBLE,
-a_y DOUBLE,
-a_z DOUBLE,
-PRIMARY KEY (node_name, utc)
-);
+-- CREATE TABLE IF NOT EXISTS locstruc_eci (
+-- node_name VARCHAR(40) NOT NULL,
+-- utc DOUBLE NOT NULL,
+-- s_x DOUBLE,
+-- s_y DOUBLE,
+-- s_z DOUBLE,
+-- v_x DOUBLE,
+-- v_y DOUBLE,
+-- v_z DOUBLE,
+-- a_x DOUBLE,
+-- a_y DOUBLE,
+-- a_z DOUBLE,
+-- PRIMARY KEY (node_name, utc)
+-- );
 
-CREATE TABLE IF NOT EXISTS attstruc_icrf (
-node_name VARCHAR(40) NOT NULL,
-utc DOUBLE NOT NULL,
-s_x DOUBLE,
-s_y DOUBLE,
-s_z DOUBLE,
-s_w DOUBLE,
-omega_x DOUBLE,
-omega_y DOUBLE,
-omega_z DOUBLE,
-alpha_x DOUBLE,
-alpha_y DOUBLE,
-alpha_z DOUBLE,
-PRIMARY KEY (node_name, utc)
-);
+-- CREATE TABLE IF NOT EXISTS attstruc_icrf (
+-- node_name VARCHAR(40) NOT NULL,
+-- utc DOUBLE NOT NULL,
+-- s_x DOUBLE,
+-- s_y DOUBLE,
+-- s_z DOUBLE,
+-- s_w DOUBLE,
+-- omega_x DOUBLE,
+-- omega_y DOUBLE,
+-- omega_z DOUBLE,
+-- alpha_x DOUBLE,
+-- alpha_y DOUBLE,
+-- alpha_z DOUBLE,
+-- PRIMARY KEY (node_name, utc)
+-- );
 
 # List of events types
 # event_id: Node id of node agent belongs to
