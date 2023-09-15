@@ -185,10 +185,10 @@ export default class MysqlDatabase extends BaseDatabase {
                 );
             } catch (error) {
                 console.error(error);
-                throw new AppError({
-                    httpCode: StatusCodes.BAD_REQUEST,
-                    description: 'Failure adding row'
-                });
+                // throw new AppError({
+                //     httpCode: StatusCodes.BAD_REQUEST,
+                //     description: 'Failure adding row'
+                // });
             }
 
         }
