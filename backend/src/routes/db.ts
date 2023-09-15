@@ -576,6 +576,21 @@ router.get('/nodalaware', async (req: Request<{}, {}, {}, QueryType>, res: Respo
     res.status(200).json(response);
 });
 
+router.get('/target', async (req: Request<{}, {}, {}, QueryType>, res: Response) => {
+    const db = DBHandler.app_db();
+    if (req.query.from === undefined || req.query.to === undefined || req.query.query === undefined) {
+        throw new AppError({
+            httpCode: StatusCodes.BAD_REQUEST,
+            description: 'URL Query incorrect, must provide time range from and to'
+        });
+    }
+    console.log("target curl request: ", req.query);
+    const ret = await db.get_target(req.query);
+    const response = new_api_response('success');
+    response.payload = ret;
+    res.status(200).json(response);
+});
+
 // TODOs:
 // return proper error struct in res.json (try using the cosmossimpanel with name as node_name instead, for example, you'll
 // get Success! Error must have a name, or something like that. Which makes no sense. Follow the line of error from front
