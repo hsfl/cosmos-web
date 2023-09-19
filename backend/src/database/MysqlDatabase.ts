@@ -1417,7 +1417,7 @@ qvc,
 qvd,
 azi,
 elev
-FROM imustruc AS devspec
+FROM ssenstruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
 device.type = 1 AND\n`
@@ -1484,7 +1484,7 @@ device.type = 1 AND\n`
 geods_lat,
 geods_lon,
 geods_alt
-FROM imustruc AS devspec
+FROM gpsstruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
 device.type = 6 AND\n`
