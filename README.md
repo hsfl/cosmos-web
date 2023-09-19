@@ -56,7 +56,7 @@ Make a copy of the .env.example file in tools/cosmos-web and rename it to .env. 
 ```bash
 cp tools/cosmos-web/.env.example tools/cosmos-web/.env
 ```
-Then open up the newly copied tools/cosmos-web/.env file in your preferred text editor and wherever there are blank values for the username and password variables, add default initial values for startup.
+Then open up the newly copied tools/cosmos-web/.env file in your preferred text editor. Replace the default usernames and passwords with your preferred choice of login credentials.
 
 Example:
 ```
