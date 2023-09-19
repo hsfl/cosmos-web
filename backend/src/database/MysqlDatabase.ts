@@ -185,10 +185,10 @@ export default class MysqlDatabase extends BaseDatabase {
                 );
             } catch (error) {
                 console.error(error);
-                throw new AppError({
-                    httpCode: StatusCodes.BAD_REQUEST,
-                    description: 'Failure adding row'
-                });
+                // throw new AppError({
+                //     httpCode: StatusCodes.BAD_REQUEST,
+                //     description: 'Failure adding row'
+                // });
             }
 
         }
@@ -860,6 +860,35 @@ LIMIT 10000`,
         }
         catch (error) {
             console.error('Error in get_relative_angle_range:', error);
+            throw new AppError({
+                httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                description: 'Failure getting rows'
+            });
+        }
+    }
+
+    public async get_target(query: QueryType): Promise<cosmosresponse> {
+        try {
+            const queryObj: QueryObject = JSON.parse(query.query);
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            console.log("node filter: ", node_filter);
+
+            let rows: mysql.RowDataPacket[];
+            [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
+                `SELECT
+name,
+type,
+lat, lon, h,
+area
+FROM target`,
+            );
+            const ret = { "targets": rows };
+            // switch statement here also to parse type option passed in from request
+            // passing the type for the list of sub-structures { geoidpos ... }
+            return ret;
+        }
+        catch (error) {
+            console.error('Error in get_position:', error);
             throw new AppError({
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Failure getting rows'

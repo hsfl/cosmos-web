@@ -463,6 +463,11 @@ export default class BaseDatabase {
         return {};
     }
 
+    public async get_target(query: QueryType): Promise<cosmosresponse> {
+        console.log('Getting targets');
+        return {};
+    }
+
     public async write_beacon(table: string, objectArray: any[]): Promise<void> {
         console.log('Writing beacon');
     }
