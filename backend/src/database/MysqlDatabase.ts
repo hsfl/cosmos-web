@@ -4,7 +4,7 @@ import { Pool } from "mysql2/promise";
 import { mjd_to_unix } from '../utils/time';
 import { AppError } from 'exceptions/AppError';
 import { StatusCodes } from 'http-status-codes';
-import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, icrf_geoc_att, relative_angle_range, orbit_position } from '../transforms/cosmos';
+import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, icrf_geoc_att, relative_angle_range, orbit_position, icrf_att_total } from '../transforms/cosmos';
 import { TimeRange, cosmosresponse, KeyType, timepoint, qvatt, qaatt } from 'types/cosmos_types';
 import { QueryObject, QueryType, QueryFilter } from 'types/query_types';
 import { table_schema } from './inittables';
@@ -805,6 +805,9 @@ WHERE `
                 return ret;
             } else if (type == "orbit") {
                 const ret = { "orbits": orbit_position(rows) };
+                return ret;
+            } else if (type == "att_total") {
+                const ret = { "atttotals": icrf_att_total(rows) };
                 return ret;
             }
             const ret = { "ecis": eci_position(rows) };

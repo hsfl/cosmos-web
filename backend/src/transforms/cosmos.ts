@@ -1,4 +1,4 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit, cartpos } from 'types/cosmos_types';
+import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit, gfadcstotal, cartpos } from 'types/cosmos_types';
 import mysql from 'mysql2';
 import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event } from 'database/BaseDatabase';
 
@@ -383,6 +383,91 @@ export const icrf_att = (rows: mysql.RowDataPacket[]) => {
         };
         //const time  
         ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
+        // load the current v values for next iteration
+        prev_utc = row.time;
+        prev_vrv = {
+            col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]
+        };
+    });
+    console.log('attitude iret:', rows[0], ret[0]);
+    return ret;
+};
+
+
+
+export const icrf_att_total = (rows: mysql.RowDataPacket[]) => {
+
+    const ret: Array<gfadcstotal & timepoint & GFNodeType> = [];
+    const loc = getNewLocstruc();
+    // TODO index rows on time; create variable in state for "time -1", then update on each iteration of forEach, adding current time
+    // behavior will return 0s for the first utc, then computation for every delta following
+    let prev_vrv: rvector = {
+        col: [0, 0, 0]
+    };
+    let prev_utc: number = 0;
+    rows.sort((a, b) => (a.time > b.time) ? 1 : ((b.time > a.time) ? -1 : 0))
+    // console.log("sorted row packet", rows);
+    rows.forEach((row) => {
+        loc.pos.eci.utc = row.time;
+        loc.pos.eci.pass = 1;
+        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
+        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        // this object not in database
+        // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        loc.pos.eci.a = { col: [0, 0, 0] };
+        // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
+        loc.att.icrf.pass = 1;
+        loc.att.icrf.utc = row.time;
+        // s element needed to populate lvlh s element 
+        loc.att.icrf.s = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z
+            },
+            w: row.icrf_s_w
+        };
+        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        const q: quaternion = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z,
+            },
+            w: row.icrf_s_w,
+        };
+        const sav: avector = (Cosmos.module.a_quaternion2euler(q));
+        const vrv: rvector = {
+            col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]
+        };
+        // database does not account for third derivative: Angular Accel (rad/s2) 
+        let arv: rvector = {
+            col: [0, 0, 0]
+        };
+        const delta_time: number = (row.time - prev_utc);
+        if ((delta_time) < .000012) {
+            const arv_x: number = (row.icrf_v_x - prev_vrv.col[0]) / (delta_time);
+            const arv_y: number = (row.icrf_v_y - prev_vrv.col[1]) / (delta_time);
+            const arv_z: number = (row.icrf_v_z - prev_vrv.col[2]) / (delta_time);
+            arv = {
+                col: [arv_x, arv_y, arv_z]
+            };
+        };
+        const rad2deg: number = 180 / Math.PI;
+        let v_deg_rv: rvector = {
+            col: [(row.icrf_v_x * rad2deg), (row.icrf_v_y * rad2deg), (row.icrf_v_z * rad2deg)]
+        };
+        const geod: geoidpos = (Cosmos.module.ecitogeod(loc));
+
+        const adcs_total: gfadcstotal = {
+            s: sav,
+            v: vrv,
+            a: arv,
+            v_deg: v_deg_rv,
+            pos_geod_s: geod.s,
+        };
+        //const time  
+        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs_total });
         // load the current v values for next iteration
         prev_utc = row.time;
         prev_vrv = {

@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS device (
     cidx SMALLINT UNSIGNED NOT NULL,
     didx SMALLINT UNSIGNED NOT NULL,
     name VARCHAR(40) NOT NULL,
+    amp DOUBLE,
     PRIMARY KEY (node_name, type, didx)
 );
 
@@ -134,6 +135,10 @@ utc DOUBLE NOT NULL,
 amp DOUBLE,
 omg DOUBLE,
 romg DOUBLE,
+align_w DOUBLE,
+align_x DOUBLE,
+align_y DOUBLE,
+align_z DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
 

@@ -54,6 +54,14 @@ export interface EulAdcsstruc {
     sqatt: quaternion;
 }
 
+export interface gfadcstotal {
+    s: avector;
+    v: rvector;
+    a: rvector;
+    v_deg: rvector;
+    pos_geod_s: gvector;
+}
+
 export interface cvector {
     x: number;
     y: number;
