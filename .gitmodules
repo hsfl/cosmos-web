@@ -2,3 +2,6 @@
 	path = grafana-plugins/cosmos-grafana-plugins
 	url = https://github.com/hsfl/cosmos-grafana-plugins.git
     branch = master
+[submodule "grafana-plugins/cosmos-grafana-apps"]
+	path = grafana-plugins/cosmos-grafana-apps
+	url = https://github.com/hsfl/cosmos-grafana-apps
