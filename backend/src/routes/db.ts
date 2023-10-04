@@ -162,7 +162,7 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
                     });
                 });
                 db.write_beacon(table_name, mtrs);
-                db.write_beacon("devalignstruc", align);
+                db.write_device_align(align);
             } else if (table_name === "rwstruc") {
                 // then split align
                 let rws: db_devicerw[] = [];
@@ -187,7 +187,7 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
                     });
                 });
                 db.write_beacon(table_name, rws);
-                db.write_beacon("devalignstruc", align);
+                db.write_device_align(align);
             } else {
                 // dynamic sql insert statement; takes (table: string, objectArray: any[])
                 db.write_beacon(table_name, parsedbeacon);

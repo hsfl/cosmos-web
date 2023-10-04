@@ -1,4 +1,4 @@
-import BaseDatabase, {sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, deviceimu, devicessen, devicegps, EventResourceUpdateBody, MissionEvent, sqlquerytranslate, locstruc_table} from "database/BaseDatabase";
+import BaseDatabase, {sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, deviceimu, devicessen, devicegps, EventResourceUpdateBody, MissionEvent, sqlquerytranslate, locstruc_table, devicealign} from "database/BaseDatabase";
 import mysql from 'mysql2';
 import {Pool} from "mysql2/promise";
 import {mjd_to_unix} from '../utils/time';
@@ -130,6 +130,28 @@ export default class MysqlDatabase extends BaseDatabase {
                 httpCode: StatusCodes.INTERNAL_SERVER_ERROR,
                 description: 'Error clearing table'
             });
+        }
+    }
+
+    public async write_device_align(aligns: devicealign[]): Promise<void> {
+        // Load in new devices mappings
+        for (let i = 0; i < aligns.length; i++) {
+            try {
+                await this.promisePool.execute(
+                    `INSERT INTO devalignstruc (node_name, type, didx, align_w, align_x, align_y, align_z) 
+                        SELECT ?,?,?,?,?,?,?
+                        FROM dual
+                        WHERE NOT EXISTS (SELECT * FROM devalignstruc where node_name = ? AND type = ? AND didx = ?);`,
+                    [aligns[i].node_name, aligns[i].type, aligns[i].didx, aligns[i].align_w, aligns[i].align_x, aligns[i].align_y, aligns[i].align_z, aligns[i].node_name, aligns[i].type, aligns[i].didx]
+                );
+            } catch (error) {
+                console.error(error);
+                throw new AppError({
+                    httpCode: StatusCodes.BAD_REQUEST,
+                    description: 'Failure adding aligns'
+                });
+            }
+
         }
     }
 
@@ -1187,7 +1209,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             console.log(rows[0])
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 32, dname: "mag"}, queryObj);
-                const magrows: Array<devicemag> = [];
+                const magrows: Array<devicemag & Partial<device_table> & timepoint> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devmag: devicemag = {
@@ -1198,7 +1220,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                             mag_y: 0,
                             mag_z: 0,
                         }
-                        magrows.push({...devmag});
+                        magrows.push({name: qvalue[i].name, Time: query.from, ...devmag});
                     }
                 }
                 const ret = {"mags": magrows};
@@ -1235,7 +1257,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             console.log(rows[0])
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 31, dname: "gyro"}, queryObj);
-                const gyrorows: Array<devicegyro> = [];
+                const gyrorows: Array<devicegyro & Partial<device_table> & timepoint> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devgyro: devicegyro = {
@@ -1244,7 +1266,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                             time: query.to,
                             omega: 0,
                         }
-                        gyrorows.push({...devgyro});
+                        gyrorows.push({name: qvalue[i].name, Time: query.from, ...devgyro});
                     }
                 }
                 const ret = {"gyros": gyrorows};
@@ -1303,7 +1325,7 @@ AND \n`
 
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 4, dname: "mtr"}, queryObj);
-                const mtrrows: Array<devicemtr> = [];
+                const mtrrows: Array<devicemtr & Partial<device_table> & timepoint> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devmtr: devicemtr = {
@@ -1318,7 +1340,7 @@ AND \n`
                             align_y: 0,
                             align_z: 0,
                         }
-                        mtrrows.push({...devmtr});
+                        mtrrows.push({name: qvalue[i].name, Time: query.from, ...devmtr});
                     }
                 }
                 const ret = {"mtrs": mtrrows};
@@ -1379,7 +1401,7 @@ AND \n`
             console.log(rows[0])
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 3, dname: "rw"}, queryObj);
-                const rwrows: Array<devicerw> = [];
+                const rwrows: Array<devicerw & Partial<device_table> & timepoint> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devrw: devicerw = {
@@ -1395,7 +1417,7 @@ AND \n`
                             align_y: 0,
                             align_z: 0,
                         }
-                        rwrows.push({...devrw});
+                        rwrows.push({name: qvalue[i].name, Time: query.from, ...devrw});
                     }
                 }
                 const ret = {"rws": rwrows};

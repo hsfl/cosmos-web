@@ -390,6 +390,10 @@ export default class BaseDatabase {
         console.log('Writing telem point', telem);
     }
 
+    public async write_device_align(aligns: devicealign[]): Promise<void> {
+        console.log('Writing device aligns');
+    }
+
     public async reset_db(tableArray: any[]): Promise<void> {
         console.log('Reset database, clearing data')
     }
