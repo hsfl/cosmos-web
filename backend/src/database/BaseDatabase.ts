@@ -1,5 +1,5 @@
-import { cosmosresponse, TimeRange, KeyType, targetstruc } from '../types/cosmos_types';
-import { QueryType } from 'types/query_types';
+import {cosmosresponse, TimeRange, KeyType, targetstruc} from '../types/cosmos_types';
+import {QueryType} from 'types/query_types';
 
 // map of cosmos sql tables; 
 // note the column order must match sql order; key names must match sql table names; naming must be exact
@@ -21,7 +21,10 @@ export const sqlmap: Object = {
     "event_resource_impact": ["event_id", "resource_id", "second_index", "resource_change"],
     "imustruc": ["node_name", "didx", "utc", "theta_x", "theta_y", "theta_z", "theta_w", "omega_x", "omega_y", "omega_z", "mag_x", "mag_y", "mag_z"],
     "ssenstruc": ["node_name", "didx", "utc", "qva", "qvb", "qvc", "qvd", "azi", "elev"],
-    "gpsstruc": ["node_name", "didx", "utc", "geocs_x", "geocs_y", "geocs_z", "geods_lat", "geods_lon", "geods_alt"]
+    "gpsstruc": ["node_name", "didx", "utc", "geocs_x", "geocs_y", "geocs_z", "geods_lat", "geods_lon", "geods_alt"],
+    "mtrstruc": ["node_name", "didx", "utc", "mom", "amp"],
+    "rwstruc": ["node_name", "didx", "utc", "amp", "omg", "romg"],
+    "devalignstruc": ["node_name", "type", "didx", "align_w", "align_x", "align_y", "align_z"],
 }
 
 // ADD PRIMARY KEY FOR CONDITIONAL QUERY TO MAP
@@ -155,7 +158,7 @@ export function is_event(obj: any): obj is event {
     );
 }
 
-export type cosmos_table_row = device_table | deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | locstruc_table | node | targetstruc | event;
+export type cosmos_table_row = device_table | deviceswch | devicebatt | devicebcreg | devicetsen | devicecpu | devicemag | devicegyro | devicemtr | devicerw | devicegps | deviceimu | devicessen | locstruc_table | node | targetstruc | event;
 
 // swchstruc sql
 export interface deviceswch {
@@ -168,7 +171,7 @@ export interface deviceswch {
     temp: number;
 }
 
-export type table_type = devicebatt | devicebcreg | devicecpu | devicetsen;
+export type table_type = devicebatt | devicebcreg | devicecpu | devicetsen | devicemtr | devicerw | devicegps | deviceimu | devicessen;
 
 // battstruc sql
 export interface devicebatt {
@@ -222,7 +225,7 @@ export interface devicecpu {
 export interface devicemag {
     node_device: string;
     didx: number;
-    time: number; // utc
+    utc: number; // utc
     mag_x: number;
     mag_y: number;
     mag_z: number;
@@ -236,23 +239,55 @@ export interface devicegyro {
     omega: number;
 }
 
-// mtrstruc sql
+// mtrstruc sql <combined with align>
 export interface devicemtr {
-    node_device: string;
+    node_name: string;
     didx: number;
-    time: number; // utc
+    utc: number; // utc
     mom: number;
+    amp: number;
     align_w: number;
     align_x: number;
     align_y: number;
     align_z: number;
 }
 
-// rwstruc sql
-export interface devicerw {
-    node_device: string;
+export interface db_devicemtr {
+    node_name: string;
     didx: number;
-    time: number; // utc
+    utc: number; // utc
+    mom: number;
+    amp: number;
+}
+
+export interface devicealign {
+    node_name: string;
+    type: number;
+    didx: number;
+    align_w: number;
+    align_x: number;
+    align_y: number;
+    align_z: number;
+}
+
+// rwstruc sql <combined with align>
+export interface devicerw {
+    node_name: string;
+    didx: number;
+    utc: number; // utc
+    amp: number;
+    omg: number;
+    romg: number;
+    align_w: number;
+    align_x: number;
+    align_y: number;
+    align_z: number;
+}
+
+export interface db_devicerw {
+    node_name: string;
+    didx: number;
+    utc: number; // utc
     amp: number;
     omg: number;
     romg: number;
@@ -262,7 +297,7 @@ export interface devicerw {
 export interface deviceimu {
     node_name: string;
     didx: number;
-    time: number; // utc
+    utc: number; // utc
     theta_x: number;
     theta_y: number;
     theta_z: number;
@@ -279,7 +314,7 @@ export interface deviceimu {
 export interface devicessen {
     node_name: string;
     didx: number;
-    time: number; // utc
+    utc: number; // utc
     qva: number;
     qvb: number;
     qvc: number;
@@ -292,7 +327,7 @@ export interface devicessen {
 export interface devicegps {
     node_name: string;
     didx: number;
-    time: number; // utc
+    utc: number; // utc
     geocs_x: number;
     geocs_y: number;
     geocs_z: number;

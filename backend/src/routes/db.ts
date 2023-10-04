@@ -1,13 +1,13 @@
-import express, { Request, Response } from 'express';
-import { AppError } from 'exceptions/AppError';
-import { StatusCodes } from 'http-status-codes';
-import { DBHandler, SIMDBHandler, DynaDBHandler, CEOHandler } from 'database/DBHandler';
-import { new_api_response } from 'utils/response';
-import { KeyType, EventType } from 'types/cosmos_types';
-import { QueryType, QueryObject } from 'types/query_types';
-import { beacon2obj } from 'transforms/cosmos';
-import { TelegrafBody, EventResourceUpdate } from 'database/BaseDatabase';
-import { dbmission } from 'database/CEOdb';
+import express, {Request, Response} from 'express';
+import {AppError} from 'exceptions/AppError';
+import {StatusCodes} from 'http-status-codes';
+import {DBHandler, SIMDBHandler, DynaDBHandler, CEOHandler} from 'database/DBHandler';
+import {new_api_response} from 'utils/response';
+import {KeyType, EventType} from 'types/cosmos_types';
+import {QueryType, QueryObject} from 'types/query_types';
+import {beacon2obj} from 'transforms/cosmos';
+import {TelegrafBody, EventResourceUpdate, db_devicemtr, devicealign, db_devicerw} from 'database/BaseDatabase';
+import {dbmission} from 'database/CEOdb';
 
 
 export const router = express.Router();
@@ -60,8 +60,8 @@ router.get('/dbmissionall', async (req: Request<{}, {}, {}, QueryType>, res: Res
         console.log("db return_array [i].mission : ", instance.mission);
     }
     // example database call for random 3 object in array, to the device list enpoint query, specified for type batts 
-    const dummyQuery = { type: '', arg: '', latestOnly: false, filters: [], functions: [] };
-    const ret = await ret_array[2].dbin.get_device_keys({ dtype: 12, dname: "batts" }, dummyQuery);
+    const dummyQuery = {type: '', arg: '', latestOnly: false, filters: [], functions: []};
+    const ret = await ret_array[2].dbin.get_device_keys({dtype: 12, dname: "batts"}, dummyQuery);
     console.log("db return_array [2].dbin.get_device_keys : ", ret);
     const response = new_api_response('success');
     // response.payload = ret_array[0].dbin.get_event; .... ret
@@ -139,8 +139,61 @@ router.post('/beacon', async (req: Request<{}, {}, TelegrafBody>, res: Response)
         if (table_name !== "error") {
             // open database connection
             const db = DBHandler.app_db();
+            if (table_name === "mtrstruc") {
+                // then split align
+                let mtrs: db_devicemtr[] = [];
+                let align: devicealign[] = [];
+                parsedbeacon.forEach((devstruc: any) => {
+                    mtrs.push({
+                        node_name: devstruc.node_name,
+                        didx: devstruc.didx,
+                        utc: devstruc.utc,
+                        mom: devstruc.mom,
+                        amp: devstruc.amp
+                    });
+                    align.push({
+                        node_name: devstruc.node_name,
+                        type: 4,
+                        didx: devstruc.didx,
+                        align_w: devstruc.align_w,
+                        align_x: devstruc.align_x,
+                        align_y: devstruc.align_y,
+                        align_z: devstruc.align_z,
+                    });
+                });
+                db.write_beacon(table_name, mtrs);
+                db.write_beacon("devalignstruc", align);
+            } else if (table_name === "rwstruc") {
+                // then split align
+                let rws: db_devicerw[] = [];
+                let align: devicealign[] = [];
+                parsedbeacon.forEach((devstruc: any) => {
+                    rws.push({
+                        node_name: devstruc.node_name,
+                        didx: devstruc.didx,
+                        utc: devstruc.utc,
+                        amp: devstruc.amp,
+                        omg: devstruc.omg,
+                        romg: devstruc.romg
+                    });
+                    align.push({
+                        node_name: devstruc.node_name,
+                        type: 3,
+                        didx: devstruc.didx,
+                        align_w: devstruc.align_w,
+                        align_x: devstruc.align_x,
+                        align_y: devstruc.align_y,
+                        align_z: devstruc.align_z,
+                    });
+                });
+                db.write_beacon(table_name, rws);
+                db.write_beacon("devalignstruc", align);
+            } else {
+                // dynamic sql insert statement; takes (table: string, objectArray: any[])
+                db.write_beacon(table_name, parsedbeacon);
+            }
             // dynamic sql insert statement; takes (table: string, objectArray: any[])
-            db.write_beacon(table_name, parsedbeacon);
+            // db.write_beacon(table_name, parsedbeacon);
         }
     }
     // db.end_connection();
@@ -316,7 +369,7 @@ router.get('/missioneventresourceimpact', async (req: Request<{}, {}, {}, KeyTyp
             description: 'URL Query incorrect, must provide key type id and name'
         });
     }
-    const ret = await db.get_event_resource_impact({ dtype: req.query.dtype, dname: req.query.dname });
+    const ret = await db.get_event_resource_impact({dtype: req.query.dtype, dname: req.query.dname});
     const response = new_api_response('success');
     response.payload = ret;
     res.status(200).json(response);

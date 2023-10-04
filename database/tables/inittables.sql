@@ -54,7 +54,6 @@ CREATE TABLE IF NOT EXISTS device (
     cidx SMALLINT UNSIGNED NOT NULL,
     didx SMALLINT UNSIGNED NOT NULL,
     name VARCHAR(40) NOT NULL,
-    amp DOUBLE,
     PRIMARY KEY (node_name, type, didx)
 );
 
@@ -121,11 +120,19 @@ node_name VARCHAR(40) NOT NULL,
 didx TINYINT UNSIGNED NOT NULL,
 utc DOUBLE NOT NULL,
 mom DOUBLE,
+amp DOUBLE,
+PRIMARY KEY (node_name, didx, utc)
+);
+
+CREATE TABLE IF NOT EXISTS devalignstruc (
+node_name VARCHAR(40) NOT NULL,
+type SMALLINT UNSIGNED NOT NULL,
+didx TINYINT UNSIGNED NOT NULL,
 align_w DOUBLE,
 align_x DOUBLE,
 align_y DOUBLE,
 align_z DOUBLE,
-PRIMARY KEY (node_name, didx, utc)
+PRIMARY KEY (node_name, type, didx)
 );
 
 CREATE TABLE IF NOT EXISTS rwstruc (
@@ -135,12 +142,18 @@ utc DOUBLE NOT NULL,
 amp DOUBLE,
 omg DOUBLE,
 romg DOUBLE,
-align_w DOUBLE,
-align_x DOUBLE,
-align_y DOUBLE,
-align_z DOUBLE,
 PRIMARY KEY (node_name, didx, utc)
 );
+
+-- CREATE TABLE IF NOT EXISTS rwstrucalign (
+-- node_name VARCHAR(40) NOT NULL,
+-- didx TINYINT UNSIGNED NOT NULL,
+-- align_w DOUBLE,
+-- align_x DOUBLE,
+-- align_y DOUBLE,
+-- align_z DOUBLE,
+-- PRIMARY KEY (node_name, didx)
+-- );
 
 CREATE TABLE IF NOT EXISTS swchstruc (
 node_name VARCHAR(40) NOT NULL,

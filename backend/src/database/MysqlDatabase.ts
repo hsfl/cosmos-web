@@ -1,13 +1,13 @@
-import BaseDatabase, { sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, deviceimu, devicessen, devicegps, EventResourceUpdateBody, MissionEvent, sqlquerytranslate, locstruc_table } from "database/BaseDatabase";
+import BaseDatabase, {sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, deviceimu, devicessen, devicegps, EventResourceUpdateBody, MissionEvent, sqlquerytranslate, locstruc_table} from "database/BaseDatabase";
 import mysql from 'mysql2';
-import { Pool } from "mysql2/promise";
-import { mjd_to_unix } from '../utils/time';
-import { AppError } from 'exceptions/AppError';
-import { StatusCodes } from 'http-status-codes';
-import { attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, icrf_geoc_att, relative_angle_range, orbit_position, icrf_att_total } from '../transforms/cosmos';
-import { TimeRange, cosmosresponse, KeyType, timepoint, qvatt, qaatt } from 'types/cosmos_types';
-import { QueryObject, QueryType, QueryFilter } from 'types/query_types';
-import { table_schema } from './inittables';
+import {Pool} from "mysql2/promise";
+import {mjd_to_unix} from '../utils/time';
+import {AppError} from 'exceptions/AppError';
+import {StatusCodes} from 'http-status-codes';
+import {attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, icrf_geoc_att, relative_angle_range, orbit_position, icrf_att_total} from '../transforms/cosmos';
+import {TimeRange, cosmosresponse, KeyType, timepoint, qvatt, qaatt} from 'types/cosmos_types';
+import {QueryObject, QueryType, QueryFilter} from 'types/query_types';
+import {table_schema} from './inittables';
 
 
 // MySQL Implementation of Database class
@@ -366,7 +366,7 @@ WHERE\n`
                 query_arg_array,
             );
             // console.log(rows[0])
-            const ret = { [keytype.dname]: rows };
+            const ret = {[keytype.dname]: rows};
             // console.log("device return: ", ret);
             return ret;
         }
@@ -389,7 +389,7 @@ FROM node
 limit 1000`,
             );
             // console.log(rows[0])
-            const ret = { nodes: rows };
+            const ret = {nodes: rows};
             // console.log("device return: ", ret);
             return ret;
         }
@@ -421,7 +421,7 @@ event_id = ? limit 1000`,
             );
             // console.log(rows[0])
             const dname: string = keytype.dname;
-            const ret = { dname: rows };
+            const ret = {dname: rows};
             return ret;
         }
         catch (error) {
@@ -468,7 +468,7 @@ FROM attstruc_icrf
 WHERE utc BETWEEN ? and ? ORDER BY Time limit 1000`,
                 [query.from, query.to],
             );
-            const ret = { "avectors": attitude(rows), "qvatts": vrows, "qaatts": arows };
+            const ret = {"avectors": attitude(rows), "qvatts": vrows, "qaatts": arows};
             return ret;
         }
         catch (error) {
@@ -507,7 +507,7 @@ WHERE\n`
                 query_arg_array,
             );
             console.log('get_event rows', rows[0])
-            const ret = { "events": rows };
+            const ret = {"events": rows};
             return ret;
         }
         catch (error) {
@@ -532,7 +532,7 @@ FROM event
 ORDER BY id limit 1000;`
             );
             console.log(rows[0])
-            const ret = { "events": rows };
+            const ret = {"events": rows};
             return ret;
         }
         catch (error) {
@@ -555,7 +555,7 @@ FROM resource
 ORDER BY resource_name limit 1000;`
             );
             console.log(rows[0])
-            const ret = { "resources": rows };
+            const ret = {"resources": rows};
             return ret;
         }
         catch (error) {
@@ -582,7 +582,7 @@ ORDER BY resource_name limit 1000;`,
                 [eventid],
             );
             console.log(rows[0])
-            const ret = { "event_resources": rows };
+            const ret = {"event_resources": rows};
             return ret;
         }
         catch (error) {
@@ -677,7 +677,7 @@ ORDER BY resource_name limit 1000;`,
                 query_statement
             );
             // console.log(rows[0])
-            const ret = { table: rows };
+            const ret = {table: rows};
             return ret;
         }
         catch (error) {
@@ -768,11 +768,11 @@ WHERE `
                                 icrf_v_y: 0,
                                 icrf_v_z: 0,
                             }
-                            locrows.push({ ...locstruc });
+                            locrows.push({...locstruc});
                         }
                     }
                 }
-                const ret = { "ecis": locrows };
+                const ret = {"ecis": locrows};
                 // console.log("compiled mock batt return: ", ret);
                 return ret;
                 // end of logic for returning list of nodes on empty row return
@@ -781,36 +781,36 @@ WHERE `
             // else {}
             let type = queryObj.arg;
             if (type == "eci") {
-                const ret = { "ecis": eci_position(rows) };
+                const ret = {"ecis": eci_position(rows)};
                 return ret;
             } else if (type == "geod") {
-                const ret = { "geoidposs": geod_position(rows) };
+                const ret = {"geoidposs": geod_position(rows)};
                 return ret;
             } else if (type == "geos") {
-                const ret = { "spherposs": geos_position(rows) };
+                const ret = {"spherposs": geos_position(rows)};
                 return ret;
             } else if (type == "lvlh") {
-                const ret = { "qatts": lvlh_attitude(rows) };
+                const ret = {"qatts": lvlh_attitude(rows)};
                 return ret;
             } else if (type == "icrf") {
-                const ret = { "adcsstrucs": icrf_att(rows) };
+                const ret = {"adcsstrucs": icrf_att(rows)};
                 return ret;
             } else if (type == "geoc") {
-                const ret = { "geocadcsstrucs": icrf_geoc_att(rows) };
+                const ret = {"geocadcsstrucs": icrf_geoc_att(rows)};
                 return ret;
             } else if (type == "eul_lvlh") {
                 // update return combined Euler Angle from return of LVLH conversion quatt... call both in new custom formula
                 // ... to single array of aatstruc type, s v a of avectors... 
-                const ret = { "lvlhadcsstrucs": icrf_lvlh_att(rows) };
+                const ret = {"lvlhadcsstrucs": icrf_lvlh_att(rows)};
                 return ret;
             } else if (type == "orbit") {
-                const ret = { "orbits": orbit_position(rows) };
+                const ret = {"orbits": orbit_position(rows)};
                 return ret;
             } else if (type == "att_total") {
-                const ret = { "atttotals": icrf_att_total(rows) };
+                const ret = {"atttotals": icrf_att_total(rows)};
                 return ret;
             }
-            const ret = { "ecis": eci_position(rows) };
+            const ret = {"ecis": eci_position(rows)};
             // switch statement here also to parse type option passed in from request
             // passing the type for the list of sub-structures { geoidpos ... }
             return ret;
@@ -885,7 +885,7 @@ lat, lon, h,
 area
 FROM target`,
             );
-            const ret = { "targets": rows };
+            const ret = {"targets": rows};
             // switch statement here also to parse type option passed in from request
             // passing the type for the list of sub-structures { geoidpos ... }
             return ret;
@@ -930,7 +930,7 @@ device.type = 12 AND\n`
             );
             if (rows.length === 0) {
                 // console.log("empty rows");
-                const key_array = await this.get_device_keys({ dtype: 12, dname: "batts" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 12, dname: "batts"}, queryObj);
                 // console.log("key_array: ", key_array);
                 const battrows: Array<devicebatt & Partial<device_table> & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
@@ -947,14 +947,14 @@ device.type = 12 AND\n`
                             temp: 0,
                             percentage: 0
                         }
-                        battrows.push({ name: qvalue[i].name, Time: query.from, ...devbatt });
+                        battrows.push({name: qvalue[i].name, Time: query.from, ...devbatt});
                     }
                 }
-                const ret = { "batts": battrows };
+                const ret = {"batts": battrows};
                 console.log('get_battery rows', battrows[0])
                 return ret;
             } else {
-                const ret = { "batts": rows };
+                const ret = {"batts": rows};
                 console.log('get_battery rows', rows[0])
                 return ret;
             }
@@ -1000,7 +1000,7 @@ device.type = 30 AND\n`
             //
             if (rows.length === 0) {
                 // console.log("empty rows");
-                const key_array = await this.get_device_keys({ dtype: 30, dname: "bcreg" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 30, dname: "bcreg"}, queryObj);
                 // console.log("key_array: ", key_array);
                 const bcregrows: Array<devicebcreg & Partial<device_table> & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
@@ -1018,15 +1018,15 @@ device.type = 30 AND\n`
                             mpptout_amp: 0,
                             mpptout_volt: 0,
                         }
-                        bcregrows.push({ name: qvalue[i].name, Time: query.from, ...devbcreg });
+                        bcregrows.push({name: qvalue[i].name, Time: query.from, ...devbcreg});
                     }
                 }
                 console.log('get_bcreg bcregrows', bcregrows[0])
-                const ret = { "bcregs": bcregrows };
+                const ret = {"bcregs": bcregrows};
                 return ret;
             } else {
                 console.log('get_bcreg rows', rows[0])
-                const ret = { "bcregs": rows };
+                const ret = {"bcregs": rows};
                 return ret;
             }
             // const ret = { "bcregs": rows };
@@ -1067,7 +1067,7 @@ device.type = 15 AND\n`
                 query_arg_array,
             );
             if (rows.length === 0) {
-                const key_array = await this.get_device_keys({ dtype: 15, dname: "tsen" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 15, dname: "tsen"}, queryObj);
                 const tsenrows: Array<devicetsen & Partial<device_table> & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
@@ -1077,14 +1077,14 @@ device.type = 15 AND\n`
                             utc: query.from,
                             temp: 0,
                         }
-                        tsenrows.push({ name: qvalue[i].name, Time: query.from, ...devtsen });
+                        tsenrows.push({name: qvalue[i].name, Time: query.from, ...devtsen});
                     }
                 }
-                const ret = { "tsens": tsenrows };
+                const ret = {"tsens": tsenrows};
                 console.log('get_tsen rows', tsenrows[0])
                 return ret;
             } else {
-                const ret = { "tsens": rows };
+                const ret = {"tsens": rows};
                 console.log('get_tsen rows', rows[0])
                 return ret;
             }
@@ -1130,7 +1130,7 @@ device.type = 5 AND\n`
                 query_arg_array,
             );
             if (rows.length === 0) {
-                const key_array = await this.get_device_keys({ dtype: 5, dname: "cpu" }, queryObj)
+                const key_array = await this.get_device_keys({dtype: 5, dname: "cpu"}, queryObj)
                 const cpurows: Array<devicecpu & Partial<device_table> & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
@@ -1145,14 +1145,14 @@ device.type = 5 AND\n`
                             boot_count: 0,
                             storage: 0,
                         }
-                        cpurows.push({ name: qvalue[i].name, Time: query.from, ...devcpu });
+                        cpurows.push({name: qvalue[i].name, Time: query.from, ...devcpu});
                     }
                 }
-                const ret = { "cpus": cpurows };
+                const ret = {"cpus": cpurows};
                 console.log('get_cpu rows', cpurows[0])
                 return ret;
             } else {
-                const ret = { "cpus": rows };
+                const ret = {"cpus": rows};
                 console.log('get_cpu rows', rows[0])
                 return ret;
             }
@@ -1186,25 +1186,25 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             );
             console.log(rows[0])
             if (rows.length === 0) {
-                const key_array = await this.get_device_keys({ dtype: 32, dname: "mag" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 32, dname: "mag"}, queryObj);
                 const magrows: Array<devicemag> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devmag: devicemag = {
                             node_device: qvalue[i].node_name + ":" + qvalue[i].name,
                             didx: qvalue[i].didx,
-                            time: query.to,
+                            utc: query.to,
                             mag_x: 0,
                             mag_y: 0,
                             mag_z: 0,
                         }
-                        magrows.push({ ...devmag });
+                        magrows.push({...devmag});
                     }
                 }
-                const ret = { "mags": magrows };
+                const ret = {"mags": magrows};
                 return ret;
             } else {
-                const ret = { "mags": rows };
+                const ret = {"mags": rows};
                 return ret;
             }
             // const ret = { "mags": rows };
@@ -1234,7 +1234,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
             );
             console.log(rows[0])
             if (rows.length === 0) {
-                const key_array = await this.get_device_keys({ dtype: 31, dname: "gyro" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 31, dname: "gyro"}, queryObj);
                 const gyrorows: Array<devicegyro> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
@@ -1244,13 +1244,13 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
                             time: query.to,
                             omega: 0,
                         }
-                        gyrorows.push({ ...devgyro });
+                        gyrorows.push({...devgyro});
                     }
                 }
-                const ret = { "gyros": gyrorows };
+                const ret = {"gyros": gyrorows};
                 return ret;
             } else {
-                const ret = { "gyros": rows };
+                const ret = {"gyros": rows};
                 return ret;
             }
         }
@@ -1263,43 +1263,68 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
     }
 
+    // MTR is type 4
     public async get_mtr(query: QueryType): Promise<cosmosresponse> {
         try {
             const queryObj: QueryObject = JSON.parse(query.query);
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            const sql_query =
+                `SELECT
+  devspec.utc AS "time",
+  devspec.node_name as "node_name",
+  device.name as "name",
+  devalignstruc.align_w as "align_w",
+  devalignstruc.align_x as "align_x",
+  devalignstruc.align_y as "align_y",
+  devalignstruc.align_z as "align_z",
+  mom,
+  amp
+FROM mtrstruc AS devspec
+INNER JOIN devalignstruc ON devspec.didx = devalignstruc.didx
+WHERE devalignstruc.type = 4 
+AND \n`
+                + (node_filter !== undefined ? `devspec.node_name = ? \n` : '')
+                + `INNER JOIN device ON devspec.didx = device.didx
+                WHERE
+                device.type = 4 AND\n`
+                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
+                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+            const query_arg_array = [
+                node_filter?.filterValue,
+                node_filter?.filterValue,
+                query.from,
+                query.to
+            ].filter((v) => v !== undefined);
+            console.log('sql_query:', sql_query);
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-                `SELECT 
-    utc AS "time",
-    node_name,
-    didx,
-    mom, align_w,
-    align_x, align_y, align_z
-    FROM mtrstruc
-    WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
-                [query.from, query.to],
+                sql_query,
+                query_arg_array,
             );
-            console.log(rows[0])
+
             if (rows.length === 0) {
-                const key_array = await this.get_device_keys({ dtype: 4, dname: "mtr" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 4, dname: "mtr"}, queryObj);
                 const mtrrows: Array<devicemtr> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devmtr: devicemtr = {
-                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            // node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            node_name: qvalue[i].node_name,
                             didx: qvalue[i].didx,
-                            time: query.to,
+                            utc: query.to,
                             mom: 0,
+                            amp: 0,
                             align_w: 0,
                             align_x: 0,
                             align_y: 0,
                             align_z: 0,
                         }
-                        mtrrows.push({ ...devmtr });
+                        mtrrows.push({...devmtr});
                     }
                 }
-                const ret = { "mtrs": mtrrows };
+                const ret = {"mtrs": mtrrows};
                 return ret;
             } else {
-                const ret = { "mtrs": rows };
+                const ret = {"mtrs": rows};
                 return ret;
             }
         }
@@ -1312,41 +1337,71 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
         }
     }
 
+    // RW is type 3
     public async get_rw(query: QueryType): Promise<cosmosresponse> {
         try {
             const queryObj: QueryObject = JSON.parse(query.query);
+            const node_filter = queryObj.filters.find((v) => v.filterType === 'node' && v.compareType === 'equals');
+            const sql_query =
+                `SELECT
+  devspec.utc AS "time",
+  devspec.node_name as "node_name",
+  device.name as "name",
+  devalignstruc.align_w as "align_w",
+  devalignstruc.align_x as "align_x",
+  devalignstruc.align_y as "align_y",
+  devalignstruc.align_z as "align_z",
+  omg,
+  romg,
+  amp
+FROM rwstruc AS devspec
+INNER JOIN devalignstruc ON devspec.didx = devalignstruc.didx
+WHERE devalignstruc.type = 3 
+AND \n`
+                + (node_filter !== undefined ? `devspec.node_name = ? \n` : '')
+                + `INNER JOIN device ON devspec.didx = device.didx
+                WHERE
+                device.type = 3 AND\n`
+                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
+                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+            const query_arg_array = [
+                node_filter?.filterValue,
+                node_filter?.filterValue,
+                query.from,
+                query.to
+            ].filter((v) => v !== undefined);
+            console.log('sql_query:', sql_query);
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
-                `SELECT 
-utc AS "time",
-node_name,
-didx,
-amp, omg,
-romg
-FROM rwstruc
-WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
-                [query.from, query.to],
+                sql_query,
+                query_arg_array,
             );
+
             console.log(rows[0])
             if (rows.length === 0) {
-                const key_array = await this.get_device_keys({ dtype: 3, dname: "rw" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 3, dname: "rw"}, queryObj);
                 const rwrows: Array<devicerw> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devrw: devicerw = {
-                            node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            // node_device: qvalue[i].node_name + ":" + qvalue[i].name,
+                            node_name: qvalue[i].node_name,
                             didx: qvalue[i].didx,
-                            time: query.to,
+                            utc: query.to,
                             amp: 0,
                             omg: 0,
                             romg: 0,
+                            align_w: 0,
+                            align_x: 0,
+                            align_y: 0,
+                            align_z: 0,
                         }
-                        rwrows.push({ ...devrw });
+                        rwrows.push({...devrw});
                     }
                 }
-                const ret = { "rws": rwrows };
+                const ret = {"rws": rwrows};
                 return ret;
             } else {
-                const ret = { "rws": rows };
+                const ret = {"rws": rows};
                 return ret;
             }
         }
@@ -1394,14 +1449,14 @@ device.type = 2 AND\n`
                 query_arg_array,
             );
             if (rows.length === 0) {
-                const key_array = await this.get_device_keys({ dtype: 2, dname: "imu" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 2, dname: "imu"}, queryObj);
                 const imurows: Array<deviceimu & Partial<device_table> & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devimu: deviceimu = {
                             node_name: qvalue[i].node_name,
                             didx: qvalue[i].didx,
-                            time: query.from,
+                            utc: query.from,
                             theta_x: 0,
                             theta_y: 0,
                             theta_z: 0,
@@ -1413,14 +1468,14 @@ device.type = 2 AND\n`
                             mag_y: 0,
                             mag_z: 0,
                         }
-                        imurows.push({ name: qvalue[i].name, Time: query.from, ...devimu });
+                        imurows.push({name: qvalue[i].name, Time: query.from, ...devimu});
                     }
                 }
-                const ret = { "imus": imurows };
+                const ret = {"imus": imurows};
                 console.log('get_imu rows', imurows[0])
                 return ret;
             } else {
-                const ret = { "imus": rows };
+                const ret = {"imus": rows};
                 console.log('get_imu rows', rows[0])
                 return ret;
             }
@@ -1465,14 +1520,14 @@ device.type = 1 AND\n`
                 query_arg_array,
             );
             if (rows.length === 0) {
-                const key_array = await this.get_device_keys({ dtype: 1, dname: "ssen" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 1, dname: "ssen"}, queryObj);
                 const ssenrows: Array<devicessen & Partial<device_table> & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devssen: devicessen = {
                             node_name: qvalue[i].node_name,
                             didx: qvalue[i].didx,
-                            time: query.from,
+                            utc: query.from,
                             qva: 0,
                             qvb: 0,
                             qvc: 0,
@@ -1480,14 +1535,14 @@ device.type = 1 AND\n`
                             azi: 0,
                             elev: 0,
                         }
-                        ssenrows.push({ name: qvalue[i].name, Time: query.from, ...devssen });
+                        ssenrows.push({name: qvalue[i].name, Time: query.from, ...devssen});
                     }
                 }
-                const ret = { "ssens": ssenrows };
+                const ret = {"ssens": ssenrows};
                 console.log('get_ssen rows', ssenrows[0])
                 return ret;
             } else {
-                const ret = { "ssens": rows };
+                const ret = {"ssens": rows};
                 console.log('get_ssen rows', rows[0])
                 return ret;
             }
@@ -1532,14 +1587,14 @@ device.type = 6 AND\n`
                 query_arg_array,
             );
             if (rows.length === 0) {
-                const key_array = await this.get_device_keys({ dtype: 6, dname: "gps" }, queryObj);
+                const key_array = await this.get_device_keys({dtype: 6, dname: "gps"}, queryObj);
                 const gpsrows: Array<devicegps & Partial<device_table> & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devgps: devicegps = {
                             node_name: qvalue[i].node_name,
                             didx: qvalue[i].didx,
-                            time: query.from,
+                            utc: query.from,
                             geocs_x: 0,
                             geocs_y: 0,
                             geocs_z: 0,
@@ -1547,14 +1602,14 @@ device.type = 6 AND\n`
                             geods_lon: 0,
                             geods_alt: 0,
                         }
-                        gpsrows.push({ name: qvalue[i].name, Time: query.from, ...devgps });
+                        gpsrows.push({name: qvalue[i].name, Time: query.from, ...devgps});
                     }
                 }
-                const ret = { "gpss": gpsrows };
+                const ret = {"gpss": gpsrows};
                 console.log('get_gps rows', gpsrows[0])
                 return ret;
             } else {
-                const ret = { "gpss": rows };
+                const ret = {"gpss": rows};
                 console.log('get_gps rows', rows[0])
                 return ret;
             }

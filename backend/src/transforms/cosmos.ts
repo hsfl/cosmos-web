@@ -1,6 +1,6 @@
-import { CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit, gfadcstotal, cartpos } from 'types/cosmos_types';
+import {CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, is_beacon_mtrstruc, is_beacon_rwstruc, is_beacon_gpsstruc, is_beacon_imustruc, is_beacon_ssenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit, gfadcstotal, cartpos} from 'types/cosmos_types';
 import mysql from 'mysql2';
-import { device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event } from 'database/BaseDatabase';
+import {device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, devicemtr, devicerw, devicegps, deviceimu, devicessen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event} from 'database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
 
@@ -31,7 +31,7 @@ export const attitude = (rows: mysql.RowDataPacket[]) => {
         };
         const av: avector = (Cosmos.module.a_quaternion2euler(q));
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...av });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...av});
     });
     console.log('attitude iret:', rows[0], ret[0]);
     return ret;
@@ -44,39 +44,39 @@ const getNewLocstruc = (): locstruc => ({
         icrf:
         {
             utc: 0,
-            s: { col: [0, 0, 0] },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            s: {col: [0, 0, 0]},
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0
         },
         eci: {
             utc: 0,
-            s: { col: [0, 0, 0] },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            s: {col: [0, 0, 0]},
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0
         },
         sci: {
             utc: 0,
-            s: { col: [0, 0, 0] },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            s: {col: [0, 0, 0]},
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0
         },
         geoc:
         {
             utc: 0,
-            s: { col: [0, 0, 0] },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            s: {col: [0, 0, 0]},
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0
         },
         selc:
         {
             utc: 0,
-            s: { col: [0, 0, 0] },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            s: {col: [0, 0, 0]},
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0
         },
         geod: {
@@ -144,54 +144,54 @@ const getNewLocstruc = (): locstruc => ({
             tdb: 0,
             j2e:
             {
-                row: [{ col: [0, 0, 0] },
-                { col: [0, 0, 0] },
-                { col: [0, 0, 0] }]
+                row: [{col: [0, 0, 0]},
+                {col: [0, 0, 0]},
+                {col: [0, 0, 0]}]
             },
             dj2e:
             {
-                row: [{ col: [0, 0, 0] },
-                { col: [0, 0, 0] },
-                { col: [0, 0, 0] }]
+                row: [{col: [0, 0, 0]},
+                {col: [0, 0, 0]},
+                {col: [0, 0, 0]}]
             },
             ddj2e:
             {
-                row: [{ col: [0, 0, 0] },
-                { col: [0, 0, 0] },
-                { col: [0, 0, 0] }]
+                row: [{col: [0, 0, 0]},
+                {col: [0, 0, 0]},
+                {col: [0, 0, 0]}]
             },
             e2j:
             {
-                row: [{ col: [0, 0, 0] },
-                { col: [0, 0, 0] },
-                { col: [0, 0, 0] }]
+                row: [{col: [0, 0, 0]},
+                {col: [0, 0, 0]},
+                {col: [0, 0, 0]}]
             },
             de2j:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             dde2j:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             j2t:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             j2s:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             t2j:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             s2j:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             s2t:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             ds2t:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             t2s:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             dt2s:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             sun2earth:
             {
                 utc: 0,
-                s: { col: [0, 0, 0] },
-                v: { col: [0, 0, 0] },
-                a: { col: [0, 0, 0] },
+                s: {col: [0, 0, 0]},
+                v: {col: [0, 0, 0]},
+                a: {col: [0, 0, 0]},
                 pass: 0 //1 trigger 
             },
             sungeo: {
@@ -201,9 +201,9 @@ const getNewLocstruc = (): locstruc => ({
             },
             sun2moon: {
                 utc: 0,
-                s: { col: [0, 0, 0] },
-                v: { col: [0, 0, 0] },
-                a: { col: [0, 0, 0] },
+                s: {col: [0, 0, 0]},
+                v: {col: [0, 0, 0]},
+                a: {col: [0, 0, 0]},
                 pass: 0 //trigger
             },
             moongeo: {
@@ -217,7 +217,7 @@ const getNewLocstruc = (): locstruc => ({
         moonsep: 0,
         sunsize: 0,
         sunradiance: 0,
-        bearth: { col: [0, 0, 0] },
+        bearth: {col: [0, 0, 0]},
         orbit: 0
     },
     att: {
@@ -232,8 +232,8 @@ const getNewLocstruc = (): locstruc => ({
                 },
                 w: 0
             },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0,
         },
         lvlh: {
@@ -246,8 +246,8 @@ const getNewLocstruc = (): locstruc => ({
                 },
                 w: 0
             },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0,
         },
         geoc:
@@ -261,8 +261,8 @@ const getNewLocstruc = (): locstruc => ({
                 },
                 w: 0
             },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0,
         },
         selc:
@@ -277,8 +277,8 @@ const getNewLocstruc = (): locstruc => ({
                 },
                 w: 0
             },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0,
         },
         icrf: { //trigger key for att . lvlh . s ~ onl the att . icrf . s
@@ -292,16 +292,16 @@ const getNewLocstruc = (): locstruc => ({
                 },
                 w: 0
             },
-            v: { col: [0, 0, 0] },
-            a: { col: [0, 0, 0] },
+            v: {col: [0, 0, 0]},
+            a: {col: [0, 0, 0]},
             pass: 0,
         },
         extra: {
             utc: 0, //  59976.08635416 trigger
             j2b:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
             b2j:
-                { row: [{ col: [0, 0, 0] }, { col: [0, 0, 0] }, { col: [0, 0, 0] }] },
+                {row: [{col: [0, 0, 0]}, {col: [0, 0, 0]}, {col: [0, 0, 0]}]},
         }
     }
 });
@@ -322,11 +322,11 @@ export const icrf_att = (rows: mysql.RowDataPacket[]) => {
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
-        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
-        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
         // this object not in database
         // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
-        loc.pos.eci.a = { col: [0, 0, 0] };
+        loc.pos.eci.a = {col: [0, 0, 0]};
         // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
         loc.att.icrf.pass = 1;
         loc.att.icrf.utc = row.time;
@@ -339,7 +339,7 @@ export const icrf_att = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
-        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
         const q: quaternion = {
             d: {
                 x: row.icrf_s_x,
@@ -370,7 +370,7 @@ export const icrf_att = (rows: mysql.RowDataPacket[]) => {
             };
         };
         const sunv: rvector = (Cosmos.module.loc2sunv(loc));
-        const nadir: rvector = { col: [(-1 * row.eci_s_x), (-1 * row.eci_s_y), (-1 * row.eci_s_z)] };
+        const nadir: rvector = {col: [(-1 * row.eci_s_x), (-1 * row.eci_s_y), (-1 * row.eci_s_z)]};
 
         const adcs: adcsstruc = {
             // utc: row.time,
@@ -382,7 +382,7 @@ export const icrf_att = (rows: mysql.RowDataPacket[]) => {
             nad: nadir
         };
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs});
         // load the current v values for next iteration
         prev_utc = row.time;
         prev_vrv = {
@@ -410,11 +410,11 @@ export const icrf_att_total = (rows: mysql.RowDataPacket[]) => {
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
-        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
-        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
         // this object not in database
         // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
-        loc.pos.eci.a = { col: [0, 0, 0] };
+        loc.pos.eci.a = {col: [0, 0, 0]};
         // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
         loc.att.icrf.pass = 1;
         loc.att.icrf.utc = row.time;
@@ -427,7 +427,7 @@ export const icrf_att_total = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
-        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
         const q: quaternion = {
             d: {
                 x: row.icrf_s_x,
@@ -467,7 +467,7 @@ export const icrf_att_total = (rows: mysql.RowDataPacket[]) => {
             pos_geod_s: geod.s,
         };
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs_total });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs_total});
         // load the current v values for next iteration
         prev_utc = row.time;
         prev_vrv = {
@@ -485,11 +485,11 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
-        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
-        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
         // this object not in database
         // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
-        loc.pos.eci.a = { col: [0, 0, 0] };
+        loc.pos.eci.a = {col: [0, 0, 0]};
         // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
         loc.att.icrf.pass = 1;
         loc.att.icrf.utc = row.time;
@@ -502,7 +502,7 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
-        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
         // translate icrf_sav
         const icrf_q: quaternion = {
             d: {
@@ -541,7 +541,7 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
             col: [lvlh.a.col[0], lvlh.a.col[1], lvlh.a.col[2]]
         };
         const sunv: rvector = (Cosmos.module.loc2sunv(loc));
-        const nadir: rvector = { col: [(-1 * row.eci_s_x), (-1 * row.eci_s_y), (-1 * row.eci_s_z)] };
+        const nadir: rvector = {col: [(-1 * row.eci_s_x), (-1 * row.eci_s_y), (-1 * row.eci_s_z)]};
         // const nadir: rvector = { col: [(-1 * sav.b), (-1 * sav.e), (-1 * sav.h)] };
 
         const adcs: EulAdcsstruc = {
@@ -556,7 +556,7 @@ export const icrf_lvlh_att = (rows: mysql.RowDataPacket[]) => {
             sqatt: lvlh.s
         };
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs});
     });
     console.log('attitude iret:', rows[0], ret[0]);
     return ret;
@@ -569,11 +569,11 @@ export const icrf_geoc_att = (rows: mysql.RowDataPacket[]) => {
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
-        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
-        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
         // this object not in database
         // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
-        loc.pos.eci.a = { col: [0, 0, 0] };
+        loc.pos.eci.a = {col: [0, 0, 0]};
         // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
         loc.att.icrf.pass = 1;
         loc.att.icrf.utc = row.time;
@@ -586,7 +586,7 @@ export const icrf_geoc_att = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
-        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
         const geoc: qatt = (Cosmos.module.loc2geoc(loc));
         // const geoc: qatt = (Cosmos.module.loc2attgeoc(loc));
         // console.log("geoc qatt: ", lvlh);
@@ -623,7 +623,7 @@ export const icrf_geoc_att = (rows: mysql.RowDataPacket[]) => {
             col: [geoc.a.col[0], geoc.a.col[1], geoc.a.col[2]]
         };
         const sunv: rvector = (Cosmos.module.loc2sunv(loc));
-        const nadir: rvector = { col: [(-1 * row.eci_s_x), (-1 * row.eci_s_y), (-1 * row.eci_s_z)] };
+        const nadir: rvector = {col: [(-1 * row.eci_s_x), (-1 * row.eci_s_y), (-1 * row.eci_s_z)]};
 
         const adcs: EulAdcsstruc = {
             // utc: row.time,
@@ -637,7 +637,7 @@ export const icrf_geoc_att = (rows: mysql.RowDataPacket[]) => {
             sqatt: geoc.s
         };
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...adcs});
     });
     console.log('attitude iret:', rows[0], ret[0]);
     return ret;
@@ -649,11 +649,11 @@ export const orbit_position = (rows: mysql.RowDataPacket[]) => {
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
-        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
-        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
         // this object not in database
         // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
-        loc.pos.eci.a = { col: [0, 0, 0] };
+        loc.pos.eci.a = {col: [0, 0, 0]};
         // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
         loc.att.icrf.pass = 1;
         loc.att.icrf.utc = row.time;
@@ -669,11 +669,11 @@ export const orbit_position = (rows: mysql.RowDataPacket[]) => {
         const eci: cartpos = {
             utc: row.time,
             pass: 1,
-            s: { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] },
-            v: { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] },
-            a: { col: [0, 0, 0] }
+            s: {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]},
+            v: {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]},
+            a: {col: [0, 0, 0]}
         }
-        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
         const sunbeta: number = (Cosmos.module.loc2kepbeta(loc));
         // const geod: geoidpos = (Cosmos.module.ecitogeod(loc));
         const geod: geoidpos = (Cosmos.module.eci2geod(eci));
@@ -690,7 +690,7 @@ export const orbit_position = (rows: mysql.RowDataPacket[]) => {
             q_s: loc.att.icrf.s,
             sunbeta: sunbeta
         }
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...gforbit });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...gforbit});
     });
     console.log('iret:', rows[0], ret[0]);
     return ret;
@@ -714,7 +714,7 @@ export const eci_position = (rows: mysql.RowDataPacket[]) => {
             // a_y: row.eci_a_y,
             // a_z: row.eci_a_z
         }
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...gfeci });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...gfeci});
     });
     console.log('iret:', rows[0], ret[0]);
     return ret;
@@ -726,10 +726,10 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
-        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
-        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
         // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
-        loc.pos.eci.a = { col: [0, 0, 0] };
+        loc.pos.eci.a = {col: [0, 0, 0]};
         loc.att.icrf.pass = 1;
         loc.att.icrf.utc = row.time;
         // s element needed to populate lvlh s element 
@@ -741,7 +741,7 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
-        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
         // const typed_node: GFNodeType = {
         //     name: row.node_name,
         //     type: 0,
@@ -761,13 +761,13 @@ export const geod_position = (rows: mysql.RowDataPacket[]) => {
         //     a_h: geod.a.h,
         // }
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...geod });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...geod});
     });
     loc.pos.eci.utc = 0;
     loc.pos.eci.pass = 0;
-    loc.pos.eci.s = { col: [0, 0, 0] };
-    loc.pos.eci.v = { col: [0, 0, 0] };
-    loc.pos.eci.a = { col: [0, 0, 0] };
+    loc.pos.eci.s = {col: [0, 0, 0]};
+    loc.pos.eci.v = {col: [0, 0, 0]};
+    loc.pos.eci.a = {col: [0, 0, 0]};
     console.log('iret:', rows[0], ret[0]);
     return ret;
 };
@@ -778,10 +778,10 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
-        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
-        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
         // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
-        loc.pos.eci.a = { col: [0, 0, 0] };
+        loc.pos.eci.a = {col: [0, 0, 0]};
         loc.att.icrf.pass = 1;
         loc.att.icrf.utc = row.time;
         // s element needed to populate lvlh s element 
@@ -793,7 +793,7 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
-        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
 
         const geos: spherpos = (Cosmos.module.loc2geos(loc));
         // const gfgeos: gfspherpos = {
@@ -809,13 +809,13 @@ export const geos_position = (rows: mysql.RowDataPacket[]) => {
         //     a_r: geos.a.r
         // }
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...geos });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...geos});
     });
     loc.pos.eci.utc = 0;
     loc.pos.eci.pass = 0;
-    loc.pos.eci.s = { col: [0, 0, 0] };
-    loc.pos.eci.v = { col: [0, 0, 0] };
-    loc.pos.eci.a = { col: [0, 0, 0] };
+    loc.pos.eci.s = {col: [0, 0, 0]};
+    loc.pos.eci.v = {col: [0, 0, 0]};
+    loc.pos.eci.a = {col: [0, 0, 0]};
     console.log('iret:', rows[0], ret[0]);
     return ret;
 }
@@ -826,10 +826,10 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
         loc.pos.eci.pass = 1;
-        loc.pos.eci.s = { col: [row.eci_s_x, row.eci_s_y, row.eci_s_z] };
-        loc.pos.eci.v = { col: [row.eci_v_x, row.eci_v_y, row.eci_v_z] };
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
         // this object not in database
-        loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        loc.pos.eci.a = {col: [row.eci_a_x, row.eci_a_y, row.eci_a_z]};
         // icrf_s_x, icrf_s_y, icrf_s_z, icrf_s_w
         loc.att.icrf.pass = 1;
         loc.att.icrf.utc = row.time;
@@ -842,7 +842,7 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
             },
             w: row.icrf_s_w
         };
-        loc.att.icrf.v = { col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z] };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
         const lvlh: qatt = (Cosmos.module.loc2lvlh(loc));
         // const gflvlh: gfqatt = {
         //     utc: lvlh.utc,
@@ -858,13 +858,13 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
         //     a_z: lvlh.a.col[2],
         // }
         //const time  
-        ret.push({ Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...lvlh });
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...lvlh});
     });
     loc.pos.eci.utc = 0;
     loc.pos.eci.pass = 0;
-    loc.pos.eci.s = { col: [0, 0, 0] };
-    loc.pos.eci.v = { col: [0, 0, 0] };
-    loc.pos.eci.a = { col: [0, 0, 0] };
+    loc.pos.eci.s = {col: [0, 0, 0]};
+    loc.pos.eci.v = {col: [0, 0, 0]};
+    loc.pos.eci.a = {col: [0, 0, 0]};
     loc.att.icrf.pass = 0;
     loc.att.icrf.utc = 0;
     loc.att.icrf.s = {
@@ -875,8 +875,8 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
         },
         w: 0
     };
-    loc.att.icrf.v = { col: [0, 0, 0] };
-    loc.att.icrf.a = { col: [0, 0, 0] };
+    loc.att.icrf.v = {col: [0, 0, 0]};
+    loc.att.icrf.a = {col: [0, 0, 0]};
     console.log('iret:', rows[0], ret[0]);
     return ret;
 }
@@ -949,7 +949,7 @@ export const relative_angle_range = (rows: mysql.RowDataPacket[], originNode: st
                     loc.pos.eci.pass = 99;
                     loc.pos.geod = Cosmos.module.ecitogeod(loc);
                     const relativeAngleRange = Cosmos.module.groundstation(originNodeLoc, loc);
-                    ret.push({ Time: currentTime, Node_name: key, Node_type: 0, ...relativeAngleRange });
+                    ret.push({Time: currentTime, Node_name: key, Node_type: 0, ...relativeAngleRange});
                     locsUpdated.set(key, false);
                 });
             }
@@ -1175,6 +1175,21 @@ export const parse_devspec = (obj: Partial<beacontype>): [string, table_type[]] 
     } else if (obj.devspec.tsen !== undefined) {
         device_type = 'tsenstruc';
         ret = parse_devspec_tsen(obj.node_name, obj.devspec);
+    } else if (obj.devspec.mtr !== undefined) {
+        device_type = 'mtrstruc';
+        ret = parse_devspec_mtr(obj.node_name, obj.devspec);
+    } else if (obj.devspec.rw !== undefined) {
+        device_type = 'rwstruc';
+        ret = parse_devspec_rw(obj.node_name, obj.devspec);
+    } else if (obj.devspec.gps !== undefined) {
+        device_type = 'gpsstruc';
+        ret = parse_devspec_gps(obj.node_name, obj.devspec);
+    } else if (obj.devspec.imu !== undefined) {
+        device_type = 'imustruc';
+        ret = parse_devspec_imu(obj.node_name, obj.devspec);
+    } else if (obj.devspec.ssen !== undefined) {
+        device_type = 'ssenstruc';
+        ret = parse_devspec_ssen(obj.node_name, obj.devspec);
     } else {
         return ["error", []];
     }
@@ -1288,6 +1303,161 @@ export const parse_devspec_tsen = (node_name: string, devspec: Partial<devspecst
             didx: tsen.didx,
             utc: tsen.utc,
             temp: tsen.temp,
+        });
+    });
+
+    return ret;
+}
+
+// Parses a json array of mtrstrucs into rows of data to be written to the mtrstruc and devalignstruc tables 
+// node_name: The name of the node, determined earlier in the call stack
+// devspec: An object containing mtr -- an array of mtrstrucs, type checked inside this function
+export const parse_devspec_mtr = (node_name: string, devspec: Partial<devspecstruc>): devicemtr[] => {
+    if (!Array.isArray(devspec.mtr)) {
+        return [];
+    }
+    let ret: devicemtr[] = [];
+
+    devspec.mtr.forEach((mtr: any) => {
+        if (!is_beacon_mtrstruc(mtr)) {
+            return;
+        }
+        ret.push({
+            node_name: node_name as string,
+            didx: mtr.didx,
+            utc: mtr.utc,
+            mom: mtr.mom,
+            amp: mtr.amp,
+            align_w: mtr.align.w,
+            align_x: mtr.align.d.x,
+            align_y: mtr.align.d.y,
+            align_z: mtr.align.d.z,
+        });
+    });
+
+    return ret;
+}
+
+// parse_devspec_rw
+
+// Parses a json array of rwstrucs into rows of data to be written to the rwstruc and devalignstruc tables 
+// node_name: The name of the node, determined earlier in the call stack
+// devspec: An object containing rw -- an array of rwstrucs, type checked inside this function
+export const parse_devspec_rw = (node_name: string, devspec: Partial<devspecstruc>): devicerw[] => {
+    if (!Array.isArray(devspec.rw)) {
+        return [];
+    }
+    let ret: devicerw[] = [];
+
+    devspec.rw.forEach((rw: any) => {
+        if (!is_beacon_rwstruc(rw)) {
+            return;
+        }
+        ret.push({
+            node_name: node_name as string,
+            didx: rw.didx,
+            utc: rw.utc,
+            amp: rw.amp,
+            omg: rw.omg,
+            romg: rw.romg,
+            align_w: rw.align.w,
+            align_x: rw.align.d.x,
+            align_y: rw.align.d.y,
+            align_z: rw.align.d.z,
+        });
+    });
+
+    return ret;
+}
+
+// parse_devspec_gps
+// Parses a json array of gpsstrucs into rows of data to be written to the gpsstruc table
+// node_name: The name of the node, determined earlier in the call stack
+// devspec: An object containing gps -- an array of gpsstrucs, type checked inside this function
+export const parse_devspec_gps = (node_name: string, devspec: Partial<devspecstruc>): devicegps[] => {
+    if (!Array.isArray(devspec.gps)) {
+        return [];
+    }
+    let ret: devicegps[] = [];
+
+    devspec.gps.forEach((gps: any) => {
+        if (!is_beacon_gpsstruc(gps)) {
+            return;
+        }
+        ret.push({
+            node_name: node_name as string,
+            didx: gps.didx,
+            utc: gps.utc,
+            geocs_x: gps.geocs.col[0],
+            geocs_y: gps.geocs.col[1],
+            geocs_z: gps.geocs.col[2],
+            geods_lat: gps.geods.lat,
+            geods_lon: gps.geods.lon,
+            geods_alt: gps.geods.h,
+        });
+    });
+
+    return ret;
+}
+
+// parse_devspec_imu
+// Parses a json array of imustrucs into rows of data to be written to the imustruc table
+// node_name: The name of the node, determined earlier in the call stack
+// devspec: An object containing imu -- an array of imustrucs, type checked inside this function
+export const parse_devspec_imu = (node_name: string, devspec: Partial<devspecstruc>): deviceimu[] => {
+    if (!Array.isArray(devspec.imu)) {
+        return [];
+    }
+    let ret: deviceimu[] = [];
+
+    devspec.imu.forEach((imu: any) => {
+        if (!is_beacon_imustruc(imu)) {
+            return;
+        }
+        ret.push({
+            node_name: node_name as string,
+            didx: imu.didx,
+            utc: imu.utc,
+            theta_x: imu.theta.d.x,
+            theta_y: imu.theta.d.y,
+            theta_z: imu.theta.d.z,
+            theta_w: imu.theta.w,
+            omega_x: imu.omega.col[0],
+            omega_y: imu.omega.col[1],
+            omega_z: imu.omega.col[2],
+            mag_x: imu.mag.col[0],
+            mag_y: imu.mag.col[1],
+            mag_z: imu.mag.col[2],
+        });
+    });
+
+    return ret;
+}
+
+// parse_devspec_ssen
+// Parses a json array of ssenstrucs into rows of data to be written to the ssenstruc table
+// node_name: The name of the node, determined earlier in the call stack
+// devspec: An object containing ssen -- an array of ssenstrucs, type checked inside this function
+export const parse_devspec_ssen = (node_name: string, devspec: Partial<devspecstruc>): devicessen[] => {
+    if (!Array.isArray(devspec.ssen)) {
+        return [];
+    }
+    let ret: devicessen[] = [];
+
+    devspec.ssen.forEach((ssen: any) => {
+        if (!is_beacon_ssenstruc(ssen)) {
+            return;
+        }
+        ret.push({
+            node_name: node_name as string,
+            didx: ssen.didx,
+            utc: ssen.utc,
+            qva: ssen.qva,
+            qvb: ssen.qvb,
+            qvc: ssen.qvc,
+            qvd: ssen.qvd,
+            azi: ssen.azimuth,
+            elev: ssen.elevation,
         });
     });
 

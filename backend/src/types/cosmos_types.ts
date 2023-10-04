@@ -1,4 +1,4 @@
-import { node, event } from "database/BaseDatabase";
+import {node, event} from "database/BaseDatabase";
 
 export interface attitude {
     node_id: number;
@@ -20,6 +20,8 @@ export interface CosmosModule {
     loc2sunv: (arg: any) => rvector;
     eci2geod: (arg: any) => geoidpos;
     loc2kepbeta: (arg: any) => number;
+    loc2mtrtorq: (arg: any) => number;
+    loc2rwtorq: (arg: any) => number;
     groundstation: (satellite: locstruc, groundstation: locstruc) => svector;
 }
 
@@ -457,6 +459,11 @@ export interface devspecstruc {
     bcreg: bcregstruc[];
     cpu: cpustruc[];
     tsen: tsenstruc[];
+    gps: beacon_gpsstruc[];
+    imu: beacon_imustruc[];
+    ssen: beacon_ssenstruc[];
+    mtr: beacon_mtrstruc[];
+    rw: beacon_rwstruc[];
 }
 
 // Cosmos type
@@ -560,5 +567,164 @@ export function is_tsenstruc(obj: any): obj is tsenstruc {
         typeof obj.didx === 'number'
         && typeof obj.utc === 'number'
         && typeof obj.temp === 'number'
+    );
+}
+
+// beacon_gpsstruc
+// beacon type
+export interface beacon_gpsstruc {
+    didx: number;
+    utc: number;
+    geocs: rvector;
+    geods: gvector;
+}
+
+export function is_beacon_gpsstruc(obj: any): obj is beacon_gpsstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.didx === 'number'
+        && typeof obj.utc === 'number'
+        && typeof obj.geocs.col[0] === 'number'
+        && typeof obj.geocs.col[1] === 'number'
+        && typeof obj.geocs.col[2] === 'number'
+        && typeof obj.geods.lat === 'number'
+        && typeof obj.geods.lon === 'number'
+        && typeof obj.geods.h === 'number'
+    );
+}
+
+// beacon_imustruc
+// beacon type
+export interface beacon_imustruc {
+    didx: number;
+    utc: number;
+    mag: rvector;
+    omega: rvector;
+    theta: quaternion;
+}
+
+export function is_beacon_imustruc(obj: any): obj is beacon_imustruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.didx === 'number'
+        && typeof obj.utc === 'number'
+        && typeof obj.mag.col[0] === 'number'
+        && typeof obj.mag.col[1] === 'number'
+        && typeof obj.mag.col[2] === 'number'
+        && typeof obj.omega.col[0] === 'number'
+        && typeof obj.omega.col[1] === 'number'
+        && typeof obj.omega.col[2] === 'number'
+        && typeof obj.theta.d.x === 'number'
+        && typeof obj.theta.d.y === 'number'
+        && typeof obj.theta.d.z === 'number'
+        && typeof obj.theta.w === 'number'
+    );
+}
+
+// beacon_ssenstruc
+// beacon type
+export interface beacon_ssenstruc {
+    didx: number;
+    utc: number;
+    azimuth: number;
+    elevation: number;
+    qva: number;
+    qvb: number;
+    qvc: number;
+    qvd: number;
+}
+
+export function is_beacon_ssenstruc(obj: any): obj is beacon_ssenstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.didx === 'number'
+        && typeof obj.utc === 'number'
+        && typeof obj.azimuth === 'number'
+        && typeof obj.elevation === 'number'
+        && typeof obj.qva === 'number'
+        && typeof obj.qvb === 'number'
+        && typeof obj.qvc === 'number'
+        && typeof obj.qvd === 'number'
+    );
+}
+
+// Cosmos type
+export interface cosmos_mtrstruc {
+    align: quaternion;
+    npoly: [number, number, number, number, number, number, number];
+    ppoly: [number, number, number, number, number, number, number];
+    mxmom: number;
+    tc: number;
+    rmom: number;
+    mom: number;
+}
+
+// beacon type
+export interface beacon_mtrstruc {
+    align: quaternion;
+    didx: number;
+    utc: number;
+    mom: number;
+    amp: number;
+}
+
+export function is_beacon_mtrstruc(obj: any): obj is beacon_mtrstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.didx === 'number'
+        && typeof obj.utc === 'number'
+        && typeof obj.mom === 'number'
+        && typeof obj.amp === 'number'
+        && typeof obj.align.d.x === 'number'
+        && typeof obj.align.d.y === 'number'
+        && typeof obj.align.d.z === 'number'
+        && typeof obj.align.w === 'number'
+    );
+}
+
+// Cosmos type
+export interface cosmos_rwstruc {
+    align: quaternion;
+    mom: rvector;
+    mxomg: number;
+    mxalp: number;
+    tc: number;
+    omg: number;
+    alp: number;
+    romg: number;
+    ralp: number;
+}
+// beacon type
+export interface beacon_rwstruc {
+    align: quaternion;
+    utc: number;
+    didx: number;
+    omg: number;
+    romg: number;
+    amp: number;
+}
+
+export function is_beacon_rwstruc(obj: any): obj is beacon_rwstruc {
+    if (obj === undefined) {
+        return false;
+    }
+    return (
+        typeof obj.didx === 'number'
+        && typeof obj.utc === 'number'
+        && typeof obj.omg === 'number'
+        && typeof obj.romg === 'number'
+        && typeof obj.amp === 'number'
+        && typeof obj.align.d.x === 'number'
+        && typeof obj.align.d.y === 'number'
+        && typeof obj.align.d.z === 'number'
+        && typeof obj.align.w === 'number'
     );
 }
