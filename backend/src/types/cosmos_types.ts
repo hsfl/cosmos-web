@@ -20,8 +20,8 @@ export interface CosmosModule {
     loc2sunv: (arg: any) => rvector;
     eci2geod: (arg: any) => geoidpos;
     loc2kepbeta: (arg: any) => number;
-    loc2mtrtorq: (arg: any) => number;
-    loc2rwtorq: (arg: any) => number;
+    loc2mtrtorq: (arg: any, arg1: any) => number;
+    loc2rwtorq: (arg: any, arg1: any) => number;
     groundstation: (satellite: locstruc, groundstation: locstruc) => svector;
 }
 
@@ -664,7 +664,12 @@ export interface cosmos_mtrstruc {
     rmom: number;
     mom: number;
 }
-
+// Grafana type
+export interface GF_mtr_torque {
+    time: number;
+    amp: number;
+    torq: number;
+}
 // beacon type
 export interface beacon_mtrstruc {
     align: quaternion;
@@ -701,6 +706,12 @@ export interface cosmos_rwstruc {
     alp: number;
     romg: number;
     ralp: number;
+}
+// Grafana type
+export interface GF_rw_torque {
+    time: number;
+    omg: number;
+    torq: number;
 }
 // beacon type
 export interface beacon_rwstruc {

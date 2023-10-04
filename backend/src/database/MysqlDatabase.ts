@@ -1299,9 +1299,24 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
   devalignstruc.align_x as "align_x",
   devalignstruc.align_y as "align_y",
   devalignstruc.align_z as "align_z",
+  locstruc.eci_s_x as "eci_s_x",
+  locstruc.eci_s_y as "eci_s_y", 
+  locstruc.eci_s_z as "eci_s_z",
+  locstruc.eci_v_x as "eci_v_x", 
+  locstruc.eci_v_y as "eci_v_y", 
+  locstruc.eci_v_z as "eci_v_z",
+  locstruc.icrf_s_x as "icrf_s_x", 
+  locstruc.icrf_s_y as "icrf_s_y", 
+  locstruc.icrf_s_z as "icrf_s_z", 
+  locstruc.icrf_s_w as "icrf_s_w", 
+  locstruc.icrf_v_x as "icrf_v_x", 
+  locstruc.icrf_v_y as "icrf_v_y", 
+  locstruc.icrf_v_z as "icrf_v_z",
   mom,
   amp
 FROM mtrstruc AS devspec
+INNER JOIN locstruc ON devspec.node_name = locstruc.node_name
+AND devspec.utc = locstruc.utc
 INNER JOIN devalignstruc ON devspec.didx = devalignstruc.didx
 WHERE devalignstruc.type = 4 
 AND \n`
@@ -1346,6 +1361,7 @@ AND \n`
                 const ret = {"mtrs": mtrrows};
                 return ret;
             } else {
+                // parse torque value from COSMOS functions
                 const ret = {"mtrs": rows};
                 return ret;
             }
@@ -1373,10 +1389,25 @@ AND \n`
   devalignstruc.align_x as "align_x",
   devalignstruc.align_y as "align_y",
   devalignstruc.align_z as "align_z",
+  locstruc.eci_s_x as "eci_s_x",
+  locstruc.eci_s_y as "eci_s_y", 
+  locstruc.eci_s_z as "eci_s_z",
+  locstruc.eci_v_x as "eci_v_x", 
+  locstruc.eci_v_y as "eci_v_y", 
+  locstruc.eci_v_z as "eci_v_z",
+  locstruc.icrf_s_x as "icrf_s_x", 
+  locstruc.icrf_s_y as "icrf_s_y", 
+  locstruc.icrf_s_z as "icrf_s_z", 
+  locstruc.icrf_s_w as "icrf_s_w", 
+  locstruc.icrf_v_x as "icrf_v_x", 
+  locstruc.icrf_v_y as "icrf_v_y", 
+  locstruc.icrf_v_z as "icrf_v_z",
   omg,
   romg,
   amp
 FROM rwstruc AS devspec
+INNER JOIN locstruc ON devspec.node_name = locstruc.node_name
+AND devspec.utc = locstruc.utc
 INNER JOIN devalignstruc ON devspec.didx = devalignstruc.didx
 WHERE devalignstruc.type = 3 
 AND \n`
@@ -1423,6 +1454,7 @@ AND \n`
                 const ret = {"rws": rwrows};
                 return ret;
             } else {
+                // parse torque value from COSMOS functions
                 const ret = {"rws": rows};
                 return ret;
             }

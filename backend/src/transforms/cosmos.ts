@@ -1,4 +1,4 @@
-import {CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, is_beacon_mtrstruc, is_beacon_rwstruc, is_beacon_gpsstruc, is_beacon_imustruc, is_beacon_ssenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit, gfadcstotal, cartpos} from 'types/cosmos_types';
+import {CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, is_beacon_mtrstruc, is_beacon_rwstruc, is_beacon_gpsstruc, is_beacon_imustruc, is_beacon_ssenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit, gfadcstotal, cartpos, GF_mtr_torque, cosmos_mtrstruc, GF_rw_torque, cosmos_rwstruc} from 'types/cosmos_types';
 import mysql from 'mysql2';
 import {device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, devicemtr, devicerw, devicegps, deviceimu, devicessen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event} from 'database/BaseDatabase';
 
@@ -877,6 +877,118 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
     };
     loc.att.icrf.v = {col: [0, 0, 0]};
     loc.att.icrf.a = {col: [0, 0, 0]};
+    console.log('iret:', rows[0], ret[0]);
+    return ret;
+}
+
+export const mtr_torque = (rows: mysql.RowDataPacket[]) => {
+    const ret: Array<GF_mtr_torque & timepoint & GFNodeType> = [];
+    const loc = getNewLocstruc();
+    rows.forEach((row) => {
+        loc.pos.eci.utc = row.time;
+        loc.pos.eci.pass = 1;
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
+        // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        loc.pos.eci.a = {col: [0, 0, 0]};
+        loc.att.icrf.pass = 1;
+        loc.att.icrf.utc = row.time;
+        // s element needed to populate lvlh s element 
+        loc.att.icrf.s = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z
+            },
+            w: row.icrf_s_w
+        };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
+        const mtr: cosmos_mtrstruc = {
+            align: {
+                d: {
+                    x: row.align_x,
+                    y: row.align_y,
+                    z: row.align_z
+                },
+                w: row.align_w
+            },
+            npoly: [0, 0, 0, 0, 0, 0, 0],
+            ppoly: [0, 0, 0, 0, 0, 0, 0],
+            mxmom: 0,
+            tc: 0,
+            rmom: 0,
+            mom: row.mom
+        };
+        const mtr_torq: number = (Cosmos.module.loc2mtrtorq(loc, mtr));
+        const GF_mtr_torque: GF_mtr_torque = {
+            time: row.time,
+            amp: row.amp,
+            torq: mtr_torq
+        };
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...GF_mtr_torque});
+    });
+    loc.pos.eci.utc = 0;
+    loc.pos.eci.pass = 0;
+    loc.pos.eci.s = {col: [0, 0, 0]};
+    loc.pos.eci.v = {col: [0, 0, 0]};
+    loc.pos.eci.a = {col: [0, 0, 0]};
+    console.log('iret:', rows[0], ret[0]);
+    return ret;
+}
+
+export const rw_torque = (rows: mysql.RowDataPacket[]) => {
+    const ret: Array<GF_rw_torque & timepoint & GFNodeType> = [];
+    const loc = getNewLocstruc();
+    rows.forEach((row) => {
+        loc.pos.eci.utc = row.time;
+        loc.pos.eci.pass = 1;
+        loc.pos.eci.s = {col: [row.eci_s_x, row.eci_s_y, row.eci_s_z]};
+        loc.pos.eci.v = {col: [row.eci_v_x, row.eci_v_y, row.eci_v_z]};
+        // loc.pos.eci.a = { col: [row.eci_a_x, row.eci_a_y, row.eci_a_z] };
+        loc.pos.eci.a = {col: [0, 0, 0]};
+        loc.att.icrf.pass = 1;
+        loc.att.icrf.utc = row.time;
+        // s element needed to populate lvlh s element 
+        loc.att.icrf.s = {
+            d: {
+                x: row.icrf_s_x,
+                y: row.icrf_s_y,
+                z: row.icrf_s_z
+            },
+            w: row.icrf_s_w
+        };
+        loc.att.icrf.v = {col: [row.icrf_v_x, row.icrf_v_y, row.icrf_v_z]};
+        const rw: cosmos_rwstruc = {
+            align: {
+                d: {
+                    x: row.align_x,
+                    y: row.align_y,
+                    z: row.align_z
+                },
+                w: row.align_w
+            },
+            mom: {col: [0, 0, 0]},
+            mxomg: 0,
+            mxalp: 0,
+            tc: 0,
+            omg: row.omg,
+            alp: 0,
+            romg: row.romg,
+            ralp: 0
+        };
+        const rw_torq: number = (Cosmos.module.loc2mtrtorq(loc, rw));
+        const GF_rw_torque: GF_rw_torque = {
+            time: row.time,
+            omg: row.omg,
+            torq: rw_torq
+        };
+        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...GF_rw_torque});
+    });
+    loc.pos.eci.utc = 0;
+    loc.pos.eci.pass = 0;
+    loc.pos.eci.s = {col: [0, 0, 0]};
+    loc.pos.eci.v = {col: [0, 0, 0]};
+    loc.pos.eci.a = {col: [0, 0, 0]};
     console.log('iret:', rows[0], ret[0]);
     return ret;
 }
