@@ -4,7 +4,7 @@ import {Pool} from "mysql2/promise";
 import {mjd_to_unix} from '../utils/time';
 import {AppError} from 'exceptions/AppError';
 import {StatusCodes} from 'http-status-codes';
-import {attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, icrf_geoc_att, relative_angle_range, orbit_position, icrf_att_total} from '../transforms/cosmos';
+import {attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, icrf_geoc_att, relative_angle_range, orbit_position, icrf_att_total, mtr_torque, rw_torque} from '../transforms/cosmos';
 import {TimeRange, cosmosresponse, KeyType, timepoint, qvatt, qaatt} from 'types/cosmos_types';
 import {QueryObject, QueryType, QueryFilter} from 'types/query_types';
 import {table_schema} from './inittables';
@@ -1362,7 +1362,7 @@ AND \n`
                 return ret;
             } else {
                 // parse torque value from COSMOS functions
-                const ret = {"mtrs": rows};
+                const ret = {"mtrs": mtr_torque(rows)};
                 return ret;
             }
         }
@@ -1455,7 +1455,7 @@ AND \n`
                 return ret;
             } else {
                 // parse torque value from COSMOS functions
-                const ret = {"rws": rows};
+                const ret = {"rws": rw_torque(rows)};
                 return ret;
             }
         }

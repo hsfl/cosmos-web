@@ -926,12 +926,12 @@ export const mtr_torque = (rows: mysql.RowDataPacket[]) => {
             torq: mtr_torq
         };
         ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...GF_mtr_torque});
+        loc.pos.eci.utc = 0;
+        loc.pos.eci.pass = 0;
+        loc.pos.eci.s = {col: [0, 0, 0]};
+        loc.pos.eci.v = {col: [0, 0, 0]};
+        loc.pos.eci.a = {col: [0, 0, 0]};
     });
-    loc.pos.eci.utc = 0;
-    loc.pos.eci.pass = 0;
-    loc.pos.eci.s = {col: [0, 0, 0]};
-    loc.pos.eci.v = {col: [0, 0, 0]};
-    loc.pos.eci.a = {col: [0, 0, 0]};
     console.log('iret:', rows[0], ret[0]);
     return ret;
 }
@@ -983,12 +983,12 @@ export const rw_torque = (rows: mysql.RowDataPacket[]) => {
             torq: rw_torq
         };
         ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...GF_rw_torque});
+        loc.pos.eci.utc = 0;
+        loc.pos.eci.pass = 0;
+        loc.pos.eci.s = {col: [0, 0, 0]};
+        loc.pos.eci.v = {col: [0, 0, 0]};
+        loc.pos.eci.a = {col: [0, 0, 0]};
     });
-    loc.pos.eci.utc = 0;
-    loc.pos.eci.pass = 0;
-    loc.pos.eci.s = {col: [0, 0, 0]};
-    loc.pos.eci.v = {col: [0, 0, 0]};
-    loc.pos.eci.a = {col: [0, 0, 0]};
     console.log('iret:', rows[0], ret[0]);
     return ret;
 }
