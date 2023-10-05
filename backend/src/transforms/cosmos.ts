@@ -976,7 +976,7 @@ export const rw_torque = (rows: mysql.RowDataPacket[]) => {
             romg: row.romg,
             ralp: 0
         };
-        const rw_torq: number = (Cosmos.module.loc2mtrtorq(loc, rw));
+        const rw_torq: number = (Cosmos.module.loc2rwtorq(loc, rw));
         const GF_rw_torque: GF_rw_torque = {
             time: row.time,
             omg: row.omg,

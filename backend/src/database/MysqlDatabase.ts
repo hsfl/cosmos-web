@@ -1146,7 +1146,7 @@ device.type = 5 AND\n`
                 query.from,
                 query.to
             ].filter((v) => v !== undefined);
-            console.log('sql_query:', sql_query);
+            // console.log('sql_query:', sql_query);
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 sql_query,
                 query_arg_array,
@@ -1318,21 +1318,18 @@ FROM mtrstruc AS devspec
 INNER JOIN locstruc ON devspec.node_name = locstruc.node_name
 AND devspec.utc = locstruc.utc
 INNER JOIN devalignstruc ON devspec.didx = devalignstruc.didx
-WHERE devalignstruc.type = 4 
-AND \n`
-                + (node_filter !== undefined ? `devspec.node_name = ? \n` : '')
-                + `INNER JOIN device ON devspec.didx = device.didx
-                WHERE
-                device.type = 4 AND\n`
-                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
-                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+AND devalignstruc.type = 4 \n`
+                + (node_filter !== undefined ? ` AND devalignstruc.node_name = ? \n` : '')
+                + `INNER JOIN device ON devspec.node_name = device.node_name AND devspec.didx = device.didx AND device.type = 4 \n`
+                + (node_filter !== undefined ? ` AND devspec.node_name = ? \n` : '')
+                + ` AND devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
             const query_arg_array = [
                 node_filter?.filterValue,
                 node_filter?.filterValue,
                 query.from,
                 query.to
             ].filter((v) => v !== undefined);
-            console.log('sql_query:', sql_query);
+            // console.log('sql_query:', sql_query);
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 sql_query,
                 query_arg_array,
@@ -1362,7 +1359,8 @@ AND \n`
                 return ret;
             } else {
                 // parse torque value from COSMOS functions
-                const ret = {"mtrs": mtr_torque(rows)};
+                // const ret = {"mtrs": mtr_torque(rows)};
+                const ret = {"mtrs": (rows)};
                 return ret;
             }
         }
@@ -1409,21 +1407,18 @@ FROM rwstruc AS devspec
 INNER JOIN locstruc ON devspec.node_name = locstruc.node_name
 AND devspec.utc = locstruc.utc
 INNER JOIN devalignstruc ON devspec.didx = devalignstruc.didx
-WHERE devalignstruc.type = 3 
-AND \n`
-                + (node_filter !== undefined ? `devspec.node_name = ? \n` : '')
-                + `INNER JOIN device ON devspec.didx = device.didx
-                WHERE
-                device.type = 3 AND\n`
-                + (node_filter !== undefined ? `devspec.node_name = ? AND\n` : '')
-                + `devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
+AND devalignstruc.type = 3 \n`
+                + (node_filter !== undefined ? ` AND devalignstruc.node_name = ? \n` : '')
+                + `INNER JOIN device ON devspec.node_name = device.node_name AND devspec.didx = device.didx AND device.type = 3 \n`
+                + (node_filter !== undefined ? ` AND device.node_name = ? \n` : '')
+                + ` AND devspec.utc BETWEEN ? and ? ORDER BY time limit 1000`;
             const query_arg_array = [
                 node_filter?.filterValue,
                 node_filter?.filterValue,
                 query.from,
                 query.to
             ].filter((v) => v !== undefined);
-            console.log('sql_query:', sql_query);
+            // console.log('sql_query:', sql_query);
             const [rows] = await this.promisePool.execute<mysql.RowDataPacket[]>(
                 sql_query,
                 query_arg_array,
@@ -1455,7 +1450,8 @@ AND \n`
                 return ret;
             } else {
                 // parse torque value from COSMOS functions
-                const ret = {"rws": rw_torque(rows)};
+                // const ret = {"rws": rw_torque(rows)};
+                const ret = {"rws": (rows)};
                 return ret;
             }
         }

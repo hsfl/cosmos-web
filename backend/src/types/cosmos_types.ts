@@ -20,8 +20,8 @@ export interface CosmosModule {
     loc2sunv: (arg: any) => rvector;
     eci2geod: (arg: any) => geoidpos;
     loc2kepbeta: (arg: any) => number;
-    loc2mtrtorq: (arg: any, arg1: any) => number;
-    loc2rwtorq: (arg: any, arg1: any) => number;
+    loc2mtrtorq: (loc: locstruc, mtr: cosmos_mtrstruc) => number;
+    loc2rwtorq: (loc: locstruc, rw: cosmos_rwstruc) => number;
     groundstation: (satellite: locstruc, groundstation: locstruc) => svector;
 }
 
