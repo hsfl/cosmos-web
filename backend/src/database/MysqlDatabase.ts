@@ -5,7 +5,7 @@ import {mjd_to_unix} from '../utils/time';
 import {AppError} from 'exceptions/AppError';
 import {StatusCodes} from 'http-status-codes';
 import {attitude, eci_position, geod_position, geos_position, lvlh_attitude, icrf_att, icrf_lvlh_att, icrf_geoc_att, relative_angle_range, orbit_position, icrf_att_total, mtr_torque, rw_torque} from '../transforms/cosmos';
-import {TimeRange, cosmosresponse, KeyType, timepoint, qvatt, qaatt} from 'types/cosmos_types';
+import {TimeRange, cosmosresponse, KeyType, timepoint, qvatt, qaatt, GF_mtr_torque, GF_rw_torque} from 'types/cosmos_types';
 import {QueryObject, QueryType, QueryFilter} from 'types/query_types';
 import {table_schema} from './inittables';
 
@@ -1337,20 +1337,21 @@ AND devalignstruc.type = 4 \n`
 
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 4, dname: "mtr"}, queryObj);
-                const mtrrows: Array<devicemtr & Partial<device_table> & timepoint> = [];
+                const mtrrows: Array<GF_mtr_torque & Partial<device_table> & timepoint> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
-                        const devmtr: devicemtr = {
+                        const devmtr: GF_mtr_torque = {
                             // node_device: qvalue[i].node_name + ":" + qvalue[i].name,
-                            node_name: qvalue[i].node_name,
-                            didx: qvalue[i].didx,
-                            utc: query.to,
-                            mom: 0,
+                            // node_name: qvalue[i].node_name,
+                            // didx: qvalue[i].didx,
+                            time: query.to,
+                            // mom: 0,
                             amp: 0,
-                            align_w: 0,
-                            align_x: 0,
-                            align_y: 0,
-                            align_z: 0,
+                            torq: 0
+                            // align_w: 0,
+                            // align_x: 0,
+                            // align_y: 0,
+                            // align_z: 0,
                         }
                         mtrrows.push({name: qvalue[i].name, Time: query.from, ...devmtr});
                     }
@@ -1359,8 +1360,8 @@ AND devalignstruc.type = 4 \n`
                 return ret;
             } else {
                 // parse torque value from COSMOS functions
-                // const ret = {"mtrs": mtr_torque(rows)};
-                const ret = {"mtrs": (rows)};
+                const ret = {"mtrs": mtr_torque(rows)};
+                // const ret = {"mtrs": (rows)};
                 return ret;
             }
         }
@@ -1427,21 +1428,22 @@ AND devalignstruc.type = 3 \n`
             console.log(rows[0])
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 3, dname: "rw"}, queryObj);
-                const rwrows: Array<devicerw & Partial<device_table> & timepoint> = [];
+                const rwrows: Array<GF_rw_torque & Partial<device_table> & timepoint> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
-                        const devrw: devicerw = {
+                        const devrw: GF_rw_torque = {
                             // node_device: qvalue[i].node_name + ":" + qvalue[i].name,
-                            node_name: qvalue[i].node_name,
-                            didx: qvalue[i].didx,
-                            utc: query.to,
-                            amp: 0,
+                            // node_name: qvalue[i].node_name,
+                            // didx: qvalue[i].didx,
+                            time: query.to,
+                            // amp: 0,
                             omg: 0,
-                            romg: 0,
-                            align_w: 0,
-                            align_x: 0,
-                            align_y: 0,
-                            align_z: 0,
+                            torq: 0,
+                            // romg: 0,
+                            // align_w: 0,
+                            // align_x: 0,
+                            // align_y: 0,
+                            // align_z: 0,
                         }
                         rwrows.push({name: qvalue[i].name, Time: query.from, ...devrw});
                     }
@@ -1450,8 +1452,8 @@ AND devalignstruc.type = 3 \n`
                 return ret;
             } else {
                 // parse torque value from COSMOS functions
-                // const ret = {"rws": rw_torque(rows)};
-                const ret = {"rws": (rows)};
+                const ret = {"rws": rw_torque(rows)};
+                // const ret = {"rws": (rows)};
                 return ret;
             }
         }
