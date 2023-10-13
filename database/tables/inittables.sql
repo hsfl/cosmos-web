@@ -273,6 +273,24 @@ CREATE TABLE IF NOT EXISTS locstruc (
 -- PRIMARY KEY (node_name, utc)
 -- );
 
+# COSMOS nodal limits
+# All COSMOS devices inherit from devicestruc and are stored in the devices vector
+# node_name: Name of node
+# device_type: Device type id, defined in jsondef.h; UINT16_MAX for general nodal limit
+# didx: Device index, index of the specific device in its appropriate devspec vector; UINT16_MAX for general nodal limit
+# attribute: 
+# min: minimum bound
+# max: maximum bound
+CREATE TABLE IF NOT EXISTS nodal_limits (
+    node_name VARCHAR(40) NOT NULL,
+    device_type SMALLINT UNSIGNED NOT NULL,
+    didx SMALLINT UNSIGNED NOT NULL,
+    colname VARCHAR(40) NOT NULL,
+    min DOUBLE,
+    max DOUBLE,
+    PRIMARY KEY (node_name, device_type, didx, colname)
+);
+
 # List of events types
 # event_id: Node id of node agent belongs to
 # event_type: events types
