@@ -1,6 +1,6 @@
 import {CosmosModule, quaternion, avector, beacontype, devspecstruc, timepoint, locstruc, spherpos, qatt, geoidpos, gfcartpos, svector, is_locstruc_pos_eci_att_icrf, is_battstruc, is_bcregstruc, is_cpustruc, is_devicestruc, is_tsenstruc, is_beacon_mtrstruc, is_beacon_rwstruc, is_beacon_gpsstruc, is_beacon_imustruc, is_beacon_ssenstruc, targetstruc, is_targetstruc, adcsstruc, EulAdcsstruc, rvector, gforbit, gfadcstotal, cartpos, GF_mtr_torque, cosmos_mtrstruc, GF_rw_torque, cosmos_rwstruc} from 'types/cosmos_types';
 import mysql from 'mysql2';
-import {device_table, GFNodeType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, devicemtr, devicerw, devicegps, deviceimu, devicessen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event} from 'database/BaseDatabase';
+import {device_table, GFNodeType, GFDeviceType, devicebatt, devicebcreg, devicecpu, deviceswch, devicetsen, devicemtr, devicerw, devicegps, deviceimu, devicessen, cosmos_table_row, locstruc_table, node, table_type, is_node, event, is_event} from 'database/BaseDatabase';
 
 const COSMOSJS = require('/root/web_core_dist/CosmosWebCore.js');
 
@@ -882,7 +882,7 @@ export const lvlh_attitude = (rows: mysql.RowDataPacket[]) => {
 }
 
 export const mtr_torque = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<GF_mtr_torque & timepoint & GFNodeType> = [];
+    const ret: Array<GF_mtr_torque & timepoint & GFDeviceType> = [];
     const loc = getNewLocstruc();
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
@@ -925,7 +925,7 @@ export const mtr_torque = (rows: mysql.RowDataPacket[]) => {
             amp: row.amp,
             torq: mtr_torq
         };
-        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...GF_mtr_torque});
+        ret.push({Time: row.time, Node_name: row.node_name, Device_name: row.name, didx: row.didx, ...GF_mtr_torque});
         loc.pos.eci.utc = 0;
         loc.pos.eci.pass = 0;
         loc.pos.eci.s = {col: [0, 0, 0]};
@@ -937,7 +937,7 @@ export const mtr_torque = (rows: mysql.RowDataPacket[]) => {
 }
 
 export const rw_torque = (rows: mysql.RowDataPacket[]) => {
-    const ret: Array<GF_rw_torque & timepoint & GFNodeType> = [];
+    const ret: Array<GF_rw_torque & timepoint & GFDeviceType> = [];
     const loc = getNewLocstruc();
     rows.forEach((row) => {
         loc.pos.eci.utc = row.time;
@@ -982,7 +982,7 @@ export const rw_torque = (rows: mysql.RowDataPacket[]) => {
             omg: row.omg,
             torq: rw_torq
         };
-        ret.push({Time: row.time, Node_name: row.node_name, Node_type: row.node_type, ...GF_rw_torque});
+        ret.push({Time: row.time, Node_name: row.node_name, Device_name: row.name, didx: row.didx, ...GF_rw_torque});
         loc.pos.eci.utc = 0;
         loc.pos.eci.pass = 0;
         loc.pos.eci.s = {col: [0, 0, 0]};

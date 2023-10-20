@@ -1,4 +1,4 @@
-import BaseDatabase, {sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, deviceimu, devicessen, devicegps, EventResourceUpdateBody, MissionEvent, sqlquerytranslate, locstruc_table, devicealign} from "database/BaseDatabase";
+import BaseDatabase, {sqlmap, sqlquerykeymap, device_table, TelegrafMetric, deviceswch, devicebatt, devicebcreg, devicetsen, devicecpu, devicemag, devicegyro, devicemtr, devicerw, deviceimu, devicessen, devicegps, EventResourceUpdateBody, MissionEvent, sqlquerytranslate, locstruc_table, devicealign, GFDeviceType} from "database/BaseDatabase";
 import mysql from 'mysql2';
 import {Pool} from "mysql2/promise";
 import {mjd_to_unix} from '../utils/time';
@@ -1295,6 +1295,7 @@ WHERE utc BETWEEN ? and ? ORDER BY time limit 1000;`,
   devspec.utc AS "time",
   devspec.node_name as "node_name",
   device.name as "name",
+  device.didx as "didx",
   devalignstruc.align_w as "align_w",
   devalignstruc.align_x as "align_x",
   devalignstruc.align_y as "align_y",
@@ -1337,7 +1338,7 @@ AND devalignstruc.type = 4 \n`
 
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 4, dname: "mtr"}, queryObj);
-                const mtrrows: Array<GF_mtr_torque & Partial<device_table> & timepoint> = [];
+                const mtrrows: Array<GF_mtr_torque & GFDeviceType & timepoint> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devmtr: GF_mtr_torque = {
@@ -1353,7 +1354,7 @@ AND devalignstruc.type = 4 \n`
                             // align_y: 0,
                             // align_z: 0,
                         }
-                        mtrrows.push({name: qvalue[i].name, Time: query.from, ...devmtr});
+                        mtrrows.push({Time: query.from, Node_name: qvalue[i].node_name, Device_name: qvalue[i].name, didx: qvalue[i].didx, ...devmtr});
                     }
                 }
                 const ret = {"mtrs": mtrrows};
@@ -1384,6 +1385,7 @@ AND devalignstruc.type = 4 \n`
   devspec.utc AS "time",
   devspec.node_name as "node_name",
   device.name as "name",
+  device.didx as "didx",
   devalignstruc.align_w as "align_w",
   devalignstruc.align_x as "align_x",
   devalignstruc.align_y as "align_y",
@@ -1428,7 +1430,7 @@ AND devalignstruc.type = 3 \n`
             console.log(rows[0])
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 3, dname: "rw"}, queryObj);
-                const rwrows: Array<GF_rw_torque & Partial<device_table> & timepoint> = [];
+                const rwrows: Array<GF_rw_torque & GFDeviceType & timepoint> = [];
                 for (const [qkey, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devrw: GF_rw_torque = {
@@ -1445,7 +1447,7 @@ AND devalignstruc.type = 3 \n`
                             // align_y: 0,
                             // align_z: 0,
                         }
-                        rwrows.push({name: qvalue[i].name, Time: query.from, ...devrw});
+                        rwrows.push({Time: query.from, Node_name: qvalue[i].node_name, Device_name: qvalue[i].name, didx: qvalue[i].didx, ...devrw});
                     }
                 }
                 const ret = {"rws": rwrows};

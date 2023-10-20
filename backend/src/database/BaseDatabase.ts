@@ -362,6 +362,12 @@ export interface GFNodeType {
     Node_type: number;
 }
 
+export interface GFDeviceType {
+    Node_name: string;
+    Device_name: string;
+    didx: number;
+}
+
 export interface device_table {
     node_name: string;
     type: number;
