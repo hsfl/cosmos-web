@@ -1476,7 +1476,8 @@ AND devalignstruc.type = 3 \n`
                 `SELECT
   devspec.utc AS "time",
   devspec.node_name as "node_name",
-  device.name as "name",
+  device.name as "Device_name",
+  device.didx as "didx",
   theta_x,
 theta_y,
 theta_z,
@@ -1504,7 +1505,7 @@ device.type = 2 AND\n`
             );
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 2, dname: "imu"}, queryObj);
-                const imurows: Array<deviceimu & Partial<device_table> & timepoint> = [];
+                const imurows: Array<Partial<deviceimu> & GFDeviceType & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devimu: deviceimu = {
@@ -1522,7 +1523,7 @@ device.type = 2 AND\n`
                             mag_y: 0,
                             mag_z: 0,
                         }
-                        imurows.push({name: qvalue[i].name, Time: query.from, ...devimu});
+                        imurows.push({Time: query.from, Node_name: qvalue[i].node_name, Device_name: qvalue[i].Device_name, ...devimu});
                     }
                 }
                 const ret = {"imus": imurows};
@@ -1551,7 +1552,7 @@ device.type = 2 AND\n`
                 `SELECT
   devspec.utc AS "time",
   devspec.node_name as "node_name",
-  device.name as "name",
+  device.name as "Device_name",
   qva,
 qvb,
 qvc,
@@ -1575,7 +1576,7 @@ device.type = 1 AND\n`
             );
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 1, dname: "ssen"}, queryObj);
-                const ssenrows: Array<devicessen & Partial<device_table> & timepoint> = [];
+                const ssenrows: Array<Partial<devicessen> & GFDeviceType & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devssen: devicessen = {
@@ -1589,7 +1590,7 @@ device.type = 1 AND\n`
                             azi: 0,
                             elev: 0,
                         }
-                        ssenrows.push({name: qvalue[i].name, Time: query.from, ...devssen});
+                        ssenrows.push({Time: query.from, Node_name: qvalue[i].node_name, Device_name: qvalue[i].Device_name, ...devssen});
                     }
                 }
                 const ret = {"ssens": ssenrows};
@@ -1618,7 +1619,7 @@ device.type = 1 AND\n`
                 `SELECT
   devspec.utc AS "time",
   devspec.node_name as "node_name",
-  device.name as "name",
+  device.name as "Device_name",
   geocs_x,
   geocs_y,
   geocs_z,
@@ -1642,7 +1643,7 @@ device.type = 6 AND\n`
             );
             if (rows.length === 0) {
                 const key_array = await this.get_device_keys({dtype: 6, dname: "gps"}, queryObj);
-                const gpsrows: Array<devicegps & Partial<device_table> & timepoint> = [];
+                const gpsrows: Array<Partial<devicegps> & GFDeviceType & timepoint> = [];
                 for (const [_, qvalue] of Object.entries(key_array)) {
                     for (let i = 0; i < qvalue.length; i++) {
                         const devgps: devicegps = {
@@ -1656,7 +1657,7 @@ device.type = 6 AND\n`
                             geods_lon: 0,
                             geods_alt: 0,
                         }
-                        gpsrows.push({name: qvalue[i].name, Time: query.from, ...devgps});
+                        gpsrows.push({Time: query.from, Node_name: qvalue[i].node_name, Device_name: qvalue[i].Device_name, ...devgps});
                     }
                 }
                 const ret = {"gpss": gpsrows};
