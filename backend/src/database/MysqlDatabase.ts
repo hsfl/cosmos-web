@@ -55,7 +55,7 @@ export default class MysqlDatabase extends BaseDatabase {
                 }
             });
             // this.pool.execute(
-            //     'INSERT INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
+            //     'INSERT IGNORE INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
             //     [telem[i].node_id, telem[i].name, datestring, telem[i].value],
             //     (err) => {
             //         if (err) {
@@ -74,7 +74,7 @@ export default class MysqlDatabase extends BaseDatabase {
     //         const date = new Date(time*1000);
     //         const datestring = date.toJSON().replace('T', ' ').slice(0,-1);
     //         this.pool.execute(
-    //             'INSERT INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
+    //             'INSERT IGNORE INTO telem (node_id, name, time, value) VALUES (?,?,?,?)',
     //             [telem[i].node_id, telem[i].name, datestring, telem[i].value],
     //             (err) => {
     //                 if (err) {
@@ -103,7 +103,7 @@ export default class MysqlDatabase extends BaseDatabase {
                     // node_name, type, cidx, didx, name
                     // string, int, int, int, string
                     // [{"node_name":"mothership","type":1,"cidx":5,"didx":8,"name":"test"}]
-                    'INSERT INTO device (node_name, type, cidx, didx, name) VALUES (?,?,?,?,?)',
+                    'INSERT IGNORE INTO device (node_name, type, cidx, didx, name) VALUES (?,?,?,?,?)',
                     [devices[i].node_name, devices[i].type, devices[i].cidx, devices[i].didx, devices[i].name]
                 );
             } catch (error) {
@@ -138,7 +138,7 @@ export default class MysqlDatabase extends BaseDatabase {
         for (let i = 0; i < aligns.length; i++) {
             try {
                 await this.promisePool.execute(
-                    `INSERT INTO devalignstruc (node_name, type, didx, align_w, align_x, align_y, align_z) 
+                    `INSERT IGNORE INTO devalignstruc (node_name, type, didx, align_w, align_x, align_y, align_z) 
                         SELECT ?,?,?,?,?,?,?
                         FROM dual
                         WHERE NOT EXISTS (SELECT * FROM devalignstruc where node_name = ? AND type = ? AND didx = ?);`,
@@ -165,7 +165,7 @@ export default class MysqlDatabase extends BaseDatabase {
             for (const [key, value] of Object.entries(sqlmap)) {
                 // console.log(`${key}: ${value}`);
                 if (key === table) {
-                    let dynamic_insert: string = 'INSERT INTO ' + key;
+                    let dynamic_insert: string = 'INSERT IGNORE INTO ' + key;
                     let table_cols: string = ' (';
                     let table_variables: string = ') VALUES (';
                     for (let i = 0; i < value.length; i++) {
@@ -232,7 +232,7 @@ export default class MysqlDatabase extends BaseDatabase {
     //         try {
     //             await this.promisePool.execute(
     //                 // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0}]
-    //                 'INSERT INTO swchstruc (node_name, didx, utc, volt, amp, power, temp) VALUES (?,?,?,?,?,?,?)',
+    //                 'INSERT IGNORE INTO swchstruc (node_name, didx, utc, volt, amp, power, temp) VALUES (?,?,?,?,?,?,?)',
     //                 [swchstruc[i].node_name, swchstruc[i].didx, swchstruc[i].utc, swchstruc[i].volt, swchstruc[i].amp, swchstruc[i].power, swchstruc[i].temp]
     //             );
     //         } catch (error) {
@@ -262,7 +262,7 @@ export default class MysqlDatabase extends BaseDatabase {
     //         try {
     //             await this.promisePool.execute(
     //                 // [{"node_name":"mothership","utc":59970.36829050926,"didx":1,"amp":0,"volt":-0.15899999,"power":-0,"temp":0,"percentage":0.92000002}]
-    //                 'INSERT INTO battstruc (node_name, didx, utc, volt, amp, power, temp, percentage) VALUES (?,?,?,?,?,?,?,?)',
+    //                 'INSERT IGNORE INTO battstruc (node_name, didx, utc, volt, amp, power, temp, percentage) VALUES (?,?,?,?,?,?,?,?)',
     //                 [battstruc[i].node_name, battstruc[i].didx, battstruc[i].utc, battstruc[i].volt, battstruc[i].amp, battstruc[i].power, battstruc[i].temp, battstruc[i].percentage]
     //             );
     //         } catch (error) {
@@ -282,7 +282,7 @@ export default class MysqlDatabase extends BaseDatabase {
         //                               SET resource_change = ?
         //                               WHERE second_index = ? AND event_id = ? AND resource_id = ?;`;
         // // [resourceimpact[i].resource_change, resourceimpact[i].second_index, resourceimpact[i].event_id, resourceimpact[i].resource_id]
-        let dynamic_update: string = `INSERT INTO event_resource_impact 
+        let dynamic_update: string = `INSERT IGNORE INTO event_resource_impact 
                                     (resource_change, second_index, event_id, resource_id) 
                                     VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE resource_change = ?;`;
         // [resourceimpact[i].resource_change, resourceimpact[i].second_index, resourceimpact[i].event_id, resourceimpact[i].resource_id, resourceimpact[i].resource_change]
@@ -331,7 +331,7 @@ export default class MysqlDatabase extends BaseDatabase {
     // update event row ; primary key (id) 
     // TODO update for logic of self-assigned unique key, validate or seperate out new/duplicate entries, or split functions
     public async post_event(event: MissionEvent[]): Promise<void> {
-        let post_event: string = `INSERT INTO event 
+        let post_event: string = `INSERT IGNORE INTO event 
                                     (name, type, duration_seconds) 
                                     VALUES (?, ?, ?);`;
         // post no id
@@ -1835,7 +1835,7 @@ device.type = 6 AND\n`
     public async write_command_history(command: string): Promise<void> {
         try {
             await this.promisePool.execute(
-                'INSERT INTO command_history (command) VALUES (?)',
+                'INSERT IGNORE INTO command_history (command) VALUES (?)',
                 [command]
             );
         } catch (error) {

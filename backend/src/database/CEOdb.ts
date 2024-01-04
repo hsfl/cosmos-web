@@ -49,7 +49,7 @@ export default class CEOdatabase {
             try {
                 // db_name must be unique/ primary key. mission_name for human readable alias
                 await this.promisePool.execute(
-                    'INSERT INTO mission_map (mission_name, host, user, db_access, db_name) VALUES (?,?,?,?,?)',
+                    'INSERT IGNORE INTO mission_map (mission_name, host, user, db_access, db_name) VALUES (?,?,?,?,?)',
                     [dbmission[i].mission_name, dbmission[i].host, dbmission[i].user, dbmission[i].db_access, dbmission[i].db_name]
                 );
             } catch (error) {
