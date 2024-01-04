@@ -25,6 +25,9 @@ def add_field(name, entry, metric):
     elif (etype == "int"):
         # Whole numbers mess things up so just cast everything to floats
         entry = float(entry)
+    # Ignore null entries
+    elif (etype == "NoneType"):
+        return
     metric.fields[name] = entry
     return
 
@@ -42,7 +45,8 @@ def handleSOH(d, metrics):
     new_metric.tags["node_name"] = node_name
     new_metric.tags["beacon_type"] = beacon_type
 
-    new_metric.time = time.now().unix_nano
+    new_metric.fields["beacon_arrival_time"] = time.now().unix_nano
+    new_metric.time = 0
 
     # Used to tag influxdb-type input data. Removed in telegraf.conf before output
     new_metric.tags["telegraf_datatag"] = "cosmos_influxdb"
@@ -52,11 +56,24 @@ def handleSOH(d, metrics):
         # Skip these since they are already dealt with
         if key == "node_name" or key == "beacon_type":
             continue
+        
+        # Use latest utc timestamp provided in the set
+        if key.find("utc") != -1:
+            mjd = d[key]
+            unix_time = int((mjd - 40587) * 86400 * 1000000000)
+            if unix_time > new_metric.time:
+               new_metric.time = unix_time
+            continue
 
         # Add json keys as fields
         #log.debug("k-------: {}".format(key))
         add_field(key, d[key], new_metric)
     #log.debug("--------SOH END: {} {}".format(node_name, new_metric))
+
+    # if no time was found, just use current time
+    if new_metric.time == 0:
+        new_metric.time = time.now().unix_nano
+    #log.debug("--------SOH END: {} currenttime: {} {}".format(node_name, new_metric.fields["beacon_arrival_time"], new_metric.time))
     metrics.append(new_metric)
 
 def apply(metric):
@@ -67,11 +84,10 @@ def apply(metric):
     # If it's a single object, handle it as one soh
     if (type(j) == "dict"):
         handleSOH(j, metrics)
-        return metrics
-
     # If it's a list, iterate through elements, with each element being a soh
-    for el in j:
-        handleSOH(el, metrics)
+    else:
+        for el in j:
+            handleSOH(el, metrics)
 
     #log.debug("--------FORMAT END: {}".format(metrics))
     return metrics
