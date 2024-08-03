@@ -930,11 +930,11 @@ FROM target`,
   devspec.utc AS "time",
   devspec.node_name as "node_name",
   device.name as "name",
-  amp,
-  volt,
-  power,
-  temp,
-  percentage
+  devspec.amp,
+  devspec.volt,
+  devspec.power,
+  devspec.temp,
+  devspec.percentage
 FROM battstruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
@@ -999,11 +999,11 @@ device.type = 12 AND\n`
 devspec.utc AS "time",
 devspec.node_name as "node_name",
 device.name as "name",
-volt,
-amp,
-power, temp,
-mpptin_amp, mpptin_volt,
-mpptout_amp, mpptout_volt
+devspec.volt,
+devspec.amp,
+devspec.power, devspec.temp,
+devspec.mpptin_amp, devspec.mpptin_volt,
+devspec.mpptout_amp, devspec.mpptout_volt
 FROM bcregstruc AS devspec
 INNER JOIN device ON devspec.didx = device.didx
 WHERE
