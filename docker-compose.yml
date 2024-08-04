@@ -48,20 +48,11 @@ services:
     volumes:
       - grafana_panel_plugins:/home/cosmos-grafana-plugins/build
 
-  # Builds webasm for backend
-  web-core-dist:
-    container_name: cosmos_web_core_dist
-    image: hsfl2/web_core_dist:0.1.0
-    volumes:
-      - web_core_dist:/build/dist
-
   backend:
-    image: hsfl2/web_backend:0.4.1
+    image: hsfl2/web_backend:0.5.0
     #platform: linux/x86_64 # tentatively used for macOS M1 to compile grafana plugins
     command: sh -c "cp /root/web_core_dist/CosmosWebCore.data /home/node/app/; npm run dev"
     container_name: cosmos_backend
-    depends_on:
-      - web-core-dist
     logging:
       driver: "local"
       options:
@@ -78,9 +69,6 @@ services:
       # Access to COSMOS binaries
       - bin:/home/web_user/cosmos/bin
       - resources:/home/web_user/cosmos/resources
-      # Webasm binary
-      - web_core_dist:/root/web_core_dist
-      # - web_core_dist/CosmosWebCore.data:/home/node/app
 
   influxdb:
     image: influxdb:2.6.1
@@ -156,7 +144,6 @@ services:
 
 volumes:
   bin: {}
-  web_core_dist: {}
   resources: {}
   database: {}
   logs: {}
